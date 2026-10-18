@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+navigation-data/
+.local/
+.idea/
+local.properties
+**/build/
+*.iml
+*.jks
+*.keystore
+screenshots/
+artifacts/
