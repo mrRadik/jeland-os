@@ -281,5 +281,6 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
             Label("Обычное OEM-разрешение ivi.vds.permission.SERVICE. Без root, priv-app и замены штатной оболочки. Служба подсказок работает только с разрешённым пользователем доступом к уведомлениям. Probe остаётся отдельным приложением.",small=true,muted=true)
             Label("Jeland OS · ${BuildConfig.VERSION_NAME}\nОтдельное Android-приложение, не системная прошивка",small=true,muted=true)
         }}
+        SupportProjectSettings()
     }
 }

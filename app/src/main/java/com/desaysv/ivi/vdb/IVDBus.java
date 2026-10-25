@@ -30,7 +30,7 @@ public interface IVDBus extends IInterface {
             if (code == 1) {
                 VDEvent result = get(data.readInt() != 0 ? VDEvent.CREATOR.createFromParcel(data) : null);
                 reply.writeNoException();
-                if (result != null) { reply.writeInt(1); result.writeToParcel(reply, 1); } else reply.writeInt(0);
+                if (result != null) { reply.writeInt(1); result.writeToParcel(reply, android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE); } else reply.writeInt(0);
                 return true;
             }
             if (code == 2) { set(data.readInt() != 0 ? VDEvent.CREATOR.createFromParcel(data) : null); reply.writeNoException(); return true; }
