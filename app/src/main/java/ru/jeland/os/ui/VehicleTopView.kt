@@ -97,7 +97,7 @@ import kotlin.math.sin
         if(onVehicle!=null)Box(Modifier.offset(diagram.x.dp,diagram.y.dp).size(diagram.width.dp,diagram.height.dp)
             .clickable(role=Role.Button,onClick=onVehicle).testTag("vehicle-body")
             .semantics {contentDescription="Открыть расширенное состояние автомобиля"})
-        if(showTires&&onTire!=null)BoxWithConstraints(Modifier.matchParentSize()) {
+        if(showTires&&onTire!=null)Box(Modifier.matchParentSize()) {
             Wheel.entries.forEach {wheel->
                 val x=diagram.px(if(wheel.front).20f else .80f);val y=diagram.py(if(wheel.left).80f else .20f)
                 Box(Modifier.offset(x=x.dp-26.dp,y=y.dp-26.dp).size(52.dp)

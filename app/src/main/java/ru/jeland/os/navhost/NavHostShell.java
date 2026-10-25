@@ -132,6 +132,9 @@ public final class NavHostShell extends Binder {
             return true;
         } finally {Binder.restoreCallingIdentity(identity);}
     }
+    // 256 is the framework's hidden DESTROY_CONTENT_ON_REMOVAL flag, deliberately
+    // used by this shell-only helper. Keep the existing flags and Binder behavior.
+    @android.annotation.SuppressLint("WrongConstant")
     private void attach(String pkg,Surface next,int w,int h,int dpi) throws Exception {
         boolean launch=display==null||!pkg.equals(provider);
         if(launch)closeDisplay();

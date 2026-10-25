@@ -106,7 +106,7 @@ Gradle Wrapper включён в проект. Android Studio также мож�
 Укажите SDK через `ANDROID_SDK_ROOT` либо локальный `local.properties`:
 
 ```properties
-sdk.dir=C:/Android/Sdk
+sdk.dir=C\:/Android/Sdk
 ```
 
 В Windows:
@@ -132,6 +132,10 @@ Android-тесты запускаются отдельно на тестовом
 модели Supertonic, APK, кэши и диагностические журналы в Git не публикуются.
 
 ## Участие в разработке
+
+Каждый PR автоматически проверяется GitHub Actions: сборка, модульные тесты,
+Android Lint и компиляция Android-тестов. Результат виден во вкладке Checks;
+отчёты сохраняются в Actions. [Описание проверок](docs/CI.md).
 
 1. Сделайте fork и отдельную ветку.
 2. Опишите изменение; для функций ГУ укажите автомобиль и прошивку.

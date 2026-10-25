@@ -3,6 +3,7 @@ package ru.jeland.os
 import android.graphics.Bitmap
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
@@ -56,7 +57,7 @@ class RearSeatsInstrumentation {
             override val state=feedback
             override fun setRearLevel(side:RearSeatSide,value:Int){sent+=side to value}
         }
-        ui.activityRule.scenario.onActivity {it.setContent {JelandTheme(true) {Box(Modifier.fillMaxWidth().padding(20.dp)){RearSeatsControls(feedback.value,r)}}}}
+        ui.activityRule.scenario.onActivity {it.setContent {JelandTheme(true) {Box(Modifier.fillMaxWidth().padding(20.dp)){RearSeatsControls(feedback.collectAsState().value,r)}}}}
         ui.onNodeWithTag("rear-left-level-3").assertIsEnabled().performClick()
         ui.onNodeWithTag("rear-right-level-3").assertIsNotEnabled().performTouchInput {click()}
         assertEquals(listOf(RearSeatSide.LEFT to 3),sent)

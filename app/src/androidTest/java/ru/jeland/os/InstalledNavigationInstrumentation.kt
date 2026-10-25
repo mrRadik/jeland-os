@@ -111,7 +111,7 @@ class InstalledNavigationInstrumentation {
         assertEquals(NavigationProvider.DGIS,r.state.value.external!!.selected)
         ui.onNodeWithTag("navigation-notification-access").performScrollTo().assertIsDisplayed()
         var opened=false
-        ui.activityRule.scenario.onActivity {it.setContent {JelandTheme(true) {InstalledNavigationScreen(model,r.state.value.external!!){opened=true}}}}
+        ui.activityRule.scenario.onActivity {it.setContent {JelandTheme(true) {InstalledNavigationScreen(model,r.state.collectAsState().value.external!!){opened=true}}}}
         ui.onNodeWithTag("navigation-settings").performClick()
         ui.runOnIdle {assertTrue(opened)}
     }
