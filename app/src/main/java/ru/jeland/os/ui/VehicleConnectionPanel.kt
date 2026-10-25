@@ -19,9 +19,8 @@ import ru.jeland.os.core.*
         }
         LogExportPanel(model)
         if(!s.car.demo) {
-            SettingsToggle("Разрешить команды · автомобиль стоит","До ухода с экрана. Шторка — только со свободным проёмом. Без автоповтора SET.",s.car.writesEnabled,
-                Modifier.testTag("vehicle-write-unlock")){car.allowWrites(!s.car.writesEnabled)}
-            Control(if(s.car.busy)"Ожидаем обратное состояние…"else"Обновить показания",Modifier.testTag("vehicle-refresh")){car.refresh()}
+            Label("Управление доступно автоматически при подключении ГУ. Шторка — только со свободным проёмом.",small=true,muted=true)
+            Control("Обновить показания",Modifier.testTag("vehicle-refresh")){car.refresh()}
             Label("Подробная диагностика сохраняется в журнале. Для отправки используйте сохранение логов.",small=true,muted=true)
         }else Label("Локальная демонстрация. Ни одна команда автомобиля не отправляется.",small=true,muted=true)
     }
@@ -29,13 +28,14 @@ import ru.jeland.os.core.*
 
 @Composable private fun LogExportPanel(model:MainViewModel) {
     val saving by model.savingLogs.collectAsStateWithLifecycle()
+    val clearing by model.clearingLogs.collectAsStateWithLifecycle()
     val saved by model.savedLogs.collectAsStateWithLifecycle()
     val message by model.logsMessage.collectAsStateWithLifecycle()
     val context=LocalContext.current
     Column(Modifier.fillMaxWidth().testTag("log-export-panel"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
         SectionTitle("Логи Jeland OS","Журнал сохраняется автоматически с запуска, в том числе в DEMO")
         Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            Control(if(saving)"Сохраняем…"else"Сохранить логи ZIP",Modifier.weight(1f).testTag("save-os-logs")){model.saveLogs()}
+            Control(if(saving)"Сохраняем…"else"Сохранить логи ZIP",Modifier.weight(1f).testTag("save-os-logs"),enabled=!saving&&!clearing){model.saveLogs()}
             saved?.let {archive->Control("Поделиться",Modifier.testTag("share-os-logs")) {
                 try {
                     val intent=android.content.Intent(android.content.Intent.ACTION_SEND).setType("application/zip")
@@ -46,6 +46,7 @@ import ru.jeland.os.core.*
                 }catch(error:Exception){model.logsMessage.value="Нет приложения для отправки. ZIP сохранён в ${archive.location}"}
             }}
         }
+        LogCleanupButton(saving||clearing,model::clearLogs)
         message?.let {Label(it,Modifier.testTag("os-logs-result"),small=true)}
         Label("ZIP появится в Загрузки/JelandOS. Сохраняются журналы и уже полученные RAW; команды автомобилю не отправляются. Логи могут содержать данные автомобиля.",small=true,muted=true)
     }

@@ -1,4 +1,4 @@
-﻿param([string]$Serial='127.0.0.1:5556')
+﻿param([string]$Serial='127.0.0.1:5555')
 $ErrorActionPreference='Stop'
 # Deliberately restrict this helper to loopback: never silently install onto a USB head unit.
 if ($Serial -notmatch '^127\.0\.0\.1:\d+$') { throw 'Этот скрипт предназначен только для локального BlueStacks (127.0.0.1:порт).' }
@@ -8,7 +8,7 @@ if (-not (Test-Path -LiteralPath $adb)) {
     if (-not $found) { throw 'Не найден adb.exe. Нужна папка ADB-коллектора рядом с JelandOS или adb в PATH.' }
     $adb=$found.Source
 }
-$apk=Join-Path $PSScriptRoot 'artifacts\JelandOS-0.6.5-rear-seats.apk'
+$apk=Join-Path $PSScriptRoot 'artifacts\JelandOS-0.9.35.apk'
 if (-not (Test-Path -LiteralPath $apk)) { $apk=Join-Path $PSScriptRoot 'app\build\outputs\apk\debug\app-debug.apk' }
 if (-not (Test-Path -LiteralPath $apk)) { throw 'Сначала соберите APK через BUILD.ps1 или Android Studio.' }
 & $adb connect $Serial

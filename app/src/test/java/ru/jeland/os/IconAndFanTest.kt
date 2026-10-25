@@ -25,7 +25,7 @@ class IconAndFanTest {
     @Test fun allTenFanCommandsKeepOemValuesWithoutOffsetOrRemap() {
         for(level in 1..10){
             val w=VerifiedVehicleProtocol.fan(level)
-            assertEquals(VdsKey(0x5000A,12),w.key);assertEquals(level,w.value);assertEquals(level,w.expected)
+            assertEquals(VdsKey(0x5000A,77),w.key);assertEquals(VdsKey(0x5000A,12),w.feedback);assertEquals(level,w.value);assertEquals(level,w.expected)
             assertTrue(VerifiedVehicleProtocol.allowed(w))
         }
         for(invalid in listOf(-1,0,11,255)){

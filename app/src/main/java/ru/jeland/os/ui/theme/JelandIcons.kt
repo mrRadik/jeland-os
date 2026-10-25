@@ -27,7 +27,10 @@ object JIcons {
     val Air=Fan
     val Power=LucideVectors.Power
     val Snowflake=LucideVectors.Snowflake
+    val Thermometer=auto("Thermometer","M14,14.76 V4 A2,2 0,0 0,10,4 V14.76 A4,4 0,1 0,14,14.76 M12,9 V18")
     val Fuel=LucideVectors.Fuel
+    val Hazard=auto("Hazard","M12,2 L23,22 H1 Z M12,7 L18.5,19 H5.5 Z")
+    val Battery=auto("Battery","M5,6 V3 H9 V6 M15,6 V3 H19 V6 M3,6 H21 V21 H3 Z M6,12 H10 M8,10 V14 M14,12 H18")
     val Cloud=LucideVectors.Cloud
     val FavoriteBorder=LucideVectors.Heart
     val Favorite=FavoriteBorder
@@ -39,6 +42,9 @@ object JIcons {
     val TurnRight=LucideVectors.TurnRight
     val TurnLeft=LucideVectors.TurnLeft
     val Straight=LucideVectors.Straight
+    val UTurn=auto("UTurn","M18,21 V8 A6,6 0,0 0,6,8 V15 M2,11 L6,15 L10,11")
+    val Roundabout=auto("Roundabout","M15,5 A7,7 0,1 0,19,12 M15,1 V5 H19 M5,18 L2,21 M17,18 L20,21 M12,12 V22")
+    val Destination=auto("Destination","M5,22 V3 M5,3 H20 L16,8 L20,13 H5")
     val Search=LucideVectors.Search
     val Refresh=LucideVectors.Refresh
     val Wifi=LucideVectors.Wifi
@@ -48,7 +54,11 @@ object JIcons {
     val DarkMode=LucideVectors.Moon
     val LightMode=LucideVectors.Sun
     // Clear automotive silhouettes: separate seat, face/feet airflow, glass heating and defogging.
-    val AirlineSeatReclineNormal=auto("Seat","M9,5 A2,2 0,1 0,5,5 A2,2 0,1 0,9,5 M6,9 L8,16 Q8.3,17 10,17 H18 Q20,17 20,19 V20 H8 Q6,20 5.5,18 L3.5,11 M17,3 Q15,5 17,7 Q19,9 17,11 M21,3 Q19,5 21,7 Q23,9 21,11")
+    private const val SEAT_PROFILE="M4.7,2.5 H6.5 Q7.5,2.5 7.5,3.5 V5 Q7.5,6 6.5,6 H4.7 Q3.7,6 3.7,5 V3.5 Q3.7,2.5 4.7,2.5 Z M4.4,8 H6 Q7,8 7.2,9 L9,16 H19.5 Q21,16 20.5,17.5 L19.3,20.5 H7.5 Q6,20.5 5.7,19 L3.2,9.5 Q2.9,8 4.4,8 Z"
+    val Seat=auto("SeatProfile",SEAT_PROFILE)
+    val SeatHeating=auto("HeatedSeatProfile",SEAT_PROFILE+" M11,12.5 Q9.7,10.8 11,9 Q12.3,7.2 11,5.5 M15,12.5 Q13.7,10.8 15,9 Q16.3,7.2 15,5.5 M19,12.5 Q17.7,10.8 19,9 Q20.3,7.2 19,5.5")
+    val SeatVentilation=auto("VentilatedSeatProfile",SEAT_PROFILE+" M11,5.5 V12 M9.7,10.7 L11,12 L12.3,10.7 M15,5.5 V12 M13.7,10.7 L15,12 L16.3,10.7 M19,5.5 V12 M17.7,10.7 L19,12 L20.3,10.7")
+    val AirlineSeatReclineNormal=SeatHeating
     val Heat=auto("Heat","M6,21 Q3,17 6,13 Q9,9 6,5 M12,21 Q9,17 12,13 Q15,9 12,5 M18,21 Q15,17 18,13 Q21,9 18,5 M4,7 L6,5 L8,7 M10,7 L12,5 L14,7 M16,7 L18,5 L20,7")
     val AirFace=auto("AirFace","M20,4 A2,2 0,1 0,16,4 A2,2 0,1 0,20,4 M16,9 L13,16 H8 L5,21 M19,10 L16,21 H11 M2,6 Q5,4 8,6 Q10,7.3 12,6 M2,9 Q5,7 8,9 Q10,10.3 12,9")
     val AirFeet=auto("AirFeet","M20,4 A2,2 0,1 0,16,4 A2,2 0,1 0,20,4 M16,9 L13,16 H8 L5,21 M19,10 L16,21 H11 M2,11 Q1,14 3,16 M1,15 Q1,18 3,19")

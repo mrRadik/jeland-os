@@ -59,20 +59,25 @@ data class VehicleState(
     val live: Boolean = false, val knownOpenings: Set<VehicleOpening> = VehicleOpening.entries.toSet(),
     val steeringKnown: Boolean = true, val shadeRaw: List<Int>? = null, val requestedShade: Shade? = null,
     val engineRpm: Int? = null, val tireChannels: List<Double?> = emptyList(),
+    val battery:BatteryReading=BatteryReading(),
 )
 data class Track(val title: String, val artist: String, val duration: Int)
 val demoTracks = listOf(Track("Blinding Lights", "The Weeknd", 200), Track("Midnight City", "M83", 244), Track("Nightcall", "Kavinsky", 258))
-data class MediaState(val index: Int = 0, val playing: Boolean = false, val position: Int = 84, val volume: Int = 45, val source: String = "Bluetooth", val liked: Boolean = false) {
-    val track: Track get() = demoTracks[index.coerceIn(demoTracks.indices)]
+data class MediaState(val index: Int = 0, val playing: Boolean = false, val position: Int = 84, val volume: Int = 45, val source: String = "Bluetooth", val liked: Boolean = false,
+    val live:Boolean=false,val liveTrack:Track?=null,val controlsEnabled:Boolean=true,val status:String="DEMO · без аудио",val positionKnown:Boolean=true,val artwork:MediaArtwork?=null,val playlist:List<MediaQueueItem> = emptyList(),val currentId:String?=null,val bluetoothConnected:Boolean?=null) {
+    val track: Track get() = if(live)liveTrack?:Track("Музыка","",0) else demoTracks[index.coerceIn(demoTracks.indices)]
 }
 data class NavigationState(
+    val external:ExternalNavigationState?=null,
+    val demo:Boolean=true, val preview:Boolean=false, val calculating:Boolean=false, val instruction:String="", val status:String="",
+    val geometry:List<Pair<Double,Double>> = emptyList(),
     val active: Boolean = true, val destination: String = "На работу", val maneuver: Maneuver = Maneuver.RIGHT,
     val distanceToManeuver: Int = 800, val street: String = "ул. Ленина", val minutes: Int = 12,
     val kilometers: Double = 8.4, val zoom: Float = 1f,
     val arrivalTime: String = java.time.LocalTime.now().plusMinutes(12).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),
 )
-data class WeatherState(val temperature: Int? = 8, val city: String = "Челябинск", val condition: String = "Облачно",val demo:Boolean=true) {
-    val temperatureLabel get()=temperature?.let {"${if(it>0)"+"else""}$it°"}?:"—°"
+data class WeatherState(val temperature: Int? = 8, val city: String = "Челябинск", val condition: String = "Облачно",val demo:Boolean=true,val outsideCelsius:Double?=null) {
+    val temperatureLabel get()=if(!demo)OutsideTemperature.label(outsideCelsius)else temperature?.let {"${if(it>0)"+"else""}$it°"}?:"—°"
 }
 data class UiState(
     val climate: ClimateState = ClimateState(), val seats: SeatState = SeatState(),

@@ -5,8 +5,8 @@ data class VehicleDiagramGeometry(val x:Float,val y:Float,val width:Float,val he
     fun px(value:Float)=x+value*width
     fun py(value:Float)=y+value*height
     companion object {
-        fun fit(width:Float,height:Float):VehicleDiagramGeometry {
-            val w=minOf(width*.64f,height*2f/1.12f).coerceAtLeast(0f)
+        fun fit(width:Float,height:Float,widthFraction:Float=.64f):VehicleDiagramGeometry {
+            val w=minOf(width*widthFraction.coerceIn(.4f,.8f),height*2f/1.12f).coerceAtLeast(0f)
             val h=w/2f
             return VehicleDiagramGeometry((width-w)/2f,(height-h)/2f,w,h)
         }

@@ -20,15 +20,16 @@ class RadioCacheInstrumentation {
     private val instrumentation get()=InstrumentationRegistry.getInstrumentation()
     private class Bus:IVDBus.Stub() {
         val calls=AtomicInteger();val entered=CountDownLatch(1);var gate:CountDownLatch?=null
+        var key="info";var signalRaw=26;var nullValue=false
         override fun get(event:VDEvent?):VDEvent {
             assertEquals(720899,event!!.id);assertTrue(event.payload.isEmpty)
             calls.incrementAndGet();entered.countDown();gate?.await(2,TimeUnit.SECONDS)
             val p=Parcel.obtain()
             try {
-                p.writeByte(1.toByte());p.writeByte(1.toByte());p.writeString("4G");p.writeByte(0.toByte());p.writeInt(4)
+                p.writeByte(1.toByte());p.writeByte(1.toByte());p.writeString("4G");p.writeByte(0.toByte());p.writeInt(signalRaw)
                 repeat(3){p.writeString("")};repeat(3){p.writeInt(0)};p.setDataPosition(0)
                 val dto=VDNetworkStatus.CREATOR.createFromParcel(p)
-                return VDEvent(720899,Bundle().apply {putParcelable("data",dto)})
+                return VDEvent(720899,Bundle().apply {putParcelable(key,dto);putBoolean("IS_NULL",nullValue)})
             } finally {p.recycle()}
         }
         override fun set(event:VDEvent?) {throw AssertionError("Cache cannot SET")}
@@ -60,8 +61,23 @@ class RadioCacheInstrumentation {
         val deadline=SystemClock.elapsedRealtime()+3000
         while(cache.value==null&&SystemClock.elapsedRealtime()<deadline)SystemClock.sleep(10)
         val result=checkNotNull(cache.value)
-        assertTrue(result.connected&&result.registered);assertEquals("4G",result.type);assertEquals(4,result.level)
+        assertTrue(result.connected&&result.registered);assertEquals("4G",result.type);assertNull(result.level)
         assertEquals(1,bus.calls.get())
+    }
+    @Test fun oemGetterNormalizedLevelIsUsedWithoutDoubleConversion()=withCache {cache,bus,poll->
+        bus.signalRaw=4
+        instrumentation.runOnMainSync {poll.run()}
+        val deadline=SystemClock.elapsedRealtime()+3000
+        while(cache.value==null&&SystemClock.elapsedRealtime()<deadline)SystemClock.sleep(10)
+        assertEquals("4G",checkNotNull(cache.value).type);assertEquals(4,cache.value!!.level)
+    }
+    @Test fun wrongPayloadKeyAndNullFlagNeverPublishNetwork() {
+        for(useNullFlag in listOf(false,true))withCache {cache,bus,poll->
+            if(useNullFlag)bus.nullValue=true else bus.key="data"
+            instrumentation.runOnMainSync {poll.run()}
+            assertTrue(bus.entered.await(1,TimeUnit.SECONDS));SystemClock.sleep(200)
+            assertNull(cache.value)
+        }
     }
     @Test fun hungReadCannotQueueMoreReadsOrPublishAfterStop()=withCache {cache,bus,poll->
         bus.gate=CountDownLatch(1)

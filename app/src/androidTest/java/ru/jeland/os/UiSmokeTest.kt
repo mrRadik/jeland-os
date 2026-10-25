@@ -56,10 +56,11 @@ class UiSmokeTest {
         for(theme in listOf(ThemeMode.DARK,ThemeMode.LIGHT)) {
             ui.runOnIdle {container().theme.setMode(theme)}
             ui.waitForIdle()
-            val range=ui.onNodeWithTag("home-scroll").fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
-            org.junit.Assert.assertEquals("Home must fit the 1440x1920 viewport",0f,range.maxValue(),0f)
+            val config=ui.onNodeWithTag("home-scroll").fetchSemanticsNode().config
+            val range=if(config.contains(SemanticsProperties.VerticalScrollAxisRange))config[SemanticsProperties.VerticalScrollAxisRange]else null
+            org.junit.Assert.assertEquals("Home must fit the 1440x1920 viewport",0f,range?.maxValue()?:0f,0f)
             ui.onNodeWithTag("quick-steering").assertIsDisplayed()
-            ui.onNodeWithTag("quick-camera").assertIsDisplayed()
+            ui.onNodeWithTag("quick-cameras").assertIsDisplayed()
             ui.onNodeWithTag("climate-bar").assertIsDisplayed()
             capture("home-fit-${theme.name.lowercase()}")
         }
@@ -120,10 +121,22 @@ class UiSmokeTest {
         for(theme in listOf(ThemeMode.DARK,ThemeMode.LIGHT)) {
             ui.runOnIdle {container().theme.setMode(theme);container().vehicle.closeAllOpenings();container().vehicle.simulateMoving(false)}
             capture("home-${theme.name.lowercase()}")
-            for(tag in listOf("driver-seat","passenger-seat","expand-climate","configure-favorites","fuel-widget","weather-widget","open-debug","quick-shade","quick-camera")) {
+            for(tag in listOf("driver-seat","passenger-seat","expand-climate","configure-favorites","fuel-widget","weather-widget","open-debug","quick-shade","quick-cameras")) {
                 ui.onNodeWithTag(tag).performClick()
                 ui.onNodeWithTag("climate-bar").assertIsDisplayed()
                 capture("${theme.name.lowercase()}-$tag")
+                if(tag=="quick-cameras") {
+                    ui.onNodeWithTag("close-popup").assertDoesNotExist()
+                    ui.onNodeWithText("Штатные камеры доступны на ГУ в режиме автомобиля.").assertExists()
+                    ui.onNodeWithTag("ui-message").performClick()
+                    continue
+                }
+                if(tag=="weather-widget") {
+                    ui.onNodeWithTag("close-popup").assertDoesNotExist()
+                    ui.onNodeWithText("Штатная погода недоступна.").assertExists()
+                    ui.onNodeWithTag("ui-message").performClick()
+                    continue
+                }
                 if(tag=="driver-seat") {
                     ui.onNodeWithTag("seat-heat").performClick();ui.onNodeWithTag("seat-level-2").performClick();capture("${theme.name.lowercase()}-seat-heat")
                     ui.onNodeWithTag("seat-vent").performClick();ui.onNodeWithTag("seat-level-3").performClick();capture("${theme.name.lowercase()}-seat-vent")
@@ -299,7 +312,7 @@ class UiSmokeTest {
                 ui.waitUntil(5000){ui.onAllNodesWithTag("vehicle-status-card").fetchSemanticsNodes().isNotEmpty()==tires && ui.onAllNodesWithTag("favorite-apps-widget").fetchSemanticsNodes().isNotEmpty()==favorites}
                 val range=ui.onNodeWithTag("home-scroll").fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
                 org.junit.Assert.assertEquals(0f,range.maxValue(),0f)
-                ui.onNodeWithTag("quick-camera").assertIsDisplayed()
+                ui.onNodeWithTag("quick-cameras").assertIsDisplayed()
             }
         } finally {ui.runOnIdle {container().preferences.change(original)}}
     }

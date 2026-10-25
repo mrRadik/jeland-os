@@ -31,6 +31,11 @@ class MockClimateRepository(private val store: SettingsStore) : ClimateRepositor
         val next=(round((current+delta)*2)/2).coerceIn(16.0,32.0)
         if(s.sync) s.copy(driver=next,passenger=next) else if(driver) s.copy(driver=next) else s.copy(passenger=next)
     }
+    override fun setTemperature(driver:Boolean,value:Double) {
+        if(!value.isFinite()||value !in 16.0..32.0)return
+        val next=round(value*2)/2
+        change {s->if(s.sync)s.copy(driver=next,passenger=next)else if(driver)s.copy(driver=next)else s.copy(passenger=next)}
+    }
     override fun toggleAuto()=change { it.copy(auto=!it.auto) }
     override fun toggleAc()=change { it.copy(ac=!it.ac) }
     override fun toggleRecirculation()=change { it.copy(recirculation=!it.recirculation) }
@@ -84,7 +89,7 @@ class MockSeatRepository(private val store: SettingsStore) : SeatRepository {
     }
 }
 class MockVehicleRepository(private val store: SettingsStore) : VehicleRepository {
-    private val flow=MutableStateFlow(VehicleState(steeringHeat=store.bool("vehicle.steering",false),shade=store.enum("vehicle.shade",Shade.CLOSED),mirrorsFolded=store.bool("vehicle.mirrors",false),
+    private val flow=MutableStateFlow(VehicleState(battery=BatteryReading.DEMO,steeringHeat=store.bool("vehicle.steering",false),shade=store.enum("vehicle.shade",Shade.CLOSED),mirrorsFolded=store.bool("vehicle.mirrors",false),
         tireThresholds=runCatching {TireThresholds(store.string("tires.criticalLow","1.7").toDouble(),store.string("tires.warningLow","2.1").toDouble(),store.string("tires.warningHigh","2.9").toDouble(),store.string("tires.criticalHigh","3.3").toDouble())}.getOrDefault(TireThresholds()),
         options=VehicleOption.entries.associateWith {store.bool("option.${it.name}",false)}))
     override val state=flow.asStateFlow()

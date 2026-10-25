@@ -45,12 +45,13 @@ class ClimateControlsTest {
         assertEquals(!power,saved.power);assertTrue(saved.rearDefrost);assertTrue(saved.windshieldHeat)
         assertEquals(Airflow.ALL,saved.reportedAirflow)
     }
-    @Test fun panelCloseIsBoundedRateLimitedAndCancellable() {
-        val w=HvacPanelCloseWindow();assertFalse(w.claim(0));w.arm(100)
-        assertTrue(w.claim(100));assertFalse(w.claim(449));assertTrue(w.claim(450))
-        assertTrue(w.claim(800));assertTrue(w.claim(1150));assertTrue(w.claim(1500))
-        assertFalse(w.claim(1900));w.arm(2000);assertFalse(w.claim(5200))
-        w.arm(6000);w.cancel();assertFalse(w.claim(6001))
+    @Test fun displayLatchIsNotPowerAndIsExcludedFromPublicActuatorWhitelist() {
+        val key=VdsKey(VerifiedVehicleProtocol.HVAC,9)
+        assertFalse(VerifiedVehicleProtocol.allowed(VdsWrite(key,2)))
+        val r=LiveVehicleReducer()
+        r.accept(key,listOf(1),0)
+        assertFalse(r.climate(1).power);assertFalse(r.climate(1).known(9))
+        assertEquals(listOf(1),r.values(key,1))
     }
     @Test fun powerOffBlocksEveryClimateMutationButCanAlwaysBeSwitchedBackOn() {
         val store=MemorySettingsStore();val r=MockClimateRepository(store)

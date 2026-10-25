@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.jeland.os.R
 import ru.jeland.os.core.*
 import ru.jeland.os.ui.theme.JIcons
@@ -26,14 +27,22 @@ import ru.jeland.os.ui.theme.Jeland
 
 @Composable fun PopupContent(p:Popup,s:UiState,model:MainViewModel,show:(Popup)->Unit) {
     when(p) {
+        Popup.DRIVER_TEMPERATURE,Popup.PASSENGER_TEMPERATURE->TemperatureSliderPanel(p==Popup.DRIVER_TEMPERATURE,s,model.dependencies.climate){show(p)}
         Popup.DRIVER->SeatControlPopup(SeatSide.DRIVER,s,model)
         Popup.PASSENGER->SeatControlPopup(SeatSide.PASSENGER,s,model)
         Popup.CLIMATE->ClimatePopup(s.climate,model)
         Popup.APPS->AppsPicker(model,s.apps)
         Popup.DEBUG->if(s.car.demo)DashboardDebugPanel(s,model)else VehicleConnectionPanel(s,model)
         Popup.FUEL->FuelPopup(s.vehicle.fuel,model)
+        Popup.BATTERY->BatteryDetails(s.vehicle.battery,s.vehicle.live)
         Popup.VEHICLE->VehicleDetailsPopup(s,model,show)
-        Popup.TIRE_FRONT_LEFT,Popup.TIRE_FRONT_RIGHT,Popup.TIRE_REAR_LEFT,Popup.TIRE_REAR_RIGHT->TireDetailsPopup(p.wheel!!,s.vehicle)
+        Popup.TIRE_FRONT_LEFT,Popup.TIRE_FRONT_RIGHT,Popup.TIRE_REAR_LEFT,Popup.TIRE_REAR_RIGHT->{
+            val saving by model.savingLogs.collectAsStateWithLifecycle()
+            val clearing by model.clearingLogs.collectAsStateWithLifecycle()
+            TireDetailsPopup(p.wheel!!,s.vehicle,model.tyreDiagnostics.collectAsStateWithLifecycle().value,model::saveLogs,model::clearLogs,saving||clearing)
+            val saveMessage by model.logsMessage.collectAsStateWithLifecycle()
+            saveMessage?.let {Label(it,small=true,muted=true)}
+        }
         Popup.SHADE->{
             SunshadeRoofPreview(s.vehicle.shadeUiPosition)
             Spacer(Modifier.height(24.dp))
@@ -42,7 +51,6 @@ import ru.jeland.os.ui.theme.Jeland
             }
             if(!s.car.demo){Spacer(Modifier.height(18.dp));Label("Не перекрывайте проём шторки.",small=true,muted=true)}
         }
-        Popup.CAMERA->CameraPanel()
         Popup.WEATHER->{
             SectionTitle("${s.weather.temperatureLabel} · ${s.weather.condition}","${s.weather.city} · данные не из сети")
             Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
@@ -126,23 +134,4 @@ import ru.jeland.os.ui.theme.Jeland
 }
 @Composable fun ClimatePopup(s:ClimateState,model:MainViewModel) {
     ClimateDashboard(s,model.dependencies.climate)
-}
-@Composable private fun CameraPanel() {
-    var view by rememberSaveable {mutableStateOf("Сверху")}
-    val c=Jeland.colors
-    Box(Modifier.fillMaxWidth().height(240.dp).background(c.map),contentAlignment=Alignment.Center) {
-        Canvas(Modifier.fillMaxSize().padding(25.dp)) {
-            val w=size.width;val h=size.height
-            drawRoundRect(c.deep.copy(alpha=.3f),Offset(w*.42f,h*.1f),Size(w*.16f,h*.8f),androidx.compose.ui.geometry.CornerRadius(30f,30f))
-            drawRoundRect(c.artMuted,Offset(w*.42f,h*.1f),Size(w*.16f,h*.8f),androidx.compose.ui.geometry.CornerRadius(30f,30f),style=Stroke(3f))
-            if(view=="Сверху") {
-                drawLine(c.success,Offset(w*.28f,h*.9f),Offset(w*.3f,h*.1f),3f)
-                drawLine(c.success,Offset(w*.72f,h*.9f),Offset(w*.7f,h*.1f),3f)
-            }
-        }
-        Text("НЕТ ВИДЕОСИГНАЛА · ДЕМО",color=c.artText,fontSize=Jeland.type.secondary,modifier=Modifier.align(Alignment.BottomCenter).padding(Jeland.space.inset))
-    }
-    Spacer(Modifier.height(18.dp))
-    Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {listOf("Сверху","Спереди","Сзади").forEach {v->Control(v,Modifier.weight(1f),view==v){view=v}}}
-    Spacer(Modifier.height(14.dp));Label("Выбрано: $view. Это иллюстрация, не камера и не парковочный ассистент.",small=true,muted=true)
 }

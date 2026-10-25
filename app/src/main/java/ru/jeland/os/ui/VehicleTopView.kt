@@ -28,6 +28,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable fun VehicleStatusCard(vehicle:VehicleState,modifier:Modifier=Modifier,onVehicle:()->Unit,onTire:(Wheel)->Unit,onDebug:()->Unit) {
+    VehicleStatusWithFuel(vehicle,modifier,onVehicle,onTire,false,{},onDebug=onDebug)
+}
+@Composable fun VehicleStatusWithFuel(vehicle:VehicleState,modifier:Modifier=Modifier,onVehicle:()->Unit,onTire:(Wheel)->Unit,showFuel:Boolean=false,onFuel:()->Unit={},onBattery:(()->Unit)?=null,onDebug:()->Unit) {
     Panel(modifier.testTag("vehicle-status-card")) {
         Row(Modifier.fillMaxWidth().height(40.dp).padding(horizontal=18.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Состояние автомобиля",color=Jeland.colors.text,fontSize=Jeland.type.body,modifier=Modifier.weight(1f))
@@ -36,11 +39,11 @@ import kotlin.math.sin
                 Glyph(JIcons.Settings,"Тестовые события",Modifier.size(20.dp))
             }
         }
-        VehicleTopView(vehicle,Modifier.fillMaxWidth().weight(1f).padding(horizontal=14.dp).padding(bottom=8.dp),true,onVehicle,onTire)
+        VehicleTopView(vehicle,Modifier.fillMaxWidth().weight(1f).padding(horizontal=14.dp).padding(bottom=8.dp),true,onVehicle,onTire,showFuel,onFuel,if(showFuel).60f else .64f,onBattery)
     }
 }
 /** Car nose points LEFT. Lower edge is the driver's left side; tyres never swap sides. */
-@Composable fun VehicleTopView(vehicle:VehicleState,modifier:Modifier=Modifier,showTires:Boolean=true,onVehicle:(()->Unit)?=null,onTire:((Wheel)->Unit)?=null) {
+@Composable fun VehicleTopView(vehicle:VehicleState,modifier:Modifier=Modifier,showTires:Boolean=true,onVehicle:(()->Unit)?=null,onTire:((Wheel)->Unit)?=null,showFuel:Boolean=false,onFuel:(()->Unit)?=null,widthFraction:Float=.64f,onBattery:(()->Unit)?=null) {
     val c=Jeland.colors
     val progress=VehicleOpening.entries.associateWith {opening->
         val value by animateFloatAsState(if(opening in vehicle.openings)1f else 0f,tween(Jeland.animation.door),label="door-${opening.name}")
@@ -49,11 +52,11 @@ import kotlin.math.sin
     BoxWithConstraints(modifier.clipToBounds().testTag("vehicle-top-view").semantics {
         contentDescription="Jeland J7 строго сверху, передняя часть слева. Открыты: ${vehicle.openings.joinToString {it.title}.ifEmpty {"не обнаружены"}}. ${if(vehicle.live)"ГУ; неизвестных зон: ${VehicleOpening.entries.size-vehicle.knownOpenings.size}"else"DEMO"}"
     }) {
-        val diagram=VehicleDiagramGeometry.fit(maxWidth.value,maxHeight.value)
+        val diagram=VehicleDiagramGeometry.fit(maxWidth.value,maxHeight.value,widthFraction)
         Box(Modifier.align(Alignment.Center).fillMaxWidth(.65f).fillMaxHeight().background(Brush.radialGradient(listOf(c.deep.copy(alpha=if(vehicle.openings.isEmpty()).04f else .16f),c.deep.copy(alpha=0f)))))
         if(showTires) Canvas(Modifier.matchParentSize()) {
             for(front in listOf(true,false))for(left in listOf(true,false)) {
-                val g=VehicleDiagramGeometry.fit(size.width,size.height)
+                val g=VehicleDiagramGeometry.fit(size.width,size.height,widthFraction)
                 val x=g.px(if(front).20f else .80f);val y=g.py(if(left).80f else .20f)
                 val edgeX=if(front).17f else .83f
                 val path=Path().apply {moveTo(edgeX*size.width,y);lineTo(x,y)}
@@ -62,7 +65,7 @@ import kotlin.math.sin
         }
         Image(painterResource(R.drawable.vehicle_top),null,Modifier.offset(diagram.x.dp,diagram.y.dp).size(diagram.width.dp,diagram.height.dp).testTag("vehicle-artwork"),contentScale=ContentScale.Fit)
         Canvas(Modifier.matchParentSize()) {
-            val g=VehicleDiagramGeometry.fit(size.width,size.height)
+            val g=VehicleDiagramGeometry.fit(size.width,size.height,widthFraction)
             for(opening in VehicleOpening.entries) {
                 val amount=progress.getValue(opening)
                 if(amount<.01f)continue
@@ -103,11 +106,26 @@ import kotlin.math.sin
             }
         }
         if(showTires) {
-            TirePressureIndicator(Wheel.FRONT_RIGHT,vehicle,Modifier.align(Alignment.TopStart).padding(top=4.dp)){onTire?.invoke(Wheel.FRONT_RIGHT)}
-            TirePressureIndicator(Wheel.REAR_RIGHT,vehicle,Modifier.align(Alignment.TopEnd).padding(top=4.dp)){onTire?.invoke(Wheel.REAR_RIGHT)}
-            TirePressureIndicator(Wheel.FRONT_LEFT,vehicle,Modifier.align(Alignment.BottomStart).padding(bottom=4.dp)){onTire?.invoke(Wheel.FRONT_LEFT)}
-            TirePressureIndicator(Wheel.REAR_LEFT,vehicle,Modifier.align(Alignment.BottomEnd).padding(bottom=4.dp)){onTire?.invoke(Wheel.REAR_LEFT)}
+            val upper=4.dp
+            val lower=(maxHeight.value-56f).coerceAtLeast(0f).dp
+            TirePressureIndicator(Wheel.FRONT_RIGHT,vehicle,Modifier.align(Alignment.TopStart).offset(y=upper)){onTire?.invoke(Wheel.FRONT_RIGHT)}
+            TirePressureIndicator(Wheel.REAR_RIGHT,vehicle,Modifier.align(Alignment.TopEnd).offset(y=upper)){onTire?.invoke(Wheel.REAR_RIGHT)}
+            TirePressureIndicator(Wheel.FRONT_LEFT,vehicle,Modifier.align(Alignment.TopStart).offset(y=lower)){onTire?.invoke(Wheel.FRONT_LEFT)}
+            TirePressureIndicator(Wheel.REAR_LEFT,vehicle,Modifier.align(Alignment.TopEnd).offset(y=lower)){onTire?.invoke(Wheel.REAR_LEFT)}
         }
+        if(onBattery!=null)BatteryIndicator(vehicle.battery,Modifier.align(Alignment.CenterStart),onBattery)
+        if(showFuel)VehicleFuelIndicator(vehicle.fuel,Modifier.align(Alignment.CenterEnd)){onFuel?.invoke()}
+    }
+}
+@Composable private fun VehicleFuelIndicator(fuel:FuelState,modifier:Modifier,onClick:()->Unit) {
+    val c=Jeland.colors
+    Column(modifier.width(122.dp).clip(Jeland.card).background(c.panel.copy(alpha=.94f)).border(1.dp,c.outline,Jeland.card)
+        .clickable(onClick=onClick).padding(horizontal=10.dp,vertical=8.dp).testTag("fuel-widget"),horizontalAlignment=Alignment.CenterHorizontally) {
+        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+            androidx.compose.material3.Icon(JIcons.Fuel,null,Modifier.size(18.dp),tint=c.accent)
+            Text(fuel.displayLiters?.let {"${if(fuel.estimated)"≈ "else""}$it л"}?:"— л",color=c.text,fontSize=Jeland.type.control,lineHeight=Jeland.type.title,maxLines=1)
+        }
+        Text(fuel.litersToFull?.let {"До полного $it л"}?:"Топливо",color=c.muted,fontSize=Jeland.type.micro,lineHeight=Jeland.type.caption,maxLines=1)
     }
 }
 @Composable fun TirePressureIndicator(wheel:Wheel,vehicle:VehicleState,modifier:Modifier=Modifier,onClick:()->Unit) {
@@ -118,9 +136,9 @@ import kotlin.math.sin
         .semantics {contentDescription="${wheel.title}, ${reading.validBar?.let {"$it бар"}?:"нет данных"}, ${if(vehicle.live)"ГУ: предварительное сопоставление каналов"else"DEMO"}"},horizontalAlignment=Alignment.CenterHorizontally) {
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)) {
             Canvas(Modifier.size(7.dp)){drawCircle(color)}
-            Text(reading.validBar?.let {(if(vehicle.live)"≈ "else"")+String.format(java.util.Locale.US,"%.1f бар",it)}?:"Нет данных",color=if(reading.validBar!=null)c.text else c.unknown,fontSize=if(reading.validBar!=null)Jeland.type.control else Jeland.type.caption,maxLines=1)
+            Text(reading.validBar?.let {(if(vehicle.live)"≈ "else"")+String.format(java.util.Locale.US,"%.1f бар",it)}?:"Нет данных",color=if(reading.validBar!=null)c.text else c.unknown,fontSize=if(reading.validBar!=null)Jeland.type.control else Jeland.type.caption,lineHeight=Jeland.type.title,maxLines=1)
         }
         val position=when(wheel){Wheel.FRONT_LEFT->"ПЛ";Wheel.FRONT_RIGHT->"ПП";Wheel.REAR_LEFT->"ЗЛ";Wheel.REAR_RIGHT->"ЗП"}
-        Text("$position  ${reading.temperature?.let {"$it °C"}?:"— °C"}",color=c.muted,fontSize=Jeland.type.footnote)
+        Text("$position  ${reading.temperature?.let {"$it °C"}?:"— °C"}",color=c.muted,fontSize=Jeland.type.footnote,lineHeight=Jeland.type.caption)
     }
 }

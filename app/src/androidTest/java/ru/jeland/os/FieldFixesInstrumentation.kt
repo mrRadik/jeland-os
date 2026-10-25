@@ -17,7 +17,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import ru.jeland.os.core.*
-import ru.jeland.os.data.OemHvacPanel
 import ru.jeland.os.ui.*
 import ru.jeland.os.ui.theme.*
 import java.io.File
@@ -65,7 +64,7 @@ class FieldFixesInstrumentation {
             capture("live-vehicle-${if(dark)"dark"else"light"}")
         }
     }
-    @Test fun shadeButtonsHaveNoExtraDialogAndUiCloseRequestCannotWriteCan() {
+    @Test fun shadeButtonsHaveNoExtraDialogAndPanelLatchIsNotHvacPower() {
         ui.runOnIdle {container().car.useVehicle(false)}
         val model=MainViewModel(container())
         val state=UiState(car=VehicleLinkState(demo=false),vehicle=VehicleState(live=true,shadeRaw=listOf(5)))
@@ -77,10 +76,7 @@ class FieldFixesInstrumentation {
         ui.onNodeWithText("Отправить").assertDoesNotExist()
         ui.waitUntil(5000){container().vehicle.state.value.shade==Shade.HALF}
         assertEquals(Shade.HALF,container().vehicle.state.value.shade)
-        val request=OemHvacPanel.closeIntent()
-        assertEquals("com.desaysv.svhvac.service.HvacService",request.component!!.className)
-        assertEquals("com.desaysv.svhvac.CLOSE_PANEL",request.getStringExtra("type"))
-        assertFalse(request.hasExtra("VALUE"));assertFalse(request.hasExtra("CMD_ID"))
+        assertFalse(VerifiedVehicleProtocol.allowed(VdsWrite(VdsKey(VerifiedVehicleProtocol.HVAC,9),2)))
         capture("shade-open-no-confirmation")
     }
 }

@@ -33,11 +33,12 @@ class VehicleRouting(context: android.content.Context, store: SettingsStore) {
     val climate: ClimateRepository=object: ClimateRepository {
         override val state=route(demoClimate.state,session.climate)
         override fun adjustTemperature(driver: Boolean,delta: Double){if(demo)demoClimate.adjustTemperature(driver,delta)else session.temperature(driver,delta)}
+        override fun setTemperature(driver:Boolean,value:Double){if(demo)demoClimate.setTemperature(driver,value)else session.setTemperature(driver,value)}
         override fun toggleAuto(){if(demo)demoClimate.toggleAuto()else session.command("AUTO ВКЛ",{listOf(VerifiedVehicleProtocol.autoOn())})}
         override fun toggleAc(){if(demo)demoClimate.toggleAc()else session.binary(1)}
         override fun toggleRecirculation(){if(demo)demoClimate.toggleRecirculation()else session.binary(8)}
         override fun toggleDefrost(){if(demo)demoClimate.toggleDefrost()else session.binary(24)}
-        override fun toggleSync(){if(demo)demoClimate.toggleSync()else unsupported("SYNC")}
+        override fun toggleSync(){if(demo)demoClimate.toggleSync()else session.sync()}
         override fun setFan(value: Int){if(demo)demoClimate.setFan(value)else session.command("Вентилятор $value",{listOf(VerifiedVehicleProtocol.fan(value))})}
         override fun setAirflow(value: Airflow){if(demo)demoClimate.setAirflow(value)else session.command("Обдув: ${value.title}",{listOf(VerifiedVehicleProtocol.airflow(value.commandRaw))})}
         override fun setRawAirflow(value: Int){Airflow.fromCommand(value)?.let(::setAirflow)}

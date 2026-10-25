@@ -30,14 +30,8 @@ import ru.jeland.os.ui.theme.*
 
 @Composable fun WeatherWidget(state:WeatherState,modifier:Modifier=Modifier,onClick:()->Unit) {
     val c=Jeland.colors
-    Column(modifier.testTag("weather-widget").clip(Jeland.control).background(c.artScrim.copy(alpha=.25f)).clickable(onClick=onClick).padding(12.dp)) {
-        Row(verticalAlignment=Alignment.CenterVertically) {
-            Icon(JIcons.Cloud,null,tint=c.artText,modifier=Modifier.size(34.dp))
-            Text(" ${state.temperatureLabel}",color=c.artText,fontSize=Jeland.type.weather)
-        }
-        Text(state.condition,color=c.artText,fontSize=Jeland.type.secondary)
-        if(state.city.isNotBlank())Text(state.city,color=c.artMuted,fontSize=Jeland.type.caption,maxLines=2,modifier=Modifier.widthIn(max=180.dp))
-        Text(if(state.demo)"ПОГОДА · DEMO"else"ОТКРЫТЬ ПРОГНОЗ ›",color=c.artMuted,fontSize=Jeland.type.micro,modifier=Modifier.padding(top=5.dp))
+    Box(modifier.testTag("weather-widget").clip(Jeland.control).clickable(onClick=onClick).padding(16.dp)) {
+        HeroOutlinedText(state.temperatureLabel,fontSize=Jeland.type.weather*1.25f,fontWeight=FontWeight.Medium,modifier=Modifier.testTag("outside-temperature"))
     }
 }
 @Composable fun FuelWidget(state:FuelState,modifier:Modifier=Modifier,onClick:()->Unit) {
@@ -77,39 +71,40 @@ import ru.jeland.os.ui.theme.*
         else Icon(JIcons.Apps,null,tint=c.muted,modifier=Modifier.fillMaxSize(.55f))
     }
 }
-@Composable fun FavoriteAppsWidget(state:AppsState,model:MainViewModel,modifier:Modifier=Modifier,onConfigure:()->Unit) {
+@Composable fun FavoriteAppsWidget(state:AppsState,model:MainViewModel,modifier:Modifier=Modifier,compact:Boolean=false,onConfigure:()->Unit) {
     val c=Jeland.colors
     Panel(modifier.testTag("favorite-apps-widget")) {
-        Row(Modifier.fillMaxWidth().height(38.dp).padding(horizontal=18.dp),verticalAlignment=Alignment.CenterVertically) {
-            Text("Избранные приложения",color=Jeland.colors.text,fontSize=Jeland.type.body,modifier=Modifier.weight(1f))
+        Row(Modifier.fillMaxWidth().height(if(compact)28.dp else 38.dp).padding(horizontal=14.dp),verticalAlignment=Alignment.CenterVertically) {
+            Text("Избранные приложения",color=Jeland.colors.text,fontSize=if(compact)Jeland.type.caption else Jeland.type.body,modifier=Modifier.weight(1f))
             Row(Modifier.height(38.dp).clickable(onClick=onConfigure).testTag("configure-favorites"),verticalAlignment=Alignment.CenterVertically) {
                 Text("Настроить",color=Jeland.colors.muted,fontSize=Jeland.type.caption);Glyph(JIcons.ChevronRight)
             }
         }
         Row(Modifier.fillMaxWidth().weight(1f).padding(start=12.dp,end=12.dp,bottom=10.dp),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
             val actual=state.favoriteApps
-            repeat(4) {index->
+            repeat(if(compact)5 else 4) {index->
                 val app=actual.getOrNull(index)
                 BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().testTag("favorite-home-card-$index")
                     .clip(Jeland.control).background(Brush.verticalGradient(listOf(c.raised.copy(alpha=.75f),c.panel)))
                     .border(1.dp,c.outline.copy(alpha=if(app!=null).85f else .5f),Jeland.control)
                     .clickable(onClickLabel=if(app!=null)"Открыть ${app.label}"else"Выбрать приложение") {
                         if(app!=null)model.launchApp(app.id) else onConfigure()
-                    }.padding(12.dp)) {
+                    }.padding(if(compact)6.dp else 12.dp)) {
                     // Extra height must not change the composition on taller head-unit screens.
                     // Only use a vertical fallback when there really is no room beside the icon.
-                    val stacked=maxWidth<156.dp
+                    val stacked=compact||maxWidth<156.dp
+                    val iconSize=if(compact)44.dp else 56.dp
                     val label=app?.label?:"Добавить"
                     val subtitle=if(app!=null)"Открыть"else if(state.loading)"Проверяем…"else"Выбрать ярлык"
                     val icon: @Composable ()->Unit = {
-                        if(app!=null)AppIcon(app,model,Modifier.size(56.dp).testTag("favorite-home-icon-$index"))
-                        else Box(Modifier.size(56.dp).testTag("favorite-home-add-$index").clip(Jeland.control)
+                        if(app!=null)AppIcon(app,model,Modifier.size(iconSize).testTag("favorite-home-icon-$index"))
+                        else Box(Modifier.size(iconSize).testTag("favorite-home-add-$index").clip(Jeland.control)
                             .background(c.accent.copy(alpha=.06f)).border(1.dp,c.outline.copy(alpha=.6f),Jeland.control),contentAlignment=Alignment.Center) {
                             Icon(JIcons.Add,null,Modifier.size(28.dp),tint=c.muted)
                         }
                     }
                     val title: @Composable ()->Unit = {
-                        Text(label,color=c.text,fontSize=Jeland.type.secondary,fontWeight=FontWeight.Medium,
+                        Text(label,color=c.text,fontSize=if(compact)Jeland.type.footnote else Jeland.type.secondary,fontWeight=FontWeight.Medium,
                             maxLines=if(stacked)1 else 2,overflow=TextOverflow.Ellipsis,modifier=Modifier.testTag("favorite-home-title-$index"))
                     }
                     val action: @Composable ()->Unit = {
@@ -118,8 +113,8 @@ import ru.jeland.os.ui.theme.*
                             Icon(JIcons.ChevronRight,null,Modifier.size(14.dp),tint=if(app!=null)c.accent else c.muted)
                         }
                     }
-                    if(stacked)Column(Modifier.fillMaxSize(),verticalArrangement=Arrangement.spacedBy(8.dp,Alignment.CenterVertically)) {
-                        icon();title();action()
+                    if(stacked)Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp,Alignment.CenterVertically)) {
+                        icon();title();if(!compact)action()
                     } else Row(Modifier.fillMaxSize(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                         icon()
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(6.dp)) {title();action()}

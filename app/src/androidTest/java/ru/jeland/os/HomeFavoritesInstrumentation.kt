@@ -44,17 +44,17 @@ class HomeFavoritesInstrumentation {
             for(theme in listOf(ThemeMode.DARK,ThemeMode.LIGHT)) {
                 ui.runOnIdle {container().theme.setMode(theme)}
                 for(index in 0..1) {
-                    ui.onNodeWithTag("favorite-home-icon-$index",useUnmergedTree=true).assertWidthIsEqualTo(56.dp).assertHeightIsEqualTo(56.dp).assertIsDisplayed()
+                    ui.onNodeWithTag("favorite-home-icon-$index",useUnmergedTree=true).assertWidthIsEqualTo(44.dp).assertHeightIsEqualTo(44.dp).assertIsDisplayed()
                     ui.onNodeWithTag("favorite-home-title-$index",useUnmergedTree=true).assertTextEquals(installed[index].label)
                     val icon=ui.onNodeWithTag("favorite-home-icon-$index",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
                     val title=ui.onNodeWithTag("favorite-home-title-$index",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
-                    assertTrue("Title belongs beside the icon, even in a tall card",title.left>=icon.right)
-                    assertTrue("Title should align with the icon vertically",title.top>=icon.top && title.bottom<=icon.bottom)
+                    assertTrue("Reference places the label below the icon",title.top>=icon.bottom)
+                    assertTrue("Reference centres the icon over its label",kotlin.math.abs(title.center.x-icon.center.x)<3f)
                     ui.onNodeWithTag("favorite-home-card-$index").assertHasClickAction()
                 }
-                ui.onNodeWithTag("favorite-home-add-2",useUnmergedTree=true).assertWidthIsEqualTo(56.dp).assertIsDisplayed()
-                val range=ui.onNodeWithTag("home-scroll").fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
-                assertEquals(0f,range.maxValue(),0f)
+                ui.onNodeWithTag("favorite-home-add-2",useUnmergedTree=true).assertWidthIsEqualTo(44.dp).assertIsDisplayed()
+                val config=ui.onNodeWithTag("home-scroll").fetchSemanticsNode().config
+                assertFalse("Fixed home layout has no scrolling",config.contains(SemanticsProperties.VerticalScrollAxisRange))
                 capture("home-${theme.name.lowercase()}")
                 capture("favorites-${theme.name.lowercase()}",true)
                 ui.onNodeWithTag("favorite-home-card-2").performClick()
@@ -68,7 +68,7 @@ class HomeFavoritesInstrumentation {
             for(index in 0..1) {
                 val icon=ui.onNodeWithTag("favorite-home-icon-$index",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
                 val title=ui.onNodeWithTag("favorite-home-title-$index",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
-                assertTrue("Extra card height must not move the title below the icon",title.left>=icon.right)
+                assertTrue("Reference icon/label layout remains stable",title.top>=icon.bottom)
             }
             capture("favorites-tall-cards",true)
             ui.runOnIdle {container().apps.state.value.favorites.toList().forEach {container().apps.toggleFavorite(it)}}

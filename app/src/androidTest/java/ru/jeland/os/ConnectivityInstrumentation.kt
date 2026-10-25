@@ -80,8 +80,10 @@ class ConnectivityInstrumentation {
             ui.waitUntil(5000){monitor.hits==1}
             ui.onNodeWithTag("vehicle-status-card").assertIsDisplayed()
             ui.onNodeWithTag("car-tab-quick").assertDoesNotExist()
-            ui.onNodeWithTag("quick-settings").performClick()
-            ui.waitUntil(5000){monitor.hits==2}
+            assertFalse(container().nativeApps.engineeringAvailable)
+            ui.onNodeWithTag("quick-engineering").performClick()
+            ui.onNodeWithText("Инженерное меню недоступно на этом устройстве.").assertIsDisplayed()
+            assertEquals("Engineering must not fall back to settings",1,monitor.hits)
             ui.onNodeWithTag("nav-settings").performClick()
             ui.onNodeWithTag("open-demo-car").performScrollTo().performClick()
             ui.onNodeWithTag("car-tab-quick").assertExists()
@@ -102,9 +104,11 @@ class ConnectivityInstrumentation {
     }
     @Test fun weatherModeSwitchRemovesDemoAndNeverLaunchesOrRequestsNetwork() {
         var launches=0
+        var weatherGpsAccesses=0
         val context=object:ContextWrapper(ui.activity.applicationContext) {
             override fun getApplicationContext():Context=this
             override fun startActivity(intent:Intent){launches++}
+            override fun getSystemService(name:String):Any? {if(name==Context.LOCATION_SERVICE)weatherGpsAccesses++;return super.getSystemService(name)}
         }
         val link=MutableStateFlow(VehicleLinkState(demo=true))
         val native=NativeApps(context)
@@ -119,11 +123,20 @@ class ConnectivityInstrumentation {
         }
         assertEquals(0,launches)
         assertFalse(native.openWeather());assertEquals(0,launches)
+        assertFalse(native.openEngineering());assertEquals(0,launches)
+        val engineering=NativeApps.engineeringIntent()
+        assertEquals("com.desaysv.engmode",engineering.component!!.packageName)
+        assertEquals("com.desaysv.engmode.MainActivity",engineering.component!!.className)
+        assertEquals(Intent.ACTION_MAIN,engineering.action)
+        assertTrue(engineering.hasCategory(Intent.CATEGORY_LAUNCHER))
+        assertNull(engineering.extras)
         assertTrue(native.openSettings());assertEquals(1,launches)
         assertEquals("com.desaysv.setting.ui.activity.SettingActivity",NativeApps.settingsIntent().component!!.className)
         assertEquals("com.liontech.weather.SplashActivity",NativeApps.weatherIntent().component!!.className)
         @Suppress("DEPRECATION") val permissions=context.packageManager.getPackageInfo(context.packageName,4096).requestedPermissions.orEmpty()
-        for(p in listOf("INTERNET","CHANGE_WIFI_STATE","BLUETOOTH_SCAN","ACCESS_FINE_LOCATION","SYSTEM_ALERT_WINDOW"))assertFalse(p,permissions.contains("android.permission.$p"))
+        // Foreground GPS is now needed by our navigation, not by the weather adapter.
+        assertEquals("Weather must not request the location service",0,weatherGpsAccesses)
+        for(p in listOf("INTERNET","CHANGE_WIFI_STATE","BLUETOOTH_SCAN","ACCESS_BACKGROUND_LOCATION","SYSTEM_ALERT_WINDOW"))assertFalse(p,permissions.contains("android.permission.$p"))
     }
     @Test fun radioObserverSurvivesMissingAutomotiveHardwareAndStops() {
         val journal=mutableListOf<String>()

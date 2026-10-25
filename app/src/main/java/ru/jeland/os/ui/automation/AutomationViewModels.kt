@@ -6,53 +6,40 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import ru.jeland.os.BuildConfig
 import ru.jeland.os.core.automation.*
 import ru.jeland.os.data.AppContainer
 import java.util.UUID
 
 class AutomationViewModel(private val dependencies:AppContainer):ViewModel() {
+    val trip=dependencies.automationTrip.state
+    fun tripDetection(enabled:Boolean){dependencies.automationTrip.setEnabled(enabled)}
     val loading=MutableStateFlow(true);val error=MutableStateFlow<String?>(null)
     val rules=dependencies.automations.rules.onEach {loading.value=false}.catch {loading.value=false;error.value="Не удалось прочитать правила. Данные не удалены."}
         .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),emptyList())
     val results=dependencies.automations.latestRuns.catch {error.value="Не удалось прочитать журнал сессий."}
         .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000),emptyList())
-    val temperature=dependencies.automationTemperature.state;val comfort=dependencies.automationComfort.state
-    val busy=MutableStateFlow(false);val session=MutableStateFlow<AutomationSession?>(null)
-    val summary=MutableStateFlow("Запуск только вручную в MOCK. Автомобильные команды не отправляются.")
+    val temperature=dependencies.automationTemperature.state
+    val link=dependencies.car.link
+    private val manualBusy=MutableStateFlow(false)
+    val busy=combine(manualBusy,dependencies.automationEngine.busy){a,b->a||b}
+        .stateIn(viewModelScope,SharingStarted.Eagerly,false)
+    val session=MutableStateFlow<AutomationSession?>(null)
+    val summary=MutableStateFlow("Подключены реальные команды ГУ. Событие запуска выбирается в каждом сценарии.")
     init {viewModelScope.launch {try {val restored=dependencies.automationSessions.current();if(session.value==null)session.value=restored}
         catch(c:CancellationException){throw c}catch(_:Exception){error.value="Не удалось прочитать текущую тестовую сессию."}}}
     private fun change(block:suspend ()->Unit) {viewModelScope.launch {try {block()}catch(c:CancellationException){throw c}catch(_:Exception){error.value="Изменение не сохранено. Повторите после проверки хранилища."}}}
     fun enabled(id:UUID,value:Boolean)=change {dependencies.automations.setEnabled(id,value)}
     fun delete(id:UUID)=change {dependencies.automations.delete(id)}
-    fun setTemperature(text:String) {
-        if(!BuildConfig.DEBUG||busy.value)return
-        val value=text.trim().replace(',','.').toDoubleOrNull()
-        if(value==null||!value.isFinite()||value !in -60.0..60.0){error.value="Тестовая температура: от −60 до +60 °C";return}
-        dependencies.automationTemperature.set(value);error.value=null
-    }
-    fun noTemperature(){if(BuildConfig.DEBUG&&!busy.value)dependencies.automationTemperature.set(null)}
-    fun staleTemperature(){if(BuildConfig.DEBUG&&!busy.value)dependencies.automationTemperature.stale()}
-    fun toggleConnection(){if(BuildConfig.DEBUG&&!busy.value)dependencies.automationComfort.change {it.copy(connected=!it.connected)}}
-    fun toggleKnown(){if(BuildConfig.DEBUG&&!busy.value)dependencies.automationComfort.change {it.copy(known=!it.known)}}
-    fun toggleParked(){if(BuildConfig.DEBUG&&!busy.value)dependencies.automationComfort.change {it.copy(parked=!it.parked)}}
-    fun manualDriverHeat(){if(BuildConfig.DEBUG&&!busy.value)dependencies.automationComfort.change {it.copy(seats=it.seats+
-        (SeatParameter.DRIVER_HEATING to ((it.seats.getValue(SeatParameter.DRIVER_HEATING)+1)%4))+(SeatParameter.DRIVER_VENTILATION to 0))}}
-    fun simulate(new:Boolean) {
-        if(!BuildConfig.DEBUG||busy.value)return
-        busy.value=true;error.value=null
+    fun runManually(id:UUID) {
+        if(manualBusy.value||dependencies.automationEngine.busy.value)return
+        manualBusy.value=true;error.value=null
         viewModelScope.launch {
             try {
-                val next=if(new)dependencies.automationSessions.newSession()else dependencies.automationSessions.current()
-                if(next==null){summary.value="Сначала начните новую тестовую сессию.";return@launch}
-                session.value=next
-                val result=dependencies.automationEngine.onSessionStarted(next)
-                summary.value=if(result.repeated)"Эта сессия уже проверена. Повторных команд нет."
-                    else if(result.runs.isEmpty())"Сессия начата. Активных правил нет."
-                    else "Сессия проверена · ${result.runs.size} правил. Результат только в MOCK."
+                val result=dependencies.automationEngine.runManually(id)
+                summary.value=result.runs.singleOrNull()?.let {"${it.ruleName}: ${it.status.title}"}?:"Сценарий не найден."
             }catch(c:CancellationException){throw c}
-            catch(_:Exception){error.value="Проверка сессии прервана. Автоматического повтора нет; сохранённый журнал оставлен."}
-            finally {busy.value=false}
+            catch(_:Exception){error.value="Не удалось запустить сценарий. Автоматического повтора нет."}
+            finally {manualBusy.value=false}
         }
     }
     class Factory(private val dependencies:AppContainer):ViewModelProvider.Factory {
@@ -63,31 +50,42 @@ class AutomationViewModel(private val dependencies:AppContainer):ViewModel() {
 }
 
 data class AutomationDraft(
-    val id:UUID=UUID.randomUUID(),val name:String="",val component:ComponentType=ComponentType.SEATS,
-    val trigger:TriggerType=TriggerType.BELOW,val threshold:String="5",val seats:SeatsAction=SeatsAction(),
-    val shade:SunshadeAction=SunshadeAction.OPEN_HALF,val priority:Int=0,val enabled:Boolean=true,
+    val id:UUID=UUID.randomUUID(),val name:String="",val trigger:TriggerType=TriggerType.MANUAL,
+    val threshold:String="5",val actions:List<AutomationAction> = emptyList(),val priority:Int=0,val enabled:Boolean=true,
+    val launchEvent:LaunchEvent=LaunchEvent.ENGINE_START,
 ) {
-    fun rule()=AutomationRule(id,name,enabled,component,if(component==ComponentType.SEATS)trigger else TriggerType.SESSION_START,
-        if(component==ComponentType.SEATS)threshold.trim().replace(',','.').toDoubleOrNull()else null,
-        if(component==ComponentType.SEATS)seats else shade,priority)
+    val seats get()=actions.filterIsInstance<SeatAction>().flatMap {it.values()}.fold(SeatsAction()) {payload,(p,v)->payload.with(p,v)}
+    val shade get()=actions.filterIsInstance<SunshadeAction>().firstOrNull()?:SunshadeAction.OPEN_HALF
+    fun withAction(action:AutomationAction)=copy(actions=if(actions.any {it.component==action.component})
+        actions.map {if(it.component==action.component)action else it}else actions+action)
+    fun rule()=AutomationRule(id,name,enabled,trigger,
+        if(trigger in listOf(TriggerType.MANUAL,TriggerType.SESSION_START))null else threshold.trim().replace(',','.').toDoubleOrNull(),actions,priority,launchEvent=launchEvent)
     fun bundle()=Bundle().apply {
-        putString("id",id.toString());putString("name",name);putString("component",component.name);putString("trigger",trigger.name)
+        putString("id",id.toString());putString("name",name);putString("trigger",trigger.name)
         putString("threshold",threshold);putString("shade",shade.name);putInt("priority",priority);putBoolean("enabled",enabled)
+        putStringArrayList("devices",ArrayList(actions.map {it.component.name}))
+        putString("launchEvent",launchEvent.name)
         SeatParameter.entries.zip(seats.values()).forEach {(p,v)->putString(p.name,v.name)}
     }
     companion object {
-        fun from(rule:AutomationRule)=AutomationDraft(rule.id,rule.name,rule.componentType,
-            if(rule.triggerType==TriggerType.SESSION_START)TriggerType.BELOW else rule.triggerType,
-            rule.temperatureThreshold?.toString()?:"5",rule.action as? SeatsAction?:SeatsAction(),
-            rule.action as? SunshadeAction?:SunshadeAction.OPEN_HALF,rule.priority,rule.enabled)
+        fun from(rule:AutomationRule)=AutomationDraft(rule.id,rule.name,rule.triggerType,
+            rule.temperatureThreshold?.toString()?:"5",rule.actions,rule.priority,rule.enabled,rule.launchEvent)
         fun restore(b:Bundle):AutomationDraft {
-            var seats=SeatsAction();for(p in SeatParameter.entries)seats=seats.with(p,SeatLevel.valueOf(checkNotNull(b.getString(p.name))))
-            return AutomationDraft(UUID.fromString(b.getString("id")),b.getString("name").orEmpty(),ComponentType.valueOf(checkNotNull(b.getString("component"))),
-                TriggerType.valueOf(checkNotNull(b.getString("trigger"))),b.getString("threshold")?:"5",seats,
-                SunshadeAction.valueOf(checkNotNull(b.getString("shade"))),b.getInt("priority"),b.getBoolean("enabled"))
+            var seats=SeatsAction()
+            for(p in SeatParameter.entries)seats=seats.with(p,SeatLevel.valueOf(b.getString(p.name)?:SeatLevel.KEEP.name))
+            val devices=b.getStringArrayList("devices")?:arrayListOf<String>().apply {b.getString("component")?.let(::add)}
+            val trigger=TriggerType.valueOf(b.getString("trigger")?:TriggerType.MANUAL.name)
+            return AutomationDraft(UUID.fromString(b.getString("id")),b.getString("name").orEmpty(),trigger,
+                b.getString("threshold")?:"5",devices.flatMap {name->when(val type=ComponentType.valueOf(name)) {
+                    ComponentType.SEATS->seats.split()
+                    ComponentType.DRIVER_SEAT,ComponentType.PASSENGER_SEAT,ComponentType.REAR_LEFT_SEAT,ComponentType.REAR_RIGHT_SEAT->listOf(seats.forDevice(type))
+                    ComponentType.SUNSHADE->listOf(SunshadeAction.valueOf(b.getString("shade")?:SunshadeAction.OPEN_HALF.name))
+                    ComponentType.STEERING_WHEEL->listOf(SteeringWheelAction.HEAT_ON)
+                }},b.getInt("priority"),b.getBoolean("enabled",true),LaunchEvent.valueOf(b.getString("launchEvent")?:LaunchEvent.MOVEMENT.name))
         }
     }
 }
+
 data class AutomationEditorState(val draft:AutomationDraft=AutomationDraft(),val loading:Boolean=false,val saving:Boolean=false,
     val errors:List<String> = emptyList(),val saved:Boolean=false,val unavailable:Boolean=false)
 class AutomationEditorViewModel(
@@ -112,11 +110,17 @@ class AutomationEditorViewModel(
         handle["automation-draft"]=draft.bundle();flow.value=flow.value.copy(draft=draft,loading=false,errors=emptyList())
     }
     fun name(value:String)=update {it.copy(name=value.take(50))}
-    fun component(value:ComponentType)=update {it.copy(component=value)}
+    fun addDevice(value:ComponentType)=update {draft->if(draft.actions.any {it.component==value})draft else draft.withAction(AutomationDevices.defaultAction(value))}
+    fun toggleDevice(value:ComponentType)=update {draft->
+        if(draft.actions.any {it.component==value})draft.copy(actions=draft.actions.filterNot {it.component==value})
+        else draft.withAction(AutomationDevices.defaultAction(value))
+    }
+    fun removeDevice(value:ComponentType)=update {it.copy(actions=it.actions.filterNot {a->a.component==value})}
     fun trigger(value:TriggerType)=update {it.copy(trigger=value)}
+    fun launchEvent(value:LaunchEvent)=update {it.copy(launchEvent=value)}
     fun threshold(value:String)=update {it.copy(threshold=value.take(8))}
     fun priority(delta:Int)=update {it.copy(priority=(it.priority+delta).coerceIn(0,10))}
-    fun shade(value:SunshadeAction)=update {it.copy(shade=value)}
+    fun shade(value:SunshadeAction)=update {it.withAction(value)}
     fun seat(parameter:SeatParameter,value:SeatLevel)=update {draft->
         var next=draft.seats.with(parameter,value)
         if((value.level?:0)>0)when(parameter) {
@@ -126,7 +130,7 @@ class AutomationEditorViewModel(
             SeatParameter.PASSENGER_VENTILATION->next=next.copy(passengerHeating=SeatLevel.OFF)
             else->Unit
         }
-        draft.copy(seats=next)
+        draft.withAction(next.forDevice(AutomationDevices.available.single {parameter in it.seatParameters()}))
     }
     fun save() {
         val s=flow.value;if(s.saving||s.loading||s.unavailable)return

@@ -6,6 +6,16 @@ import ru.jeland.os.core.*
 
 class VehicleLiveTest {
     private val protocol=VerifiedVehicleProtocol
+    @Test fun nativeCameraRequestOnlyAllowsExactStockDisplayCommand() {
+        val request=protocol.openCameras()
+        assertEquals(VdsKey(0x50008,8),request.key);assertEquals(1,request.value)
+        assertNull(request.expected);assertTrue(protocol.allowed(request))
+        for(cmd in 0..100)for(value in 0..3) {
+            assertEquals(cmd==8&&value==1,protocol.allowed(VdsWrite(VdsKey(protocol.AVM,cmd),value)))
+        }
+        assertFalse(protocol.allowed(request.copy(expected=1)))
+        assertFalse(protocol.requiresClimatePower(request))
+    }
     @Test fun ownerFormulasAreCentralizedAndExact() {
         assertEquals(2.4,ExperimentalVehicleConversions.pressureBar(175)!!,1e-9)
         assertEquals(2.414285714,ExperimentalVehicleConversions.pressureBar(176)!!,1e-8)

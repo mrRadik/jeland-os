@@ -32,6 +32,7 @@ class AndroidConnectivityRepository(context:Context,private val report:(String)-
     override fun start() {
         if(started){update();return};started=true;epoch++
         runCatching {cm.registerNetworkCallback(NetworkRequest.Builder().clearCapabilities().build(),callback);networkRegistered=true}
+            .onFailure {report("RADIOS network observer unavailable ${it.javaClass.simpleName}")}
         val filter=IntentFilter().apply {
             listOf(WifiManager.WIFI_STATE_CHANGED_ACTION,WifiManager.NETWORK_STATE_CHANGED_ACTION,WifiManager.RSSI_CHANGED_ACTION,
                 BluetoothAdapter.ACTION_STATE_CHANGED,BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED,
@@ -40,6 +41,7 @@ class AndroidConnectivityRepository(context:Context,private val report:(String)-
         }
         runCatching {if(Build.VERSION.SDK_INT>=33)context.registerReceiver(receiver,filter,Context.RECEIVER_EXPORTED)
             else @Suppress("DEPRECATION") context.registerReceiver(receiver,filter);receiverRegistered=true}
+            .onFailure {report("RADIOS state receiver unavailable ${it.javaClass.simpleName}")}
         tbox.start();main.post(tick)
     }
     override fun stop() {
@@ -60,7 +62,8 @@ class AndroidConnectivityRepository(context:Context,private val report:(String)-
                 }
                 override fun onServiceDisconnected(profile:Int){main.post {if(started&&token==epoch){profiles.remove(profile);pending.remove(profile)}}}
             }
-            runCatching {if(bt?.getProfileProxy(context,listener,id)!=true)pending.remove(id)}.onFailure {pending.remove(id)}
+            runCatching {if(bt?.getProfileProxy(context,listener,id)!=true){pending.remove(id);report("RADIOS BT profile=$id unavailable")}}
+                .onFailure {pending.remove(id);report("RADIOS BT profile=$id ${it.javaClass.simpleName}")}
         }
     }
     @Suppress("DEPRECATION","MissingPermission") private fun update() {
@@ -73,7 +76,10 @@ class AndroidConnectivityRepository(context:Context,private val report:(String)-
         val level=if(connected)RadioReadings.wifiLevel(info?.rssi)?:RadioReadings.wifiLevel(wifiCaps?.signalStrength)else null
         val mobile=tbox.value?.takeIf {SystemClock.elapsedRealtime()-it.at in 0..30000}
         val cellular=caps.any {it.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)}||mobile?.connected==true
-        val mobileLevel=mobile?.level?.takeIf {mobile.registered}?:if(cellular)runCatching {RadioReadings.mobileLevel(tm.signalStrength?.level)}.getOrNull()else null
+        // A fresh OEM reading owns this modem; don't replace its unknown scale with Android's
+        // unrelated/default phone signal (often 0 on USB-connected TBox head units).
+        val mobileLevel=if(mobile!=null)mobile.level.takeIf {mobile.registered}
+            else if(cellular)runCatching {RadioReadings.mobileLevel(tm.signalStrength?.level)}.getOrNull()else null
         val type=mobile?.type?:if(cellular)runCatching {when(tm.dataNetworkType){13->"4G";20->"5G";3,8,9,10,15->"3G";1,2->"2G";else->null}}.getOrNull()else null
         val bluetooth=runCatching {bt?.isEnabled}.getOrNull()
         if(bluetooth==true)requestProfiles()else {profiles.forEach {(id,proxy)->runCatching {bt?.closeProfileProxy(id,proxy)}};profiles.clear();pending.clear()}

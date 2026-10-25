@@ -4,6 +4,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,160 +29,159 @@ import ru.jeland.os.ui.theme.Jeland
 
 @Composable fun HomeScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit,navigate:(String)->Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val weights=listOf(.34f,.20f,if(s.preferences.showTires).20f else 0f,if(s.preferences.showFavorites).14f else 0f,.12f)
-        val total=weights.sum();val count=weights.count {it>0};val available=maxHeight-((count-1)*10).dp
-        fun section(index:Int,min:androidx.compose.ui.unit.Dp)=(available*(weights[index]/total)).coerceAtLeast(min)
-        // Leave a little breathing room instead of redistributing the saved height to other cards.
-        val heroHeight=(section(0,280.dp)-24.dp).coerceAtLeast(240.dp)
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("home-scroll"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-            JelandHero(s,heroHeight,{if(s.weather.demo)show(Popup.WEATHER)else model.openWeather()},{show(Popup.FUEL)})
-            Row(Modifier.fillMaxWidth().height(section(1,210.dp)),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                MediaWidget(s.media,model,Modifier.weight(1f))
-                NavigationWidget(s.navigation,Modifier.weight(1.06f)) { navigate("navigation") }
+        // Proportions follow the approved portrait reference, without oversized empty card slots.
+        val weights=listOf(.29f,.22f,if(s.preferences.showTires).22f else 0f,.13f,if(s.preferences.showFavorites).14f else 0f)
+        val available=maxHeight-Jeland.headerHeight-((weights.count {it>0}-1)*10).dp
+        fun section(index:Int)=available*(weights[index]/weights.sum())
+        Column(Modifier.fillMaxSize().testTag("home-scroll"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            JelandHero(s,section(0)+Jeland.headerHeight,{model.openWeather()},{show(Popup.FUEL)},Jeland.headerHeight)
+            Row(Modifier.padding(start=10.dp,end=16.dp).fillMaxWidth().heightIn(max=section(1)).height(IntrinsicSize.Min).testTag("home-media-row"),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+                ru.jeland.os.navigation.OfflineNavigationWidget(model.dependencies.navigation,s.dark,Modifier.weight(1.06f)) { navigate("navigation") }
+                MediaWidget(s.media,model,Modifier.weight(1f).fillMaxHeight())
             }
-            if(s.preferences.showTires)VehicleStatusCard(s.vehicle,Modifier.fillMaxWidth().height(section(2,190.dp)),{show(Popup.VEHICLE)},{show(Popup.tire(it))}){show(Popup.DEBUG)}
-            if(s.preferences.showFavorites)FavoriteAppsWidget(s.apps,model,Modifier.fillMaxWidth().height(section(3,130.dp))){show(Popup.APPS)}
-            QuickActions(s,model,Modifier.fillMaxWidth().height(section(4,112.dp)),show,navigate)
+            // The compact media row may be shorter than its allowance. Give all
+            // remaining height to vehicle status instead of leaving a bottom gap.
+            if(s.preferences.showTires)VehicleStatusWithFuel(s.vehicle,Modifier.padding(start=10.dp,end=16.dp).fillMaxWidth().weight(1f),{show(Popup.VEHICLE)},{show(Popup.tire(it))},showFuel=s.preferences.showFuel,onFuel={show(Popup.FUEL)},onBattery={show(Popup.BATTERY)}){show(Popup.DEBUG)}
+            Panel(Modifier.padding(start=10.dp,end=16.dp).fillMaxWidth().height(section(3)).testTag("quick-actions-widget")) {
+                Text("Быстрые действия",color=Jeland.colors.text,fontSize=Jeland.type.caption,modifier=Modifier.padding(horizontal=14.dp,vertical=6.dp))
+                QuickActions(s,model,Modifier.fillMaxWidth().weight(1f).padding(start=10.dp,end=10.dp,bottom=10.dp),show,navigate)
+            }
+            if(s.preferences.showFavorites)FavoriteAppsWidget(s.apps,model,Modifier.padding(start=10.dp,end=16.dp).fillMaxWidth().height(section(4)),compact=true){show(Popup.APPS)}
         }
     }
 }
-@Composable fun JelandHero(s:UiState,height:androidx.compose.ui.unit.Dp,onWeather:()->Unit,onFuel:()->Unit) {
+@Composable fun JelandHero(s:UiState,height:androidx.compose.ui.unit.Dp,onWeather:()->Unit,onFuel:()->Unit,topInset:androidx.compose.ui.unit.Dp=0.dp) {
     val c=Jeland.colors
     var now by remember { mutableStateOf(LocalDateTime.now()) }
     LaunchedEffect(Unit) {while(true) {now=LocalDateTime.now();delay(1000)}}
-    Box(Modifier.fillMaxWidth().height(height).clip(Jeland.card).border(1.dp,c.outline,Jeland.card)) {
-        Image(painterResource(R.drawable.hero_jeland),"Чёрный SUV в горах — иллюстрация",Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(c.artScrim.copy(alpha=.7f),c.artScrim.copy(alpha=.02f),c.artScrim.copy(alpha=.25f)))))
-        Column(Modifier.align(Alignment.TopStart).padding(Jeland.space.hero)) {
-            Text(now.format(DateTimeFormatter.ofPattern("d MMMM, EEE",Locale.forLanguageTag("ru"))),color=c.artText,fontSize=Jeland.type.body,modifier=Modifier.testTag("hero-date"))
-            Text(now.format(DateTimeFormatter.ofPattern("HH:mm")),color=c.artText,fontSize=Jeland.type.clock,fontWeight=FontWeight.Light,letterSpacing=Jeland.type.trackTight,modifier=Modifier.testTag("hero-clock"))
+    Box(Modifier.fillMaxWidth().height(height).testTag("hero-banner")) {
+        Image(painterResource(heroBackgroundResource(s.dark)),"Jeland J7 в горах — ${if(s.dark)"ночь"else"светлый день"}",Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+        if(s.dark) {
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to c.artScrim.copy(alpha=.26f),.35f to c.artScrim.copy(alpha=0f),1f to c.artScrim.copy(alpha=.08f))))
+            Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to c.background.copy(alpha=.45f),.12f to c.background.copy(alpha=0f),.94f to c.background.copy(alpha=0f),1f to c.background.copy(alpha=.3f))))
         }
-        WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(18.dp),onWeather)
-        if(s.preferences.showFuel)FuelWidget(s.vehicle.fuel,Modifier.align(Alignment.BottomEnd).padding(end=18.dp,bottom=30.dp),onFuel)
-        Text("JELAND J7 EDITION",color=c.artMuted,fontSize=Jeland.type.footnote,letterSpacing=Jeland.type.trackNormal,modifier=Modifier.align(Alignment.BottomStart).padding(20.dp))
+        // No side haze in daylight; the pale image only meets the app background at its lower edge.
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to c.background.copy(alpha=0f),(if(s.dark).78f else .92f) to c.background.copy(alpha=0f),1f to c.background)))
+        Column(Modifier.align(Alignment.TopStart).padding(start=24.dp,end=24.dp,top=topInset+8.dp)) {
+            HeroOutlinedText(now.format(DateTimeFormatter.ofPattern("HH:mm")),fontSize=Jeland.type.clock,fontWeight=FontWeight.Light,letterSpacing=Jeland.type.trackTight,modifier=Modifier.testTag("hero-clock"))
+            HeroOutlinedText(now.format(DateTimeFormatter.ofPattern("d MMMM, EEE",Locale.forLanguageTag("ru"))),fontSize=Jeland.type.body,fontWeight=FontWeight.Medium,modifier=Modifier.testTag("hero-date"))
+        }
+        WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(start=18.dp,end=18.dp,top=topInset+14.dp),onWeather)
     }
 }
 @Composable fun QuickActions(s:UiState,model:MainViewModel,modifier:Modifier,show:(Popup)->Unit,navigate:(String)->Unit) {
     Row(modifier,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        QuickTile("Подогрев\nруля",s.vehicle.steeringSummary,JIcons.Steering,Modifier.weight(1f).testTag("quick-steering"),s.vehicle.steeringHeat,model.dependencies.vehicle::toggleSteeringHeat)
+        QuickTile("Подогрев\nруля",s.vehicle.steeringSummary,JIcons.Steering,Modifier.weight(1f).testTag("quick-steering"),s.vehicle.steeringHeat,onClick=model.dependencies.vehicle::toggleSteeringHeat)
         QuickTile("Панорамная\nшторка",s.vehicle.shadeUiSummary,JIcons.Shade,Modifier.weight(1f).testTag("quick-shade"),false){show(Popup.SHADE)}
-        QuickTile("Камеры\n360°","Демонстрация",JIcons.Cameraswitch,Modifier.weight(1f).testTag("quick-camera"),false){show(Popup.CAMERA)}
-        QuickTile("Настройки\nавтомобиля","Штатные настройки",JIcons.DirectionsCar,Modifier.weight(1f).testTag("quick-settings"),false){navigate("car")}
+        QuickTile("Камеры\n360°","Штатные камеры",JIcons.Cameraswitch,Modifier.weight(1f).testTag("quick-cameras"),false,onClick=model::openCameras)
+        QuickTile("Инженерное\nменю","Диагностика ГУ",JIcons.Settings,Modifier.weight(1f).testTag("quick-engineering"),false,onClick=model::openEngineeringMenu)
     }
 }
-@Composable private fun QuickTile(title:String,detail:String,icon:ImageVector,modifier:Modifier,active:Boolean,onClick:()->Unit) {
+@Composable private fun QuickTile(title:String,detail:String,icon:ImageVector,modifier:Modifier,active:Boolean,tintOverride:androidx.compose.ui.graphics.Color?=null,onClick:()->Unit) {
     Panel(modifier.fillMaxHeight().clickable(onClick=onClick)) {
-        Column(Modifier.fillMaxSize().padding(10.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-            Glyph(icon,null,Modifier.size(30.dp),active)
-            Text(title,color=Jeland.colors.text,fontSize=Jeland.type.secondary,lineHeight=Jeland.type.title,textAlign=androidx.compose.ui.text.style.TextAlign.Center,modifier=Modifier.padding(top=8.dp))
-            Text(detail,color=if(active)Jeland.colors.accent else Jeland.colors.muted,fontSize=Jeland.type.footnote,lineHeight=Jeland.type.caption,modifier=Modifier.padding(top=4.dp))
+        Row(Modifier.fillMaxSize().padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            val tint=tintOverride?:if(active)Jeland.colors.warm else Jeland.colors.accent
+            Box(Modifier.size(52.dp).clip(Jeland.control)
+                .background(Brush.radialGradient(listOf(tint.copy(alpha=if(active).24f else .13f),Jeland.colors.raised.copy(alpha=.4f))))
+                .border(1.dp,tint.copy(alpha=if(active).55f else .22f),Jeland.control),contentAlignment=Alignment.Center) {
+                Icon(icon,null,Modifier.size(34.dp),tint=tintOverride?:if(active)Jeland.colors.warm else Jeland.colors.artMuted)
+            }
+            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
+              Text(title,color=Jeland.colors.text,fontSize=Jeland.type.caption,lineHeight=Jeland.type.secondary,maxLines=2)
+              Text(detail,color=if(active)Jeland.colors.accent else Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
         }
     }
 }
-@Composable fun MediaWidget(s:MediaState,model:MainViewModel,modifier:Modifier=Modifier,expanded:Boolean=false) {
-    val r=model.dependencies.media
+@Composable fun MediaWidget(s:MediaState,model:MainViewModel,modifier:Modifier=Modifier,expanded:Boolean=false,repository:MediaRepository=model.dependencies.media,compact:Boolean=false) {
+    val r=repository
+    if(!expanded&&!compact) {
+        Panel(modifier.testTag("music-widget")) {
+            Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
+                    AlbumArtwork(s,Modifier.size(64.dp))
+                    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
+                        MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
+                        MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.secondary,Modifier.testTag("media-artist"))
+                        Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.footnote,maxLines=1,modifier=Modifier.testTag("media-status"))
+                    }
+                    if(!s.live)Box(Modifier.size(42.dp).clickable(onClick=r::toggleLike),contentAlignment=Alignment.Center) {
+                        Glyph(if(s.liked)JIcons.Favorite else JIcons.FavoriteBorder,if(s.liked)"Удалить композицию из избранного"else"Добавить композицию в избранное",active=s.liked)
+                    }
+                }
+                MusicProgress(s,r,Modifier.fillMaxWidth())
+                MusicTransport(s,r,Modifier.fillMaxWidth(),compact=true)
+            }
+        }
+        return
+    }
+    if(compact){
+        Panel(modifier.fillMaxHeight()) {
+            Column(Modifier.fillMaxSize().padding(8.dp),verticalArrangement=Arrangement.SpaceBetween) {
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    AlbumArtwork(s,Modifier.size(38.dp))
+                    Column(Modifier.weight(1f)) {
+                        MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
+                        MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.footnote,Modifier.testTag("media-artist"))
+                    }
+                    Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,modifier=Modifier.widthIn(max=64.dp).testTag("media-status"))
+                }
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                    RoundControl(JIcons.SkipPrevious,"Предыдущая композиция",Modifier.size(38.dp).testTag("media-previous"),enabled=s.controlsEnabled,onClick=r::previous)
+                    RoundControl(if(s.playing)JIcons.Pause else JIcons.PlayArrow,"Воспроизведение / пауза",Modifier.size(42.dp).testTag("media-play"),active=s.playing,enabled=s.controlsEnabled,onClick=r::togglePlay)
+                    RoundControl(JIcons.SkipNext,"Следующая композиция",Modifier.size(38.dp).testTag("media-next"),enabled=s.controlsEnabled,onClick=r::next)
+                    JelandSlider(s.position.toFloat(),{r.seek(it.toInt())},valueRange=0f..s.track.duration.coerceAtLeast(1).toFloat(),enabled=!s.live,modifier=Modifier.weight(1f).height(30.dp).testTag("media-seek"))
+                }
+            }
+        };return
+    }
     Panel(modifier.fillMaxHeight()) {
         Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.SpaceBetween) {
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
-                Box(Modifier.size(if(expanded)148.dp else 66.dp).clip(Jeland.control).background(Jeland.colors.deep)) {
-                    Image(painterResource(R.drawable.hero_jeland),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
-                    Icon(JIcons.MusicNote,null,tint=Jeland.colors.artText,modifier=Modifier.align(Alignment.Center).size(28.dp))
-                }
+                AlbumArtwork(s,Modifier.size(if(expanded)148.dp else 66.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(s.track.title,color=Jeland.colors.text,fontSize=Jeland.type.title,maxLines=1,modifier=Modifier.testTag("media-title"))
-                    Label(s.track.artist,small=true,muted=true,modifier=Modifier.padding(top=Jeland.space.compact))
-                    Label("DEMO · без аудио",small=true,muted=true,modifier=Modifier.padding(top=Jeland.space.iconGap))
+                    MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
+                    MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.secondary,Modifier.padding(top=Jeland.space.compact).testTag("media-artist"))
+                    Label(s.source,small=true,muted=true,modifier=Modifier.padding(top=Jeland.space.iconGap).testTag("media-status"))
                 }
-                Box(Modifier.size(48.dp).clickable(onClick=r::toggleLike),contentAlignment=Alignment.Center) {
+                if(!s.live)Box(Modifier.size(48.dp).clickable(onClick=r::toggleLike),contentAlignment=Alignment.Center) {
                     Glyph(if(s.liked)JIcons.Favorite else JIcons.FavoriteBorder,if(s.liked)"Удалить композицию из избранного"else"Добавить композицию в избранное",active=s.liked)
                 }
             }
             Column {
-                JelandSlider(s.position.toFloat(),{r.seek(it.toInt())},valueRange=0f..s.track.duration.toFloat(),modifier=Modifier.height(48.dp).testTag("media-seek"))
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {Label(timeString(s.position),small=true,muted=true);Label(timeString(s.track.duration),small=true,muted=true)}
+                JelandSlider(s.position.toFloat(),{r.seek(it.toInt())},valueRange=0f..s.track.duration.coerceAtLeast(1).toFloat(),enabled=!s.live,modifier=Modifier.height(48.dp).testTag("media-seek"))
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {Label(if(s.live&&!s.positionKnown)"—:—"else timeString(s.position),small=true,muted=true);Label(if(s.live&&s.track.duration<=0)"—:—"else timeString(s.track.duration),small=true,muted=true)}
             }
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically) {
-                RoundControl(JIcons.SkipPrevious,"Предыдущая композиция",Modifier.testTag("media-previous"),onClick=r::previous)
-                RoundControl(if(s.playing)JIcons.Pause else JIcons.PlayArrow,if(s.playing)"Пауза демо"else"Воспроизвести демо",Modifier.then(if(expanded)Modifier.size(72.dp)else Modifier).testTag("media-play"),active=s.playing,onClick=r::togglePlay)
-                RoundControl(JIcons.SkipNext,"Следующая композиция",Modifier.testTag("media-next"),onClick=r::next)
+                RoundControl(JIcons.SkipPrevious,"Предыдущая композиция",Modifier.testTag("media-previous"),enabled=s.controlsEnabled,onClick=r::previous)
+                RoundControl(if(s.playing)JIcons.Pause else JIcons.PlayArrow,if(s.playing)if(s.live)"Пауза"else"Пауза демо"else if(s.live)"Воспроизвести"else"Воспроизвести демо",Modifier.then(if(expanded)Modifier.size(72.dp)else Modifier).testTag("media-play"),active=s.playing,enabled=s.controlsEnabled,onClick=r::togglePlay)
+                RoundControl(JIcons.SkipNext,"Следующая композиция",Modifier.testTag("media-next"),enabled=s.controlsEnabled,onClick=r::next)
             }
         }
     }
 }
 @Composable fun NavigationWidget(s:NavigationState,modifier:Modifier,onClick:()->Unit) {
+    s.external?.let {InstalledNavigationWidget(it,modifier,onClick);return}
     val c=Jeland.colors
-    Box(modifier.fillMaxHeight().clip(Jeland.card).border(1.dp,c.outline,Jeland.card).clickable(onClick=onClick)) {
+    Box(modifier.fillMaxHeight().clip(Jeland.card).border(1.dp,c.outline,Jeland.card).clickable(onClick=onClick).testTag("navigation-widget")) {
         MockMap(s,Modifier.fillMaxSize())
-        Text("МОК-КАРТА",fontSize=Jeland.type.badge,color=c.artMuted,letterSpacing=Jeland.type.trackNormal,modifier=Modifier.padding(Jeland.space.roomy))
+        Text("НАВИГАЦИЯ · DEMO",fontSize=Jeland.type.micro,color=c.artMuted,modifier=Modifier.padding(10.dp))
         Row(Modifier.align(Alignment.TopEnd).padding(Jeland.space.regular).background(c.map.copy(alpha=.85f),Jeland.control).padding(Jeland.space.controlGap),verticalAlignment=Alignment.CenterVertically) {
             Icon(when(s.maneuver){Maneuver.RIGHT->JIcons.TurnRight;Maneuver.LEFT->JIcons.TurnLeft;Maneuver.STRAIGHT->JIcons.Straight},"Манёвр демо",tint=c.artText)
             Text("${s.distanceToManeuver} м",fontSize=Jeland.type.body,color=c.artText,modifier=Modifier.padding(start=Jeland.space.iconGap))
         }
-        Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(c.map.copy(alpha=.92f)).padding(Jeland.space.card),verticalAlignment=Alignment.CenterVertically) {
+        Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(c.map.copy(alpha=.92f)).padding(horizontal=12.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(if(s.active)s.destination else "Маршрут остановлен",fontSize=Jeland.type.title,color=c.artText)
-                Text("${s.minutes} мин · ${s.kilometers} км · ${s.arrivalTime}",fontSize=Jeland.type.secondary,color=c.artMuted,modifier=Modifier.padding(top=Jeland.space.small))
+                Text(if(s.active)s.destination else "Маршрут остановлен",fontSize=Jeland.type.secondary,color=c.artText,maxLines=1)
+                Text("${s.minutes} мин · ${s.kilometers} км",fontSize=Jeland.type.footnote,color=c.artMuted)
             }
             Icon(JIcons.ChevronRight,null,tint=c.artMuted)
         }
     }
 }
-@Composable fun MusicScreen(s:UiState,model:MainViewModel) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom=Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.roomy)) {
-        SectionTitle("Музыка","Ваша демо-коллекция · ${demoTracks.size} композиции · без воспроизведения звука")
-        MediaWidget(s.media,model,Modifier.fillMaxWidth().height(350.dp),expanded=true)
-        Panel(Modifier.fillMaxWidth().padding(top=Jeland.space.tiny)) {
-            Column(Modifier.padding(Jeland.space.page),verticalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
-                SectionTitle("Источник аудио","Выбор демонстрационный. Bluetooth, USB и радио не подключаются.")
-                Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.controlGap)) {
-                    listOf("Bluetooth","USB","Радио").forEach {source->Control(source,Modifier.weight(1f).testTag("media-source-$source"),selected=s.media.source==source){model.dependencies.media.setSource(source)}}
-                }
-                Label("Громкость демо: ${s.media.volume}%")
-                JelandSlider(s.media.volume.toFloat(),{model.dependencies.media.setVolume(it.toInt())},valueRange=0f..100f,modifier=Modifier.testTag("media-volume"))
-            }
-        }
-        Label("Демо-коллекция",muted=true)
-        demoTracks.forEachIndexed { i,track->
-            Panel(Modifier.fillMaxWidth().testTag("media-track-$i").clickable {model.dependencies.media.selectTrack(i)}) {
-                Row(Modifier.padding(Jeland.space.page),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(Jeland.space.roomy)) {
-                    Glyph(JIcons.MusicNote,active=s.media.index==i)
-                    Column(Modifier.weight(1f)) {Label(track.title);Label(track.artist,small=true,muted=true)}
-                    Label(timeString(track.duration),small=true,muted=true)
-                    Glyph(if(s.media.index==i&&s.media.playing)JIcons.Pause else JIcons.PlayArrow,active=s.media.index==i)
-                }
-            }
-        }
-    }
-}
-@Composable fun NavigationScreen(s:UiState,model:MainViewModel) {
-    val n=s.navigation; val r=model.dependencies.navigation
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom=Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
-        SectionTitle("Навигация","Локальная карта-иллюстрация. Не маршрут для реального движения.")
-        Panel(Modifier.fillMaxWidth()) {
-            Box(Modifier.fillMaxWidth().height(430.dp)) {
-                MockMap(n,Modifier.fillMaxSize())
-                Column(Modifier.align(Alignment.TopEnd).padding(Jeland.space.roomy),verticalArrangement=Arrangement.spacedBy(Jeland.space.controlGap)) {
-                    RoundControl(JIcons.Add,"Приблизить карту") {r.zoom(.2f)}
-                    RoundControl(JIcons.Remove,"Отдалить карту") {r.zoom(-.2f)}
-                }
-                Text("DEMO  /  ${n.zoom.toString().take(3)}×",fontSize=Jeland.type.caption,color=Jeland.colors.artMuted,modifier=Modifier.padding(Jeland.space.card))
-            }
-            Row(Modifier.padding(Jeland.space.page),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(Jeland.space.page)) {
-                Glyph(when(n.maneuver){Maneuver.RIGHT->JIcons.TurnRight;Maneuver.LEFT->JIcons.TurnLeft;Maneuver.STRAIGHT->JIcons.Straight},"Манёвр демо",Modifier.size(50.dp),true)
-                Column(Modifier.weight(1f)) {SectionTitle("${n.distanceToManeuver} м",n.street);Label("${n.destination} · ${n.minutes} мин · ${n.kilometers} км");Label("Прибытие ${n.arrivalTime} · демо",small=true,muted=true)}
-                Control(if(n.active)"Остановить"else"Построить",selected=n.active,onClick=r::toggleRoute)
-            }
-        }
-        Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
-            Control("Домой",selected=n.destination=="Домой") {r.setDestination("Домой")}
-            Control("На работу",selected=n.destination=="На работу") {r.setDestination("На работу")}
-            Control("Следующий манёвр",onClick=r::nextManeuver)
-        }
-        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.page)) {
-            SectionTitle("Единое состояние маршрута","MockClusterBridge получает те же данные, что и экран. На приборку ничего не отправляется.")
-            Label("Приборка: не подключена · Binder / Kanzi / display 2 не используются",small=true,muted=true)
-        }}
-    }
+@Composable fun MusicScreen(s:UiState,model:MainViewModel) { FullMusicPlayer(s.media,model.dependencies.media) }
+@Composable fun NavigationScreen(s:UiState,model:MainViewModel,mapVisible:Boolean=true,onSettings:()->Unit={}) {
+    ru.jeland.os.navigation.FullNavigationScreen(model.dependencies.navigation,s.dark)
 }
 @Composable fun VehicleScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit) {
     val r=model.dependencies.vehicle
@@ -204,9 +204,9 @@ import ru.jeland.os.ui.theme.Jeland
         }}
         if(section==VehicleSection.QUICK) {
             Row(Modifier.height(140.dp),horizontalArrangement=Arrangement.spacedBy(Jeland.space.inset)) {
-                QuickTile("Подогрев руля",s.vehicle.steeringSummary,JIcons.Steering,Modifier.weight(1f).testTag("car-steering"),s.vehicle.steeringHeat,r::toggleSteeringHeat)
+                QuickTile("Подогрев руля",s.vehicle.steeringSummary,JIcons.Steering,Modifier.weight(1f).testTag("car-steering"),s.vehicle.steeringHeat,onClick=r::toggleSteeringHeat)
                 QuickTile("Шторка",s.vehicle.shadeUiSummary,JIcons.Shade,Modifier.weight(1f),false){show(Popup.SHADE)}
-                QuickTile("Зеркала",if(!s.car.demo)"Не подключены"else if(s.vehicle.mirrorsFolded)"Сложены · DEMO"else"Разложены",JIcons.SwapHoriz,Modifier.weight(1f).testTag("car-mirrors"),s.vehicle.mirrorsFolded,r::toggleMirrors)
+                QuickTile("Зеркала",if(!s.car.demo)"Не подключены"else if(s.vehicle.mirrorsFolded)"Сложены · DEMO"else"Разложены",JIcons.SwapHoriz,Modifier.weight(1f).testTag("car-mirrors"),s.vehicle.mirrorsFolded,onClick=r::toggleMirrors)
             }
             VehicleStatusCard(s.vehicle,Modifier.fillMaxWidth().height(250.dp),{show(Popup.VEHICLE)},{show(Popup.tire(it))}){show(Popup.DEBUG)}
         } else {
@@ -241,8 +241,17 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
 }
 @Composable fun SettingsScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit,onDemoVehicle:()->Unit={}) {
     val preferences=model.dependencies.preferences
+    val startup by model.startup.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("settings-scroll").padding(bottom=Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.roomy)) {
         SectionTitle("Настройки","Оформление и персонализация Jeland OS")
+        SystemStartupSettings(startup,model::setSystemStartup,model::openStartupPermission)
+        AppUpdateSettings(model.dependencies.updates)
+        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            SectionTitle("Навигация","Собственная встроенная офлайн-карта")
+            Label("Челябинск · Миасс · Златоуст. Поиск, автомобильные маршруты и подсказки без ADB-помощника и отдельного навигатора. Импорт карт и настройки GPS — на вкладке «Навигация» → шестерёнка.",small=true,muted=true)
+            Label("Пробки не подключены. Реальное GPS-ведение на ГУ ещё требует проверки.",small=true,muted=true)
+        }}
+        s.navigation.external?.let {NavigationPreferences(model,it)}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){VehicleConnectionPanel(s,model)}}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){IndicatorPermissions(model)}}
         if(s.car.demo)Control("DEMO-панель автомобиля",Modifier.testTag("open-demo-car"),onClick=onDemoVehicle)
@@ -251,8 +260,8 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
             Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
                 ThemeMode.entries.forEach {mode->Control(mode.title,Modifier.weight(1f).testTag("theme-${mode.name.lowercase()}"),s.theme==mode){model.dependencies.theme.setMode(mode)}}
             }
-            Label("Авто использует тестовый DayNightProvider, не сигнал автомобиля.",small=true,muted=true)
-            Control(if(s.night)"Демо: ночь → переключить на день"else"Демо: день → переключить на ночь",Modifier.testTag("toggle-night"),onClick=model.dependencies.dayNight::toggle)
+            Label("Авто — день/ночь по системному режиму ГУ, как в штатном интерфейсе.",small=true,muted=true)
+            if(s.car.demo)Control(if(s.night)"Демо: ночь → переключить на день"else"Демо: день → переключить на ночь",Modifier.testTag("toggle-night"),onClick=model.dependencies.dayNight::toggle)
         }}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(24.dp)) {
             SectionTitle("Главный экран","Изменения сохраняются между запусками")
@@ -265,10 +274,11 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
             SectionTitle("Сеть и остальные функции",if(s.car.demo)"Режим DEMO · автомобиль отключён"else"Автомобиль: ${s.car.detail}")
             Label(when {s.connectivity.wifi->"Wi-Fi подключён";s.connectivity.cellular->"Мобильная сеть подключена";s.connectivity.available->"Нет подключения к сети";else->"Сведения о сети недоступны"},small=true,muted=true)
-            Label("Музыка — демо без звука\nНавигация — локальная иллюстрация\n"+
+            Label((if(s.media.live)"Музыка — штатный источник\n"else"Музыка — демо без звука\n")+
+                "Навигация — встроенная офлайн-карта\n"+
                 (if(s.weather.demo)"Погода — DEMO"else"Погода — штатное приложение, без отдельной загрузки")+
-                "\nКамеры и приборка — не подключены",small=true,muted=true)
-            Label("Обычное OEM-разрешение ivi.vds.permission.SERVICE. Без root, priv-app, CAN-команд, фонового сервиса и замены штатной оболочки. Probe остаётся отдельным приложением.",small=true,muted=true)
+                "\nКамеры — открытие штатного интерфейса\nПриборка — не подключена",small=true,muted=true)
+            Label("Обычное OEM-разрешение ivi.vds.permission.SERVICE. Без root, priv-app и замены штатной оболочки. Служба подсказок работает только с разрешённым пользователем доступом к уведомлениям. Probe остаётся отдельным приложением.",small=true,muted=true)
             Label("Jeland OS · ${BuildConfig.VERSION_NAME}\nОтдельное Android-приложение, не системная прошивка",small=true,muted=true)
         }}
     }

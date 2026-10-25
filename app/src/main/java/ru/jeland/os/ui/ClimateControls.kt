@@ -73,7 +73,7 @@ import ru.jeland.os.ui.theme.JIcons
             ClimateAction("Обдув\nлобового",JIcons.Waves,s.defrost&&s.known(24),enabled&&s.known(24),Modifier.weight(1f).testTag("climate-front-defrost"),r::toggleDefrost)
             ClimateAction("Обогрев\nзаднего",JIcons.RearDefrost,s.rearDefrost&&s.known(80),enabled&&s.known(80),Modifier.weight(1f).testTag("climate-rear-defrost"),r::toggleRearDefrost)
             ClimateAction("Обогрев\nлобового",JIcons.WindshieldHeat,s.windshieldHeat&&s.known(65),enabled&&s.known(65),Modifier.weight(1f).testTag("climate-windshield-heat"),r::toggleWindshieldHeat)
-            ClimateAction("Синхр.",null,s.sync,enabled&&!live,Modifier.weight(1f).testTag("climate-sync"),r::toggleSync,"SYNC")
+            ClimateAction("Синхр.",null,s.known(3)&&s.sync,enabled&&s.known(3),Modifier.weight(1f).testTag("climate-sync"),r::toggleSync,"SYNC")
         }
         CabinAirflowPreview(direction,s.known(18)&&s.power,Modifier.fillMaxWidth().aspectRatio(4f))
         if(s.known(18)&&!s.power)Label("Климат выключен",small=true,muted=true,modifier=Modifier.testTag("climate-power-off"))
@@ -95,7 +95,7 @@ import ru.jeland.os.ui.theme.JIcons
 /** Compact square controls in both the fan selector and permanent dock. */
 @Composable fun ClimateBarButton(icon:ImageVector?=null,text:String?=null,description:String,active:Boolean=false,enabled:Boolean=true,modifier:Modifier=Modifier,accent:Color=Jeland.colors.accent,onClick:()->Unit) {
     val c=Jeland.colors
-    Box(modifier.height(48.dp).widthIn(min=48.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.4f)else c.raised.copy(alpha=.35f))
+    Box(modifier.height(56.dp).widthIn(min=52.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.4f)else c.raised.copy(alpha=.35f))
         .border(1.dp,if(active&&enabled)accent else c.outline,Jeland.control).semantics {contentDescription=description;selected=active;if(!enabled)disabled()}
         .clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=9.dp),contentAlignment=Alignment.Center) {
         val tint=if(!enabled)c.unknown else if(active)accent else c.text

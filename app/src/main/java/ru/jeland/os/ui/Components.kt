@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
@@ -107,20 +108,34 @@ import ru.jeland.os.ui.theme.JIcons
 fun timeString(seconds: Int)="${seconds/60}:${(seconds%60).toString().padStart(2,'0')}"
 
 /** Custom native slider with touch, drag and accessibility progress semantics. */
-@Composable fun JelandSlider(value:Float,onValueChange:(Float)->Unit,valueRange:ClosedFloatingPointRange<Float>,modifier:Modifier=Modifier,enabled:Boolean=true,onValueChangeFinished:(()->Unit)?=null) {
+@Composable fun JelandSlider(value:Float,onValueChange:(Float)->Unit,valueRange:ClosedFloatingPointRange<Float>,modifier:Modifier=Modifier,enabled:Boolean=true,onValueChangeFinished:(()->Unit)?=null,gradient:Brush?=null,onValueChangeCanceled:(()->Unit)?=null) {
     val c=Jeland.colors
     val change by rememberUpdatedState(onValueChange)
     val finish by rememberUpdatedState(onValueChangeFinished)
     val isEnabled by rememberUpdatedState(enabled)
+    val cancel by rememberUpdatedState(onValueChangeCanceled)
+    val gradientInset=with(LocalDensity.current){18.dp.toPx()}
     val fraction=((value-valueRange.start)/(valueRange.endInclusive-valueRange.start)).coerceIn(0f,1f)
-    fun fromX(x:Float,width:Float):Float = valueRange.start+(x/width).coerceIn(0f,1f)*(valueRange.endInclusive-valueRange.start)
+    fun fromX(x:Float,width:Float):Float {
+        val fraction=if(gradient==null)x/width else (x-gradientInset)/(width-2*gradientInset).coerceAtLeast(1f)
+        return valueRange.start+fraction.coerceIn(0f,1f)*(valueRange.endInclusive-valueRange.start)
+    }
     Canvas(modifier.fillMaxWidth().height(48.dp).semantics {
         progressBarRangeInfo=ProgressBarRangeInfo(value,valueRange)
         if(!enabled)disabled()
         setProgress {if(isEnabled){change(it.coerceIn(valueRange.start,valueRange.endInclusive));finish?.invoke();true}else false}
     }.pointerInput(valueRange,enabled) {if(enabled)detectTapGestures {if(isEnabled){change(fromX(it.x,size.width.toFloat()));finish?.invoke()}}}
-        .pointerInput(valueRange,enabled) {if(enabled)detectDragGestures(onDragEnd={if(isEnabled)finish?.invoke()}) {event,_->if(isEnabled){event.consume();change(fromX(event.position.x,size.width.toFloat()))}}}) {
-        val y=size.height/2;val inset=7.dp.toPx();val length=size.width-2*inset
+        .pointerInput(valueRange,enabled) {if(enabled)detectDragGestures(onDragEnd={if(isEnabled)finish?.invoke()},onDragCancel={cancel?.invoke()}) {event,_->if(isEnabled){event.consume();change(fromX(event.position.x,size.width.toFloat()))}}}) {
+        val y=size.height/2;val inset=if(gradient==null)7.dp.toPx()else gradientInset;val length=size.width-2*inset
+        if(gradient!=null) {
+            val center=Offset(inset+length*fraction,y)
+            if(enabled)drawLine(gradient,Offset(inset,y),Offset(size.width-inset,y),14.dp.toPx(),cap=StrokeCap.Round)
+            else drawLine(c.unknown.copy(alpha=.35f),Offset(inset,y),Offset(size.width-inset,y),14.dp.toPx(),cap=StrokeCap.Round)
+            drawCircle(c.accent.copy(alpha=if(enabled).18f else .05f),18.dp.toPx(),center)
+            drawCircle(Color(0xFFF0F6FA),12.dp.toPx(),center)
+            drawCircle(if(enabled)c.accent else c.unknown,12.dp.toPx(),center,style=androidx.compose.ui.graphics.drawscope.Stroke(1.2.dp.toPx()))
+            return@Canvas
+        }
         drawLine(c.outline,Offset(inset,y),Offset(size.width-inset,y),3.dp.toPx(),cap=StrokeCap.Round)
         val tint=if(enabled)c.accent else c.unknown.copy(alpha=.35f)
         drawLine(tint,Offset(inset,y),Offset(inset+length*fraction,y),3.dp.toPx(),cap=StrokeCap.Round)

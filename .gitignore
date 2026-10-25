@@ -10,3 +10,13 @@ local.properties
 *.keystore
 screenshots/
 artifacts/
+__pycache__/
+*.py[cod]
+*.log
+.env
+.env.*
+!.env.example
+docs/evidence/
+docs/references/
+# Historical unused TTS models stay local; the current application uses RuVoice.
+app/src/main/assets/voice/supertonic-3-int8/

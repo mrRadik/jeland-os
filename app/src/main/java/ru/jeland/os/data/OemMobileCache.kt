@@ -26,7 +26,12 @@ internal class OemMobileCache(private val context:Context,private val changed:()
             if(event?.id!=720899)return@runCatching
             val bundle=event.payload?:return@runCatching
             bundle.classLoader=VDNetworkStatus::class.java.classLoader
-            @Suppress("DEPRECATION") val data=if(bundle.getBoolean("IS_NULL",false))null else bundle.get("data") as? VDNetworkStatus
+            // VDNetworkStatus.createPayload/getValue use VDKey.INFO, not "data".
+            @Suppress("DEPRECATION") val data=if(bundle.getBoolean("IS_NULL",false))null else bundle.get("info") as? VDNetworkStatus
+            if(data==null)report("TBOX_CACHE missing info; isNull=${bundle.getBoolean("IS_NULL",false)}")
+            else report("TBOX_CACHE connected=${data.connected} registered=${data.registered} type=${RadioReadings.mobileType(data.type)} signal=${data.level}")
+            // CarLan manager/b/a.b(TBoxNetworkStatus) normalizes this DTO's signal to 0..4.
+            // ConnectivityService's separate raw 26/28 must never be fed into this decoder.
             val result=data?.let {MobileCache(it.connected,it.registered,RadioReadings.mobileType(it.type),RadioReadings.mobileLevel(it.level),SystemClock.elapsedRealtime())}
             main.post {if(token==epoch){value=result;changed()}}
         }.onFailure {report("TBOX_CACHE ${it.javaClass.simpleName}")}}finally {inFlight.set(false)}}

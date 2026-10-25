@@ -11,6 +11,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import ru.jeland.os.BuildConfig
 import ru.jeland.os.core.VehicleLinkState
+import ru.jeland.os.core.TyreTemperatureDiagnostics
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -27,7 +28,7 @@ data class SavedDiagnostics(val uri:Uri,val name:String,val logCount:Int) {
 object DiagnosticsExporter {
     private const val MAX_TOTAL=32L*1024*1024
     private data class LogPart(val file:File,val start:Long,val length:Long)
-    fun save(context:Context,link:VehicleLinkState):SavedDiagnostics {
+    fun save(context:Context,link:VehicleLinkState,tyreDiagnostics:TyreTemperatureDiagnostics=TyreTemperatureDiagnostics()):SavedDiagnostics {
         val name="JelandOSLogs_${SimpleDateFormat("yyyyMMdd_HHmmss",Locale.US).format(Date())}_${UUID.randomUUID().toString().take(8)}.zip"
         val files=listOfNotNull(context.getExternalFilesDir(null),context.filesDir)
             .distinctBy {it.canonicalPath}.flatMap {it.listFiles().orEmpty().toList()}
@@ -43,6 +44,14 @@ object DiagnosticsExporter {
             put("createdUtcMillis",System.currentTimeMillis());put("sdk",Build.VERSION.SDK_INT)
             put("mode",if(link.demo)"DEMO"else"VEHICLE");put("connected",link.connected);put("writesEnabled",link.writesEnabled)
             put("detail",link.detail);put("lastCommand",link.lastCommand?:JSONObject.NULL)
+            val startupStore=AndroidSettingsStore(context)
+            put("startup",JSONObject().put("enabled",startupStore.string(SystemStartup.ENABLED_KEY,"false")=="true")
+                .put("permissionGranted",runCatching {android.provider.Settings.canDrawOverlays(context)}.getOrDefault(false))
+                .put("lastBoot",startupStore.string(SystemStartup.LAST_BOOT_KEY,"none"))
+                .put("lastWake",startupStore.string(SystemStartup.LAST_WAKE_KEY,"none"))
+                .put("wakePending",startupStore.string(SystemStartup.WAKE_PENDING_KEY,"false"))
+                .put("wakeWatcher",startupStore.string(SystemStartup.WATCH_STATUS_KEY,"none")))
+            put("tyreTemperatureDebug",tyreDiagnosticsJson(tyreDiagnostics))
             put("availableLogFiles",files.size);put("includedLogFiles",selected.size)
             put("partial",selected.size<files.size || selected.any {it.start>0})
             put("logFiles",JSONArray().apply {selected.forEach {(file,start,size)->put(JSONObject().put("name",file.name).put("bytes",size).put("tailOnly",start>0))}})
@@ -76,5 +85,19 @@ object DiagnosticsExporter {
             check(resolver.update(uri,ContentValues().apply {put(MediaStore.MediaColumns.IS_PENDING,0)},null,null)==1){"Не удалось завершить сохранение ZIP"}
             return SavedDiagnostics(uri,name,selected.size)
         }catch(error:Exception){runCatching {resolver.delete(uri,null,null)};throw error}
+    }
+    internal fun tyreDiagnosticsJson(s:TyreTemperatureDiagnostics)=JSONObject().apply {
+        put("active",s.active);put("phase",s.phase.name);put("attempts",s.attempts)
+        put("interface",s.interfaceName);put("tcpConnected",s.tcpConnected)
+        put("clock","elapsedRealtimeMillis");put("exportedAtElapsedMillis",SystemClock.elapsedRealtime())
+        put("lastError",s.lastError);put("failedPhase",s.failedPhase?.name?:JSONObject.NULL)
+        put("errorAtMillis",s.errorAtMillis?:JSONObject.NULL);put("retryAtMillis",s.retryAtMillis?:JSONObject.NULL)
+        put("trace",JSONObject().put("phase",s.trace.phase.name).put("command",s.trace.command)
+            .put("rxBytes",s.trace.receivedBytes).put("txBytes",s.trace.sentBytes)
+            .put("textTail",s.trace.textTail).put("hexTail",s.trace.hexTail))
+        put("lastPayload",s.payload.take(2048));put("packetCount",s.packetCount)
+        put("lastPacketAtMillis",s.lastPacketAtMillis?:JSONObject.NULL)
+        put("samples",JSONArray().apply {s.samples.forEach {(wheel,value)->put(JSONObject().put("wheel",wheel.name)
+            .put("raw",value.raw).put("status",value.status).put("celsius",value.celsius?:JSONObject.NULL).put("atMillis",value.atMillis))}})
     }
 }

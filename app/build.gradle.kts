@@ -6,22 +6,31 @@ plugins {
 }
 android {
     namespace = "ru.jeland.os"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 23
-        versionName = "0.6.5-rear-seats"
+        versionCode = 76
+        versionName = "0.9.35"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
-    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-    kotlinOptions { jvmTarget = "17" }
+    sourceSets["androidTest"].assets.srcDir("schemas")
+    // Preserve the previous model on disk, but no longer ship it in the application.
+    androidResources { ignoreAssetsPattern = "supertonic-3-int8" }
+    compileOptions { isCoreLibraryDesugaringEnabled = true; sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}") }
 }
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 kapt {arguments {arg("room.schemaLocation","$projectDir/schemas")}}
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // Explicit OpenGL ES backend for Android 11 head units; do not rely on Vulkan defaults.
+    implementation("org.maplibre.gl:android-sdk-opengl:13.7.1")
+    implementation("io.github.rallista:valhalla-mobile:0.6.4")
+    implementation("com.stadiamaps.ferrostar:core:0.58.0")
+    kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
     implementation("androidx.room:room-runtime:2.7.2")
     implementation("androidx.room:room-ktx:2.7.2")
     kapt("androidx.room:room-compiler:2.7.2")

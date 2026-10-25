@@ -18,6 +18,7 @@ interface VehicleRepository {
 interface ClimateRepository {
     val state: StateFlow<ClimateState>
     fun adjustTemperature(driver: Boolean, delta: Double)
+    fun setTemperature(driver:Boolean,value:Double)
     fun toggleAuto(); fun toggleAc(); fun toggleRecirculation(); fun toggleDefrost(); fun toggleSync()
     fun setFan(value: Int)
     fun setAirflow(value: Airflow)
@@ -36,11 +37,20 @@ interface MediaRepository {
     val state: StateFlow<MediaState>
     fun togglePlay(); fun next(); fun previous(); fun tick(); fun toggleLike()
     fun setVolume(value: Int); fun selectTrack(index: Int); fun setSource(value: String); fun seek(seconds: Int)
+    fun start() {}
+    fun stop() {}
 }
 interface WeatherRepository { val state: StateFlow<WeatherState>; fun useCity(city: String) }
 interface NavigationRepository {
     val state: StateFlow<NavigationState>
     fun toggleRoute(); fun setDestination(value: String); fun zoom(delta: Float); fun nextManeuver()
+    fun refresh() {}
+    fun selectProvider(value:NavigationProvider) {}
+    fun openNavigator():String?="Навигатор не подключён."
+    fun openPlace(id:String):String?="Место не задано."
+    fun savePlace(id:String,title:String,coordinates:String):String?="Место не сохранено."
+    fun removePlace(id:String) {}
+    fun openNotificationAccess():Boolean=false
 }
 interface ThemeRepository { val mode: StateFlow<ThemeMode>; fun setMode(value: ThemeMode) }
 interface DayNightProvider { val isNight: StateFlow<Boolean> }
@@ -63,6 +73,8 @@ interface SettingsStore {
     fun string(key: String, default: String): String
     fun put(key: String, value: String)
 }
+/** Small durable safety markers; implementations must throw if persistence fails. */
+interface DurableSettingsStore:SettingsStore {fun putDurable(key:String,value:String)}
 class MemorySettingsStore : SettingsStore {
     private val values = mutableMapOf<String,String>()
     override fun string(key: String, default: String) = values[key] ?: default
