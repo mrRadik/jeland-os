@@ -3,6 +3,10 @@
 Workflow: `.github/workflows/android-checks.yml`, имя **Android CI**,
 обязательная проверка для правил ветки — **Android checks**.
 
+В mrRadik/jeland-os проверка уже включена в активный `main-pr-required`:
+источник GitHub Actions, ветка PR должна быть актуальна относительно main.
+Остальные правила и исключения владельца сохранены.
+
 Запускается для каждого PR в main, при каждом изменении main и вручную
 через Actions → Android CI → Run workflow после появления workflow в main.
 Фильтров по файлам нет: обязательная проверка не должна пропускаться из-за
