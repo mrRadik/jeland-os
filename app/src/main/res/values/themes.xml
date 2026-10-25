@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.JelandOS" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#030B12</item>
+        <item name="android:colorAccent">#52D9FF</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+</resources>

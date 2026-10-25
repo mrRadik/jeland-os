@@ -1,0 +1,14 @@
+{
+  "title": "Обзор дорог России",
+  "file": "russia-overview.pmtiles",
+  "schema": "protomaps-v4",
+  "maxZoom": 6,
+  "tiles": 1194,
+  "bytes": 6494875,
+  "sha256": "920ed56e1464de9fd4743e4906d43385552308ca4cecf3d3d347c3a734f8103b",
+  "source": "https://build.protomaps.com/20261020.pmtiles",
+  "etag": "\"cd9adc2a17bedba0e4730c6fe3363dcc-518\"",
+  "downloadedBytes": 16373017,
+  "attribution": "© OpenStreetMap contributors · Natural Earth · Protomaps · ODbL",
+  "routing": false
+}

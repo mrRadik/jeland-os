@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- Network is used for user-requested map downloads; rendering and routing remain local. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- User-enabled exemption for opening our normal Activity at boot; no overlay is drawn. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Normal OEM permission used by the field-tested Probe; no root/priv-app or overlay. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="ivi.vds.permission.SERVICE" />
+    <queries>
+        <package android:name="ru.kost.ruvoice" />
+        <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+        <package android:name="com.iflytek.autofly.sceneengine" />
+        <package android:name="com.desaysv.ivi.vds.vr" />
+        <package android:name="ru.jeland.vdbprobe" />
+        <package android:name="ru.dublgis.dgismobile" />
+        <package android:name="ru.yandex.yandexnavi" />
+        <package android:name="com.desaysv.ivi.vds.carinfo" />
+        <package android:name="com.desaysv.svhvac" />
+        <package android:name="com.desaysv.setting" />
+        <package android:name="com.desaysv.engmode" />
+        <package android:name="com.desaysv.ivi.vds.rvc" />
+        <package android:name="com.liontech.weather" />
+        <package android:name="com.desaysv.ivi.vds.carlan" />
+        <package android:name="com.desaysv.ivi.vds.bt" />
+        <package android:name="com.desaysv.ivi.vds.media" />
+        <package android:name="com.desaysv.svmusicapp" />
+        <package android:name="com.desaysv.svaudioapp" />
+        <package android:name="com.desaysv.vehicle.carplayapp" />
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
+    </queries>
+    <application android:name=".JelandApplication" android:label="Jeland OS"
+        android:allowBackup="false" android:supportsRtl="true" android:theme="@style/Theme.JelandOS"
+        android:usesCleartextTraffic="false" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher">
+        <receiver android:name=".data.SystemBootReceiver" android:enabled="true" android:exported="false">
+            <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
+        </receiver>
+        <service android:name=".data.WakeStartupService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-enabled head-unit wake observer to reopen Jeland OS once after sleep; no wake lock or vehicle control" />
+        </service>
+        <provider android:name=".data.updates.UpdateApkProvider" android:authorities="${applicationId}.updates"
+            android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_paths" />
+        </provider>
+        <provider android:name=".navhost.NavHostProvider" android:authorities="ru.jeland.os.navhost"
+            android:exported="true" android:permission="android.permission.DUMP" />
+        <service android:name=".data.navigation.NavigationNotificationListener"
+            android:label="Jeland OS — подсказки навигации" android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+        </service>
+        <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

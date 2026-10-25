@@ -1,0 +1,13 @@
+# 0.9.23 — курс карты главного виджета
+
+Причина: WidgetMapSnapshot передавал CameraPosition без bearing (0°, север вверх), но вращал Canvas-стрелку абсолютным GPS bearing. Основная MapView поворачивала камеру, а её символ map-aligned, поэтому визуально направления расходились.
+
+Исправлено: snapshot camera.bearing получает нормализованный GPS-курс; Canvas-стрелка — heading minus camera.bearing, то есть вверх в course-up. При кратком отсутствии курса держится последний валидный, общий для обеих карт, в AndroidGpsSource. При смене самого renderer также локальный fallback. Невалидные/NaN angles отбрасываются; wrap 359/0 проверен. Основная камера обновляется и при изменении только heading, не только позиции. Ручной pan/overview основной карты не копируется в виджет, отдельная камера сохранена.
+
+RoutePreviewWindow вписывает ограниченный участок 320–850 м в повернутые экранные оси: иначе eastbound маршрут после поворота на 90° мог не войти в высоту широкого виджета. Убран дополнительный delay 1800 мс, оставлен 250 мс ограничитель. Как прежде, conflate и один запрос за раз; новых таймеров, сетевых запросов и второго MapView нет. Текущий снимок остаётся видимым при подготовке следующего. Остальные компоненты и RuVoice не менялись.
+
+Сначала assembleDebug, APK подписан и выложен до тестов: versionCode 64, versionName 0.9.23-widget-heading, 218095546 байт. artifacts и portable одинаковы: SHA-256 2ECC9BAFC8467129A52C7DC26C27B9D7869CC6680CFCC49351A8C70F7856D599, apksigner valid v2. Как предыдущие устанавливаемые версии, это debug signing, отдельного production signing нет. START → 1 обновляет только OS; START → V обновлён на новый комплект, RuVoice APK прежний.
+
+11 JVM: NavigationPresentationTest (4), RoutePreviewWindowTest (7), failures/errors 0. Проверены cardinal/diagonal course-up, отсутствие двойного вращения, wrap, invalid/null fallback, поворот fit bounds, прежние случаи ограниченного маршрута.
+
+2 Android на локальном BlueStacks API30, OK за 3.678 с: WidgetHeadingInstrumentation — реальный MapSnapshotter, одна и та же тестовая eastbound линия горизонтальна при 0° и вертикальна при 90°, отсутствие нового курса сохраняет 90°. Проверка по пикселям именно cyan route, не только metadata камеры. OfflineNavigationInstrumentation#homeShowsIndependentCloseRouteAndLargeManeuver — реальный локально рассчитанный маршрут, ограниченный участок в виджете, крупный манёвр, смена темы и независимость от overview основной карты. QaPreferenceGuard сохраняет настройки; тестовые маршруты остановлены. Скриншоты в screenshots/qa-0.9.23, widget-east.png просмотрен: маршрут вверх, стрелка вверх, подписи повернутой карты читаемы. Полная suite не запускалась, реального движения ГУ ещё не было. APK после проверок не пересобирался.
