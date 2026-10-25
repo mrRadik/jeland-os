@@ -9,6 +9,8 @@ Workflow: `.github/workflows/android-checks.yml`, имя **Android CI**,
 изменения только документации. Новый коммит в PR отменяет его устаревший запуск.
 
 На стандартном Linux-сервере GitHub с JDK 21 и Android SDK 36 выполняются:
+SDK и command-line tools устанавливаются явно: наличие sdkmanager в образе
+GitHub не предполагается.
 
 ```
 bash ./gradlew --no-daemon --console=plain --stacktrace --continue \
