@@ -24,6 +24,11 @@ class OfflineMapManager(private val context:Context):MapDataRepository {
     private val mutableRegion=MutableStateFlow<RegionData?>(null)
     val region=mutableRegion.asStateFlow()
     val revision=MutableStateFlow(0)
+    private val overviewSource=MutableStateFlow(prefs.getString("overview-source","").orEmpty()
+        .takeIf {File(root,"overview-custom.pmtiles").exists()}.orEmpty())
+    val overviewSourceUrl=overviewSource.asStateFlow()
+    private val mutableOverviewAvailable=MutableStateFlow(!prefs.getBoolean("overview-removed",false)&&overviewFile().exists())
+    val overviewAvailable=mutableOverviewAvailable.asStateFlow()
     fun overviewFile()=File(root,"overview-custom.pmtiles").takeIf {it.exists()}?:File(root,"overview-bundled.pmtiles")
     var directory=File(root,prefs.getString("active","chelyabinsk-west-bundled")!!);private set
     override fun mapFile()=File(directory,if(File(directory,"map.pmtiles").exists())"map.pmtiles"else"map.geojson")
@@ -34,12 +39,14 @@ class OfflineMapManager(private val context:Context):MapDataRepository {
         root.mkdirs()
         val overviewManifest=JSONObject(context.assets.open("navigation/overview/russia-overview.json").bufferedReader().use {it.readText()})
         val overview=File(root,"overview-bundled.pmtiles")
-        if(!overview.exists()||sha256(overview)!=overviewManifest.getString("sha256")) {
+        if(!prefs.getBoolean("overview-removed",false)&&(!overview.exists()||sha256(overview)!=overviewManifest.getString("sha256"))) {
             val pending=File(root,"overview-bundled.partial")
             context.assets.open("navigation/overview/russia-overview.pmtiles").use {input->pending.outputStream().use {input.copyTo(it)}}
             check(sha256(pending)==overviewManifest.getString("sha256"))
             check(pending.renameTo(overview))
         }
+        mutableOverviewAvailable.value=!prefs.getBoolean("overview-removed",false)&&overviewFile().exists()
+        check(!prefs.getBoolean("region-removed",false)){"Скачайте карту региона"}
         val previousDirectory=directory
         val upgradeLegacy=runCatching {
             directory.name!="chelyabinsk-west-bundled"&&File(directory,"manifest.json").exists()&&
@@ -73,7 +80,7 @@ class OfflineMapManager(private val context:Context):MapDataRepository {
             }catch(error:Exception){directory=previousDirectory;throw error}
         }else readManifest(directory).also {mutableRegion.value=it}
     }}
-    suspend fun installOverview(uri:Uri)=withContext(Dispatchers.IO) {mutex.withLock {
+    suspend fun installOverview(uri:Uri,sourceUrl:String="")=withContext(Dispatchers.IO) {mutex.withLock {
         val pending=File(root,"overview-${UUID.randomUUID()}.partial")
         try {
             root.mkdirs()
@@ -85,6 +92,9 @@ class OfflineMapManager(private val context:Context):MapDataRepository {
             }
             validateOverview(pending)
             check(pending.renameTo(File(root,"overview-custom.pmtiles"))){"Не удалось установить обзорную карту"}
+            prefs.edit().putString("overview-source",sourceUrl).putBoolean("overview-removed",false).apply()
+            overviewSource.value=sourceUrl
+            mutableOverviewAvailable.value=true
             revision.value++
         }finally {pending.delete()}
     }}
@@ -163,11 +173,35 @@ class OfflineMapManager(private val context:Context):MapDataRepository {
             }
             val target=File(root,"${info.id}-${UUID.randomUUID()}")
             check(staging.renameTo(target)){"Не удалось сохранить регион"}
-            check(prefs.edit().putString("active",target.name).commit())
+            check(prefs.edit().putString("active",target.name).putBoolean("region-removed",false).commit())
             directory=target;searchCache=null;mutableRegion.value=info
             android.util.Log.i("JelandNavigation","REGION_IMPORTED ${info.id} bytes=${info.bytes}")
             info
         }finally {if(staging.exists())staging.deleteRecursively()}
+    }}
+    suspend fun removeOverview()=withContext(Dispatchers.IO) {mutex.withLock {
+        check(prefs.edit().putBoolean("overview-removed",true).remove("overview-source").commit())
+        for(name in listOf("overview-custom.pmtiles","overview-bundled.pmtiles")) {
+            val file=File(root,name)
+            check(!file.exists()||file.delete()){"Не удалось удалить обзорную карту"}
+        }
+        overviewSource.value="";mutableOverviewAvailable.value=false;revision.value++
+    }}
+    suspend fun removeRegion(id:String)=withContext(Dispatchers.IO) {mutex.withLock {
+        require(mutableRegion.value?.id==id){"Выбранная карта уже не активна"}
+        // Clean all installed copies of this same region, including the unpacked bundled copy.
+        val targets=root.listFiles().orEmpty().filter {folder->
+            val manifest=File(folder,"manifest.json")
+            folder.isDirectory&&manifest.isFile&&manifest.length()<=65536&&
+                runCatching {JSONObject(manifest.readText()).optString("id")==id}.getOrDefault(false)
+        }
+        require(targets.isNotEmpty()){"Файлы карты не найдены"}
+        val canonicalRoot=root.canonicalFile
+        targets.forEach {require(it.canonicalFile.parentFile==canonicalRoot){"Недопустимый путь карты"}}
+        check(prefs.edit().putBoolean("region-removed",true).remove("active").commit())
+        targets.forEach {check(it.deleteRecursively()){"Не удалось удалить файлы карты"}}
+        directory=File(root,"chelyabinsk-west-bundled")
+        searchCache=null;mutableRegion.value=null;revision.value++
     }}
     suspend fun search(query:String):List<NavigationPlace> = withContext(Dispatchers.IO) {
         prepare()

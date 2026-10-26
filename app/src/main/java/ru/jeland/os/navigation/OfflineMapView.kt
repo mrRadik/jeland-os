@@ -111,10 +111,10 @@ data class MapViewportRequest(val sequence:Int,val action:MapViewportAction)
             v.getMapAsync {m->
                 if(released[0])return@getMapAsync
                 map=m
-                val center=maps.region.value?.center?:GeoPoint(42.507,1.53)
+                val center=maps.region.value?.center?:GeoPoint(62.0,80.0)
                 val target=camera?.target?:center
                 m.uiSettings.apply {isLogoEnabled=false;isAttributionEnabled=false;isCompassEnabled=false}
-                m.cameraPosition=CameraPosition.Builder().target(LatLng(target.latitude,target.longitude)).zoom(camera?.zoom?:13.5).bearing(camera?.bearing?:0.0).tilt(camera?.tilt?:0.0).build()
+                m.cameraPosition=CameraPosition.Builder().target(LatLng(target.latitude,target.longitude)).zoom(camera?.zoom?:if(maps.region.value==null)4.0 else 13.5).bearing(camera?.bearing?:0.0).tilt(camera?.tilt?:0.0).build()
                 m.addOnCameraMoveStartedListener {reason->if(reason==1)gestureCallback()}
                 m.addOnCameraIdleListener {
                     if(!released[0])m.cameraPosition.let {p->p.target?.let {saveCamera(NavigationCamera(GeoPoint(it.latitude,it.longitude),p.zoom,p.bearing,p.tilt))}}
@@ -234,7 +234,8 @@ internal fun tappedPlace(map:MapLibreMap,point:LatLng):NavigationPlace {
 internal fun localStyle(maps:OfflineMapManager,dark:Boolean):String {
     val tiled=maps.mapFile().extension=="pmtiles"
     val uri=android.net.Uri.fromFile(maps.mapFile()).toString()
-    val source=if(tiled)"""{"type":"vector","url":${JSONObject.quote("pmtiles://$uri")},"attribution":"© OpenStreetMap contributors · ODbL · Geofabrik"}"""
+    val source=if(!maps.mapFile().exists())"""{"type":"geojson","data":{"type":"FeatureCollection","features":[]}}"""
+        else if(tiled)"""{"type":"vector","url":${JSONObject.quote("pmtiles://$uri")},"attribution":"© OpenStreetMap contributors · ODbL · Geofabrik"}"""
         else """{"type":"geojson","data":${JSONObject.quote(uri)},"attribution":"© OpenStreetMap contributors · ODbL · Geofabrik"}"""
     val background=if(dark)"#071b29"else"#e6e5de"
     val road=if(dark)"#61879d"else"#ffffff"
@@ -252,7 +253,7 @@ internal fun localStyle(maps:OfflineMapManager,dark:Boolean):String {
         {"id":"road-labels","type":"symbol","source":"region","minzoom":12,"filter":["all",["==","kind","road"],["!=","name",""]],"layout":{"symbol-placement":"line","text-field":["get","name"],"text-font":["Noto Sans Regular"],"text-size":15,"text-max-angle":30,"symbol-spacing":300},"paint":{"text-color":"$text","text-halo-color":"$background","text-halo-width":2}}
     ]}""")
     val overview=maps.overviewFile()
-    if(overview.exists()) {
+    if(maps.overviewAvailable.value&&overview.exists()) {
         style.getJSONObject("sources").put("overview",JSONObject().put("type","vector").put("url","pmtiles://${android.net.Uri.fromFile(overview)}")
             .put("attribution","© OpenStreetMap contributors · Protomaps · Natural Earth · ODbL"))
         val extra=org.json.JSONArray("""[

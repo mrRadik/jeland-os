@@ -28,6 +28,7 @@ import ru.jeland.os.ui.theme.JIcons
 import ru.jeland.os.ui.theme.Jeland
 
 @Composable fun HomeScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit,navigate:(String)->Unit) {
+    if(s.preferences.style==DashboardStyle.MINIMAL){MinimalHomeScreen(s,model,show,navigate);return}
     BoxWithConstraints(Modifier.fillMaxSize()) {
         // Proportions follow the approved portrait reference, without oversized empty card slots.
         val weights=listOf(.29f,.22f,if(s.preferences.showTires).22f else 0f,.13f,if(s.preferences.showFavorites).14f else 0f)
@@ -52,8 +53,6 @@ import ru.jeland.os.ui.theme.Jeland
 }
 @Composable fun JelandHero(s:UiState,height:androidx.compose.ui.unit.Dp,onWeather:()->Unit,onFuel:()->Unit,topInset:androidx.compose.ui.unit.Dp=0.dp) {
     val c=Jeland.colors
-    var now by remember { mutableStateOf(LocalDateTime.now()) }
-    LaunchedEffect(Unit) {while(true) {now=LocalDateTime.now();delay(1000)}}
     Box(Modifier.fillMaxWidth().height(height).testTag("hero-banner")) {
         Image(painterResource(heroBackgroundResource(s.dark)),"Jeland J7 в горах — ${if(s.dark)"ночь"else"светлый день"}",Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         if(s.dark) {
@@ -62,10 +61,7 @@ import ru.jeland.os.ui.theme.Jeland
         }
         // No side haze in daylight; the pale image only meets the app background at its lower edge.
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to c.background.copy(alpha=0f),(if(s.dark).78f else .92f) to c.background.copy(alpha=0f),1f to c.background)))
-        Column(Modifier.align(Alignment.TopStart).padding(start=24.dp,end=24.dp,top=topInset+8.dp)) {
-            HeroOutlinedText(now.format(DateTimeFormatter.ofPattern("HH:mm")),fontSize=Jeland.type.clock,fontWeight=FontWeight.Light,letterSpacing=Jeland.type.trackTight,modifier=Modifier.testTag("hero-clock"))
-            HeroOutlinedText(now.format(DateTimeFormatter.ofPattern("d MMMM, EEE",Locale.forLanguageTag("ru"))),fontSize=Jeland.type.body,fontWeight=FontWeight.Medium,modifier=Modifier.testTag("hero-date"))
-        }
+        DashboardClock(Modifier.align(Alignment.TopStart).padding(start=24.dp,end=24.dp,top=topInset+8.dp))
         WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(start=18.dp,end=18.dp,top=topInset+14.dp),onWeather)
     }
 }
@@ -84,12 +80,13 @@ import ru.jeland.os.ui.theme.Jeland
             Box(Modifier.size(52.dp).clip(Jeland.control)
                 .background(Brush.radialGradient(listOf(tint.copy(alpha=if(active).24f else .13f),Jeland.colors.raised.copy(alpha=.4f))))
                 .border(1.dp,tint.copy(alpha=if(active).55f else .22f),Jeland.control),contentAlignment=Alignment.Center) {
-                Icon(icon,null,Modifier.size(34.dp),tint=tintOverride?:if(active)Jeland.colors.warm else Jeland.colors.artMuted)
+                Icon(icon,null,Modifier.size(34.dp),tint=tintOverride?:if(active)Jeland.colors.warm else if(Jeland.style==DashboardStyle.MINIMAL)Jeland.colors.accent else Jeland.colors.artMuted)
             }
             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
               Text(title,color=Jeland.colors.text,fontSize=Jeland.type.caption,lineHeight=Jeland.type.secondary,maxLines=2)
               Text(detail,color=if(active)Jeland.colors.accent else Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
+            if(Jeland.style==DashboardStyle.MINIMAL)Icon(JIcons.ChevronRight,null,Modifier.size(14.dp),tint=Jeland.colors.muted)
         }
     }
 }
@@ -116,6 +113,41 @@ import ru.jeland.os.ui.theme.Jeland
         return
     }
     if(compact){
+        if(Jeland.style==DashboardStyle.MINIMAL) {
+            Panel(modifier.fillMaxHeight().testTag("music-widget")) {
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                    if(maxWidth<320.dp)Column(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=10.dp),
+                        verticalArrangement=Arrangement.spacedBy(12.dp,Alignment.CenterVertically),horizontalAlignment=Alignment.CenterHorizontally) {
+                        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                            AlbumArtwork(s,Modifier.size(64.dp),square=true)
+                            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                                MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
+                                MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
+                            }
+                        }
+                        MusicTransport(s,r,Modifier.fillMaxWidth(),compact=true,borderless=true)
+                        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                            Icon(if(s.source.contains("Bluetooth",true))JIcons.Bluetooth else JIcons.MusicNote,null,Modifier.size(18.dp),tint=Jeland.colors.accent)
+                            Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.footnote,maxLines=1,modifier=Modifier.testTag("media-status"))
+                        }
+                    } else Row(Modifier.fillMaxSize().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
+                        AlbumArtwork(s,Modifier.size(82.dp),square=true)
+                        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
+                            MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.clockSmall,Modifier.testTag("media-title"))
+                            MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
+                            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                                MusicTransport(s,r,Modifier.weight(1f),compact=true,borderless=true)
+                                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                                    Icon(if(s.source.contains("Bluetooth",true))JIcons.Bluetooth else JIcons.MusicNote,null,Modifier.size(18.dp),tint=Jeland.colors.accent)
+                                    Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,modifier=Modifier.widthIn(max=64.dp).testTag("media-status"))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return
+        }
         Panel(modifier.fillMaxHeight()) {
             Column(Modifier.fillMaxSize().padding(8.dp),verticalArrangement=Arrangement.SpaceBetween) {
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -248,8 +280,7 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
         AppUpdateSettings(model.dependencies.updates)
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             SectionTitle("Навигация","Собственная встроенная офлайн-карта")
-            Label("Челябинск · Миасс · Златоуст. Поиск, автомобильные маршруты и подсказки без ADB-помощника и отдельного навигатора. Импорт карт и настройки GPS — на вкладке «Навигация» → шестерёнка.",small=true,muted=true)
-            Label("Пробки не подключены. Реальное GPS-ведение на ГУ ещё требует проверки.",small=true,muted=true)
+            ru.jeland.os.navigation.NavigationMapSettings(model.dependencies.navigation)
         }}
         s.navigation.external?.let {NavigationPreferences(model,it)}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){VehicleConnectionPanel(s,model)}}
@@ -257,6 +288,11 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
         if(s.car.demo)Control("DEMO-панель автомобиля",Modifier.testTag("open-demo-car"),onClick=onDemoVehicle)
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
             SectionTitle("Оформление")
+            Label("Вид интерфейса",small=true,muted=true)
+            Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
+                DashboardStyle.entries.forEach {style->Control(style.title,Modifier.weight(1f).testTag("style-${style.name.lowercase()}"),s.preferences.style==style){preferences.change(s.preferences.copy(style=style))}}
+            }
+            Label("Минималистичный — автомобиль в центре и спокойная палитра. Светлая и тёмная темы работают в обоих вариантах.",small=true,muted=true)
             Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
                 ThemeMode.entries.forEach {mode->Control(mode.title,Modifier.weight(1f).testTag("theme-${mode.name.lowercase()}"),s.theme==mode){model.dependencies.theme.setMode(mode)}}
             }
@@ -281,6 +317,5 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
             Label("Обычное OEM-разрешение ivi.vds.permission.SERVICE. Без root, priv-app и замены штатной оболочки. Служба подсказок работает только с разрешённым пользователем доступом к уведомлениям. Probe остаётся отдельным приложением.",small=true,muted=true)
             Label("Jeland OS · ${BuildConfig.VERSION_NAME}\nОтдельное Android-приложение, не системная прошивка",small=true,muted=true)
         }}
-        SupportProjectSettings()
     }
 }

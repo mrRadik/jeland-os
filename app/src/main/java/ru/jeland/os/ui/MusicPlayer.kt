@@ -53,12 +53,14 @@ import kotlin.math.*
     }
 }
 
-@Composable fun AlbumArtwork(s:MediaState,modifier:Modifier=Modifier) {
+@Composable fun AlbumArtwork(s:MediaState,modifier:Modifier=Modifier,square:Boolean=false) {
     val art=s.artwork
     val bitmap by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null,art?.key) {
         value=withContext(Dispatchers.Default){art?.bytes?.let {runCatching {BitmapFactory.decodeByteArray(it,0,it.size)?.asImageBitmap()}.getOrNull()}}
     }
-    Box(modifier.clip(Jeland.card).background(Brush.linearGradient(listOf(Jeland.colors.deep,Jeland.colors.panel,Jeland.colors.deep))),contentAlignment=Alignment.Center) {
+    val shape=if(square)androidx.compose.foundation.shape.RoundedCornerShape(10.dp)else Jeland.card
+    Box(modifier.clip(shape).background(Brush.linearGradient(listOf(Jeland.colors.deep,Jeland.colors.panel,Jeland.colors.deep)))
+        .then(if(square)Modifier.border(1.dp,Jeland.colors.accent.copy(alpha=.4f),shape)else Modifier),contentAlignment=Alignment.Center) {
         when {
             bitmap!=null->Image(bitmap!!,"Обложка альбома",Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
             !s.live->Image(painterResource(R.drawable.hero_jeland),"Обложка демонстрационной композиции",Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
@@ -184,21 +186,21 @@ import kotlin.math.*
 }
 
 /** Filled transport glyphs, independent of the thin outline icons used elsewhere. */
-@Composable fun MusicTransport(s:MediaState,r:MediaRepository,modifier:Modifier=Modifier,compact:Boolean=false) {
-    Row(modifier,horizontalArrangement=Arrangement.spacedBy(if(compact)28.dp else 64.dp,Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically) {
-        MusicTransportButton(-1,false,"Предыдущая композиция",Modifier.size(if(compact)48.dp else 96.dp).testTag("media-previous"),s.controlsEnabled,false,r::previous)
-        MusicTransportButton(0,s.playing,if(s.playing)"Пауза"else"Воспроизвести",Modifier.size(if(compact)60.dp else 120.dp).testTag("media-play"),s.controlsEnabled,true,r::togglePlay)
-        MusicTransportButton(1,false,"Следующая композиция",Modifier.size(if(compact)48.dp else 96.dp).testTag("media-next"),s.controlsEnabled,false,r::next)
+@Composable fun MusicTransport(s:MediaState,r:MediaRepository,modifier:Modifier=Modifier,compact:Boolean=false,borderless:Boolean=false) {
+    Row(modifier,horizontalArrangement=Arrangement.spacedBy(if(borderless)8.dp else if(compact)28.dp else 64.dp,Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically) {
+        MusicTransportButton(-1,false,"Предыдущая композиция",Modifier.size(if(borderless)44.dp else if(compact)48.dp else 96.dp).testTag("media-previous"),s.controlsEnabled,false,borderless,r::previous)
+        MusicTransportButton(0,s.playing,if(s.playing)"Пауза"else"Воспроизвести",Modifier.size(if(borderless)44.dp else if(compact)60.dp else 120.dp).testTag("media-play"),s.controlsEnabled,true,borderless,r::togglePlay)
+        MusicTransportButton(1,false,"Следующая композиция",Modifier.size(if(borderless)44.dp else if(compact)48.dp else 96.dp).testTag("media-next"),s.controlsEnabled,false,borderless,r::next)
     }
 }
 
-@Composable private fun MusicTransportButton(direction:Int,pausedGlyph:Boolean,description:String,modifier:Modifier,enabled:Boolean,primary:Boolean,onClick:()->Unit) {
+@Composable private fun MusicTransportButton(direction:Int,pausedGlyph:Boolean,description:String,modifier:Modifier,enabled:Boolean,primary:Boolean,borderless:Boolean,onClick:()->Unit) {
     val c=Jeland.colors
-    Box(modifier.alpha(if(enabled)1f else .38f).clip(CircleShape)
-        .background(Brush.radialGradient(listOf(if(primary)c.deep.copy(alpha=.65f)else c.raised.copy(alpha=.4f),c.background.copy(alpha=.55f))))
+    val surface=if(borderless)Modifier else Modifier.background(Brush.radialGradient(listOf(if(primary)c.deep.copy(alpha=.65f)else c.raised.copy(alpha=.4f),c.background.copy(alpha=.55f))))
         .border(if(primary)2.dp else 1.dp,if(primary)c.accent else c.outline,CircleShape)
+    Box(modifier.alpha(if(enabled)1f else .38f).clip(CircleShape).then(surface)
         .semantics {contentDescription=description}.clickable(enabled=enabled,role=Role.Button,onClick=onClick),contentAlignment=Alignment.Center) {
-        Canvas(Modifier.fillMaxSize(.36f)) {
+        Canvas(Modifier.fillMaxSize(if(borderless).48f else .36f)) {
             val tint=c.text
             if(direction==0&&pausedGlyph) {
                 drawRoundRect(tint,Offset(size.width*.12f,0f),Size(size.width*.27f,size.height),CornerRadius(size.width*.06f))

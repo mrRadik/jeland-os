@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +60,7 @@ import java.util.Locale
     }
 }
 
-@Composable fun TireDetailsPopup(wheel:Wheel,vehicle:VehicleState,diagnostics:TyreTemperatureDiagnostics?=null,onSaveLogs:()->Unit={},onClearLogs:(()->Unit)?=null,logsBusy:Boolean=false) {
+@Composable fun TireDetailsPopup(wheel:Wheel,vehicle:VehicleState) {
     val reading=vehicle.tires[wheel]?:TireReading()
     val severity=vehicle.tireThresholds.severity(reading)
     val c=Jeland.colors
@@ -79,19 +78,9 @@ import java.util.Locale
                 Label("Давление",small=true,muted=true)
                 Text(reading.validBar?.let {(if(vehicle.live)"≈ "else"")+String.format(Locale.US,"%.1f бар",it)}?:"Нет данных",color=c.text,fontSize=Jeland.type.temperature,modifier=Modifier.testTag("tire-detail-pressure"))
             }
-            Column(Modifier.weight(1f)) {
-                Label("Температура",small=true,muted=true)
-                Text(reading.temperature?.let {"$it °C"}?:"Нет данных",color=c.text,fontSize=Jeland.type.temperature,modifier=Modifier.testTag("tire-detail-temperature"))
-            }
         }
         Text(status,color=color,fontSize=Jeland.type.secondary)
-        Label(if(vehicle.live)"Давление расчётное, сопоставление колёс предварительное. Температура — канал QNX, требуется проверка на ГУ. Недоступные данные не подменяются. Штатные предупреждения не заменяются."else"DEMO · значения не из датчиков автомобиля. Пороги демонстрационные, не заводские нормы.",small=true,muted=true)
-        if(vehicle.live&&diagnostics!=null) {
-            var expanded by rememberSaveable(wheel){mutableStateOf(reading.temperature==null)}
-            Control(if(expanded)"Скрыть диагностику температуры"else"Диагностика температуры",
-                Modifier.fillMaxWidth().testTag("tyre-debug-toggle"),onClick={expanded=!expanded})
-            if(expanded)TyreTemperatureDebugPanel(wheel,diagnostics,onSaveLogs,onClearLogs,logsBusy)
-        }
+        Label(if(vehicle.live)"Давление расчётное, сопоставление колёс предварительное. Штатные предупреждения не заменяются."else"DEMO · значения не из датчиков автомобиля. Пороги демонстрационные, не заводские нормы.",small=true,muted=true)
     }
 }
 

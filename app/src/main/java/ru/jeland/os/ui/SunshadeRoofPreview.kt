@@ -12,14 +12,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.jeland.os.R
 import ru.jeland.os.core.Shade
+import ru.jeland.os.core.VehicleArtworkCoordinates
 import ru.jeland.os.ui.theme.Jeland
 
 /** Fraction revealed from the LEFT; fabric retracts to the RIGHT. Not measured position. */
@@ -42,32 +40,36 @@ internal fun shadeFabricRange(openFraction:Float):ClosedFloatingPointRange<Float
             if(target!=null)progressBarRangeInfo=ProgressBarRangeInfo(amount,0f..1f)
         }) {
             Box(Modifier.matchParentSize().background(Brush.radialGradient(listOf(c.accent.copy(alpha=.10f),Color.Transparent))))
-            Image(painterResource(R.drawable.vehicle_top),null,Modifier.matchParentSize(),contentScale=ContentScale.Fit)
+            VehicleArtwork(Modifier.matchParentSize())
             Canvas(Modifier.matchParentSize()) {
-                // Coordinates refer to the native 1800x900 artwork, shared with ContentScale.Fit.
-                val roof=Rect(size.width*.466f,size.height*.364f,size.width*.705f,size.height*.628f)
-                val radius=CornerRadius(size.height*.026f)
-                val aperture=Path().apply {addRoundRect(RoundRect(roof,radius))}
-                clipPath(aperture) {
-                    // Open glass stays translucent: the original cabin remains visible beneath it.
-                    drawRect(Brush.linearGradient(listOf(c.accent.copy(alpha=.12f),Color.Transparent),roof.topLeft,roof.bottomRight),roof.topLeft,roof.size)
-                    if(target!=null) {
-                        val edge=roof.left+roof.width*shadeFabricRange(amount).start
-                        if(amount<1f) {
-                            drawRect(Brush.verticalGradient(listOf(Color(0xFF455564),Color(0xFF1D303E),Color(0xFF394D5C)),roof.top,roof.bottom),Offset(edge,roof.top),Size(roof.right-edge,roof.height))
-                            for(i in 0..64) {
-                                val x=edge+i*size.width*.004f
-                                if(x<roof.right)drawLine(Color.White.copy(alpha=.045f),Offset(x,roof.top),Offset(x,roof.bottom),1.dp.toPx())
-                            }
-                            drawLine(Color.Black.copy(alpha=.35f),Offset(edge+3.dp.toPx(),roof.top),Offset(edge+3.dp.toPx(),roof.bottom),5.dp.toPx())
-                            if(amount>.001f)drawLine(c.accent.copy(alpha=.9f),Offset(edge,roof.top),Offset(edge,roof.bottom),1.4.dp.toPx())
-                            drawRoundRect(c.artText.copy(alpha=.6f),Offset(edge+5.dp.toPx(),roof.center.y-7.dp.toPx()),Size(2.dp.toPx(),14.dp.toPx()),CornerRadius(1.dp.toPx()))
-                        }
-                    }
-                }
-                if(target!=null)drawRoundRect(c.accent.copy(alpha=.35f),roof.topLeft,roof.size,radius,style=Stroke(1.dp.toPx()))
+                val roof=Rect(size.width*VehicleArtworkCoordinates.ROOF_LEFT,size.height*VehicleArtworkCoordinates.ROOF_TOP,
+                    size.width*VehicleArtworkCoordinates.ROOF_RIGHT,size.height*VehicleArtworkCoordinates.ROOF_BOTTOM)
+                drawSunshadeGlass(roof,amount,target!=null,c.accent,c.artText)
             }
         }
         Text("Открытие слева направо  →",Modifier.align(Alignment.CenterHorizontally).padding(bottom=14.dp),color=c.muted,fontSize=13.sp)
     }
+}
+
+/** The fabric and opening share the same roof coordinates in every vehicle view. */
+internal fun DrawScope.drawSunshadeGlass(roof:Rect,openFraction:Float,known:Boolean,accent:Color,artText:Color) {
+    if(!known)return // No response must not look like a closed or half-open shade.
+    val amount=openFraction.coerceIn(0f,1f)
+    val radius=CornerRadius(roof.height*.098f)
+    val aperture=Path().apply {addRoundRect(RoundRect(roof,radius))}
+    clipPath(aperture) {
+        drawRect(Brush.linearGradient(listOf(accent.copy(alpha=.12f),Color.Transparent),roof.topLeft,roof.bottomRight),roof.topLeft,roof.size)
+        if(amount<1f) {
+            val edge=roof.left+roof.width*shadeFabricRange(amount).start
+            drawRect(Brush.verticalGradient(listOf(Color(0xFF455564),Color(0xFF1D303E),Color(0xFF394D5C)),roof.top,roof.bottom),Offset(edge,roof.top),Size(roof.right-edge,roof.height))
+            for(i in 0..64) {
+                val x=edge+i*roof.width*.0167f
+                if(x<roof.right)drawLine(Color.White.copy(alpha=.045f),Offset(x,roof.top),Offset(x,roof.bottom),1.dp.toPx())
+            }
+            drawLine(Color.Black.copy(alpha=.35f),Offset(edge+3.dp.toPx(),roof.top),Offset(edge+3.dp.toPx(),roof.bottom),5.dp.toPx())
+            if(amount>.001f)drawLine(accent.copy(alpha=.9f),Offset(edge,roof.top),Offset(edge,roof.bottom),1.4.dp.toPx())
+            drawRoundRect(artText.copy(alpha=.6f),Offset(edge+5.dp.toPx(),roof.center.y-7.dp.toPx()),Size(2.dp.toPx(),14.dp.toPx()),CornerRadius(1.dp.toPx()))
+        }
+    }
+    drawRoundRect(accent.copy(alpha=.35f),roof.topLeft,roof.size,radius,style=Stroke(1.dp.toPx()))
 }

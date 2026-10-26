@@ -106,8 +106,8 @@ class VehicleLiveTest {
             val g=VehicleDiagramGeometry.fit(w,h)
             assertEquals(2f,g.width/g.height,.001f)
             assertTrue(g.x>=0 && g.y>=0 && g.x+g.width<=w && g.y+g.height<=h)
-            assertTrue(g.py(.245f)-g.width*.145f*.91f>=0)
-            assertTrue(g.py(.775f)+g.width*.145f*.91f<=h)
+            assertTrue(g.py(VehicleArtworkCoordinates.wheelLateral(false))-g.width*VehicleArtworkCoordinates.DOOR_LENGTH*.91f>=0)
+            assertTrue(g.py(VehicleArtworkCoordinates.wheelLateral(true))+g.width*VehicleArtworkCoordinates.DOOR_LENGTH*.91f<=h)
         }
     }
     @Test fun everyFieldProvenWriteIsAllowlistedAndNoMirrorClusterOrRearVentExists() {

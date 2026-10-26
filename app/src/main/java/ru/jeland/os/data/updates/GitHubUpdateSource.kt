@@ -44,12 +44,12 @@ class GitHubUpdateSource {
             }
         }finally {connection.disconnect()}
     }
-    fun open(url:String):HttpURLConnection {
+    fun open(url:String,network:android.net.Network?=null):HttpURLConnection {
         var next=url
         repeat(6) {
             val uri=URI(next)
             check(uri.scheme=="https"&&uri.userInfo==null&&uri.port in listOf(-1,443)&&uri.host?.lowercase() in HOSTS){"Небезопасный адрес обновления"}
-            val connection=URL(next).openConnection() as HttpURLConnection
+            val connection=(network?.openConnection(URL(next))?:URL(next).openConnection()) as HttpURLConnection
             try {
                 connection.instanceFollowRedirects=false;connection.connectTimeout=12000;connection.readTimeout=15000
                 connection.setRequestProperty("User-Agent","JelandOS-Updater")

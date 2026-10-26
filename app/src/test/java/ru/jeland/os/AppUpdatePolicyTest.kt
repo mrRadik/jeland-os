@@ -5,6 +5,17 @@ import org.junit.Test
 import ru.jeland.os.core.*
 
 class AppUpdatePolicyTest {
+    @Test fun manualWifiAcceptsMeteredPhoneHotspotsButAutomaticDownloadDoesNot() {
+        val hotspot=UpdateNetworkState(internet=true,wifi=true,unmetered=false)
+        assertTrue(hotspot.allows());assertFalse(hotspot.allows(automatic=true))
+        assertTrue(hotspot.copy(unmetered=true).allows(automatic=true))
+    }
+    @Test fun mobileNeedsExplicitConsentAndNoNetworkNeverPasses() {
+        val mobile=UpdateNetworkState(internet=true,wifi=false,unmetered=false)
+        assertFalse(mobile.allows());assertTrue(mobile.allows(allowMobile=true))
+        assertFalse(mobile.allows(allowMobile=true,automatic=true))
+        assertFalse(mobile.copy(internet=false,wifi=true,unmetered=true).allows(allowMobile=true))
+    }
     private val root="https://github.com/mrRadik/jeland-os/releases/download/v0.9.30/"
     private val manifest=AppUpdateManifest(1,"ru.jeland.os",71,"0.9.30",30,"JelandOS-0.9.30.apk",218_000_000,"a".repeat(64))
     private fun candidate(m:AppUpdateManifest=manifest,assets:List<UpdateAsset> = listOf(UpdateAsset(m.apkName,root+m.apkName,m.size)),url:String=root+AppUpdatePolicy.MANIFEST)=

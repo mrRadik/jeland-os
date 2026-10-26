@@ -87,7 +87,7 @@ class AutomationConverters {
 }
 @Dao
 interface AutomationDao {
-    @Transaction @Query("SELECT * FROM automation_rules ORDER BY priority DESC, updatedAt DESC, id") fun observeRules():kotlinx.coroutines.flow.Flow<List<AutomationRuleWithDevices>>
+    @Transaction @Query("SELECT * FROM automation_rules ORDER BY priority DESC, createdAt DESC, id") fun observeRules():kotlinx.coroutines.flow.Flow<List<AutomationRuleWithDevices>>
     @Transaction @Query("SELECT * FROM automation_rules WHERE id=:id") suspend fun find(id:String):AutomationRuleWithDevices?
     @Query("SELECT MAX(updatedAt) FROM automation_rules") suspend fun lastUpdated():Long?
     @Transaction @Query("SELECT * FROM automation_rules WHERE enabled=1 AND triggerType IN ('BELOW','ABOVE','SESSION_START') AND launchEvent=:event ORDER BY id") suspend fun active(event:LaunchEvent):List<AutomationRuleWithDevices>

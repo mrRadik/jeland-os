@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
@@ -38,8 +39,17 @@ import ru.jeland.os.core.NavigationState
 import ru.jeland.os.ui.theme.Jeland
 import ru.jeland.os.ui.theme.JIcons
 
+val LocalFramelessDashboard=staticCompositionLocalOf {false}
+
 @Composable fun Panel(modifier: Modifier=Modifier, content: @Composable ColumnScope.()->Unit) {
+    if(LocalFramelessDashboard.current){Column(modifier,content=content);return}
     val c=Jeland.colors
+    if(Jeland.style==ru.jeland.os.core.DashboardStyle.MINIMAL) {
+        Column(modifier.clip(Jeland.card).background(c.panel)
+            .background(Brush.linearGradient(listOf(c.raised.copy(alpha=.62f),c.panel,c.raised.copy(alpha=.18f))))
+            .border(1.dp,Brush.linearGradient(listOf(c.accent.copy(alpha=.32f),c.outline.copy(alpha=.3f),c.accent.copy(alpha=.22f))),Jeland.card),content=content)
+        return
+    }
     Column(modifier.clip(Jeland.card).background(c.panel).background(Brush.verticalGradient(listOf(c.raised.copy(alpha=.55f),c.panel)))
         .border(1.dp,c.outline,Jeland.card),content=content)
 }

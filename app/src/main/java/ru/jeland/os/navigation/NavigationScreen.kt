@@ -48,6 +48,8 @@ import java.util.Locale
     val preparing by repository.preparing.collectAsStateWithLifecycle()
     val importing by repository.importing.collectAsStateWithLifecycle()
     val mapRevision by repository.maps.revision.collectAsStateWithLifecycle()
+    val overviewAvailable by repository.maps.overviewAvailable.collectAsStateWithLifecycle()
+    val deletingMap by repository.deletingMap.collectAsStateWithLifecycle()
     val c=Jeland.colors
     val keyboard=LocalSoftwareKeyboardController.current
     var sheet by rememberSaveable {mutableStateOf<String?>(null)}
@@ -77,7 +79,6 @@ import java.util.Locale
     val permission=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if(!repository.gps.start())repository.message.value="Включите точное местоположение и GPS в настройках устройства."
     }
-    val importer=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {uri->if(uri!=null)repository.importRegion(uri)}
     LaunchedEffect(query,region?.id,importing) {
         results=emptyList();searchError=null
         if(!importing&&query.trim().length>=2) {
@@ -91,7 +92,7 @@ import java.util.Locale
     BoxWithConstraints(Modifier.fillMaxSize().background(c.map).testTag("offline-navigation-screen")) {
         val narrow=maxWidth<560.dp
         val overlayWidth=if(narrow)maxWidth-24.dp else (maxWidth*.70f).coerceAtMost(620.dp)
-        if(region!=null&&!importing)key(region!!.id,mapRevision) {
+        if((region!=null||overviewAvailable)&&!importing)key(region?.id,mapRevision) {
             OfflineMap(repository.maps,state,dark,Modifier.fillMaxSize().testTag("offline-map"),position,selected?.point,
                 repository.camera,{repository.camera=it},follow,
                 onDestination=::choose,request=viewport,
@@ -99,7 +100,7 @@ import java.util.Locale
         }
         if(preparing||importing)Column(Modifier.align(Alignment.Center).padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(16.dp)) {
             CircularProgressIndicator(color=c.accent)
-            Label(if(importing)"Установка офлайн-карты…"else"Подготовка офлайн-карты…")
+            Label(if(deletingMap)"Удаление карты…"else if(importing)"Установка офлайн-карты…"else"Подготовка офлайн-карты…")
         }
         // Contrast only at the edges, leaving the map itself unobscured.
         Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().height(160.dp).background(Brush.verticalGradient(listOf(c.background.copy(alpha=.65f),androidx.compose.ui.graphics.Color.Transparent))))
@@ -131,7 +132,7 @@ import java.util.Locale
         Column(Modifier.align(Alignment.BottomStart).padding(start=14.dp,end=14.dp,bottom=32.dp).width(overlayWidth),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             if(mapError!=null||(!preparing&&region==null))Panel(Modifier.fillMaxWidth()) {
                 Label(mapError?:message.ifBlank {"Карта недоступна"},Modifier.padding(14.dp),small=true)
-                Control("Офлайн-карты",Modifier.padding(8.dp)){sheet="maps"}
+                Control("Скачать карты",Modifier.padding(8.dp)){sheet="maps"}
             }
             if(message.isNotBlank()&&sheet==null)Panel(Modifier.fillMaxWidth().testTag("navigation-message").clickable {repository.message.value=""}) {
                 Text(message,color=c.muted,fontSize=Jeland.type.footnote,maxLines=3,overflow=TextOverflow.Ellipsis,modifier=Modifier.padding(12.dp))
@@ -184,7 +185,7 @@ import java.util.Locale
             Panel(Modifier.align(Alignment.TopCenter).padding(14.dp).widthIn(max=680.dp).fillMaxWidth()
                 .then(if(sheet=="search")Modifier.height(maxHeight-28.dp)else Modifier.heightIn(max=maxHeight-28.dp)).testTag("navigation-sheet")) {
                 Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
-                    Text(when(sheet){"search"->"Поиск места";"maps"->"Офлайн-карты";"preview"->"Просмотр маршрута";"voice-license"->"Условия голосовой модели";else->"Настройки карты"},color=c.text,fontSize=Jeland.type.title,modifier=Modifier.weight(1f))
+                    Text(when(sheet){"search"->"Поиск места";"maps"->"Скачать карты";"preview"->"Просмотр маршрута";"voice-license"->"Условия голосовой модели";else->"Настройки карты"},color=c.text,fontSize=Jeland.type.title,modifier=Modifier.weight(1f))
                     RoundControl(JIcons.Close,"Закрыть настройки карты",Modifier.testTag("navigation-sheet-close")){dismiss()}
                 }
                 if(sheet=="search")NavigationSearchPanel(searchText,{searchText=it},results,searching,searchError,::choose,Modifier.weight(1f),
@@ -205,14 +206,6 @@ import java.util.Locale
                         }
                         "maps"->{
                             NavigationDownloadPanel(repository){follow=false;camera(MapViewportAction.RUSSIA);dismiss()}
-                            HorizontalDivider(color=c.outline)
-                            Label(region?.title?:"Карта не загружена")
-                            Label("В комплекте тестовый регион: Челябинск, Миасс, Златоуст и окрестности. Это не вся область. За границей пакета маршруты не гарантированы.",small=true,muted=true)
-                            Label("Карта, поиск и дорожный граф работают локально. Пробки не подключены.",small=true,muted=true)
-                            Label(if((region?.houseNumberCount?:0)>0)"Номера домов появляются при приближении (масштаб 16+), где адрес указан в OpenStreetMap."else"В этом пакете нет слоя номеров домов. Встроенная карта новой версии содержит адресные подписи.",small=true,muted=true)
-                            Control(if(importing)"Импорт…"else"Импорт региона (.jelandnav.zip)",Modifier.fillMaxWidth().testTag("navigation-import"),enabled=!importing) {importer.launch(arrayOf("application/zip","application/octet-stream"))}
-                            Label("Импорт останавливает маршрут. Используйте доверенные пакеты: контрольная сумма проверяет целостность, а не автора.",small=true,muted=true)
-                            region?.let {Label(it.attribution,small=true,muted=true)}
                         }
                         else->{
                             SettingsToggle("Следовать за автомобилем","При перемещении карты вручную слежение отключается",follow){follow=!follow;if(follow)camera(MapViewportAction.POSITION)}
@@ -220,7 +213,7 @@ import java.util.Locale
                             Control("Разрешить GPS",Modifier.fillMaxWidth()){permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))}
                             Label(gpsStatus,small=true,muted=true)
                             NavigationVoicePanel(repository.provider.voice){sheet="voice-license"}
-                            Control("Офлайн-карты",Modifier.fillMaxWidth().testTag("navigation-maps")){sheet="maps"}
+                            Control("Скачать карты",Modifier.fillMaxWidth().testTag("navigation-maps")){sheet="maps"}
                             Label("Навигационная версия для проверки. Реальное ведение на ГУ ещё требует испытаний. Оформление карты следует теме Jeland OS.",small=true,muted=true)
                         }
                     }
@@ -236,7 +229,7 @@ import java.util.Locale
     focusedBorderColor=Jeland.colors.accent,unfocusedBorderColor=Jeland.colors.outline,
     focusedLabelColor=Jeland.colors.accent,unfocusedLabelColor=Jeland.colors.muted)
 
-@Composable fun OfflineNavigationWidget(repository:OfflineNavigationRepository,dark:Boolean,modifier:Modifier,onClick:()->Unit) {
+@Composable fun OfflineNavigationWidget(repository:OfflineNavigationRepository,dark:Boolean,modifier:Modifier,framed:Boolean=true,onClick:()->Unit) {
     val state by repository.state.collectAsStateWithLifecycle()
     val region by repository.maps.region.collectAsStateWithLifecycle()
     val mapRevision by repository.maps.revision.collectAsStateWithLifecycle()
@@ -261,7 +254,8 @@ import java.util.Locale
     }
     val matchingPreview=preview?.takeIf {it.dark==dark&&it.regionId==region?.id&&it.routeKey==(if(state.active)state.geometry.hashCode()else 0)}
     val c=Jeland.colors
-    Box(modifier.fillMaxHeight().onSizeChanged {size=it}.clip(Jeland.card).border(1.dp,c.outline,Jeland.card).testTag("navigation-widget")) {
+    Box(modifier.fillMaxHeight().onSizeChanged {size=it}.clip(Jeland.card)
+        .then(if(framed)Modifier.border(1.dp,c.outline,Jeland.card)else Modifier).testTag("navigation-widget")) {
         if(matchingPreview!=null)Image(matchingPreview.bitmap.asImageBitmap(),"Ближайший участок маршрута",Modifier.fillMaxSize().testTag("navigation-widget-map"),contentScale=ContentScale.FillBounds)
         else Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(c.raised,c.background))),contentAlignment=Alignment.Center) {
             Icon(JIcons.Navigation,null,Modifier.size(72.dp),tint=c.accent.copy(alpha=.32f))

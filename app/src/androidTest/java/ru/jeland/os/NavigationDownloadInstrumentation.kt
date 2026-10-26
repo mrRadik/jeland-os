@@ -22,6 +22,8 @@ class NavigationDownloadInstrumentation {
             assertNotNull(result.status,result.ready)
             assertTrue(result.received>1000)
             assertEquals(result.received,result.total)
+            assertEquals(fixture,result.sourceUrl)
+            assertFalse(result.autoInstall)
             context.contentResolver.openInputStream(result.ready!!).use {assertTrue(it!!.bufferedReader().readText().startsWith("# PMTiles"))}
             // It is deliberately not a map: a downloaded file is not automatically installed.
         }finally {downloads.cancel();downloads.close();context.deleteSharedPreferences(name)}

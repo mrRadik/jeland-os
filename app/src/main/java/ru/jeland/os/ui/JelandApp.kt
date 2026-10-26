@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -63,7 +64,7 @@ private val destinations=listOf(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val scale=(maxWidth.value/1000f).coerceIn(.65f,1.8f)
         CompositionLocalProvider(LocalDensity provides Density(original.density*scale,original.fontScale)) {
-            JelandTheme(state.dark) {JelandScaffold(state,model)}
+            JelandTheme(state.dark,state.preferences.style) {JelandScaffold(state,model)}
         }
     }
 }
@@ -81,10 +82,11 @@ private val destinations=listOf(
     }
     val c=Jeland.colors
     val home=route=="home"
+    val classicHome=home&&state.preferences.style==DashboardStyle.CLASSIC
     // Keep the chrome in one coordinate space. Previously moving the header between
     // Column and overlay instantly resized both outgoing and incoming destinations.
     val pageMotion=if(route=="navigation")snap<androidx.compose.ui.unit.Dp>()else tween(320,easing=FastOutSlowInEasing)
-    val pageTop by animateDpAsState(if(home)0.dp else Jeland.headerHeight,pageMotion,label="Page header inset")
+    val pageTop by animateDpAsState(if(classicHome)0.dp else Jeland.headerHeight,pageMotion,label="Page header inset")
     val pageStart by animateDpAsState(if(home)0.dp else 12.dp,pageMotion,label="Page leading inset")
     val pageEnd by animateDpAsState(if(home)0.dp else 16.dp,pageMotion,label="Page trailing inset")
     val message by model.message.collectAsStateWithLifecycle()
@@ -124,13 +126,14 @@ private val destinations=listOf(
                     }}
                 }
             }
-            JelandHeader(state.connectivity,state.car,overHero=home)
+            JelandHeader(state.connectivity,state.car,overHero=classicHome,showTime=!home||state.preferences.style==DashboardStyle.CLASSIC)
             if(popup!=null) {
                 val inactivity=if(popup.isTransientControl)controlPanelInactivity(popup){popupName=null}else Modifier
                 BackHandler {popupName=null}
                 Box(Modifier.matchParentSize().background(c.scrim).clickable {popupName=null})
                 Panel(Modifier.align(Alignment.BottomCenter).padding(start=Jeland.railWidth+12.dp,end=16.dp,bottom=12.dp)
-                    .fillMaxWidth().heightIn(max=if(popup==Popup.CLIMATE)840.dp else 720.dp).then(inactivity).testTag("popup-${popup.name.lowercase()}")) {
+                    .then(if(popup==Popup.SHADE)Modifier.widthIn(max=560.dp).fillMaxWidth()else Modifier.fillMaxWidth())
+                    .heightIn(max=if(popup==Popup.CLIMATE)840.dp else 720.dp).then(inactivity).testTag("popup-${popup.name.lowercase()}")) {
                     if(popup==Popup.DRIVER_TEMPERATURE||popup==Popup.PASSENGER_TEMPERATURE) {
                         TemperatureSliderPanel(popup==Popup.DRIVER_TEMPERATURE,state,model.dependencies.climate){popupName=null}
                     } else {
@@ -160,7 +163,7 @@ private val destinations=listOf(
     }
 }
 
-@Composable fun JelandHeader(connection:ConnectivityState,car:VehicleLinkState=VehicleLinkState(),overHero:Boolean=false) {
+@Composable fun JelandHeader(connection:ConnectivityState,car:VehicleLinkState=VehicleLinkState(),overHero:Boolean=false,showTime:Boolean=true) {
     val c=Jeland.colors
     var now by remember {mutableStateOf(LocalDateTime.now())}
     LaunchedEffect(Unit) {while(true){now=LocalDateTime.now();delay(1000)}}
@@ -184,22 +187,24 @@ private val destinations=listOf(
         WifiStatusIcon(connection)
         Icon(JIcons.Bluetooth,contentDescription=when {connection.bluetoothEnabled==null->"Bluetooth: нет данных";connection.bluetoothEnabled==false->"Bluetooth выключен";connection.bluetoothConnected==true->"Bluetooth: телефон подключён";connection.bluetoothConnected==false->"Bluetooth: нет подключения";else->"Bluetooth включён, подключение неизвестно"},
             modifier=Modifier.size(24.dp).testTag("bluetooth-indicator"),tint=when {connection.bluetoothConnected==true->c.heroText;connection.bluetoothEnabled==true->c.heroText.copy(alpha=.6f);else->radioIndicatorColor(c.heroText,false)})
-        HeroOutlinedText(now.format(DateTimeFormatter.ofPattern("HH:mm")),fontSize=Jeland.type.clockSmall,outlined=overHero)
+        if(showTime)HeroOutlinedText(now.format(DateTimeFormatter.ofPattern("HH:mm")),fontSize=Jeland.type.clockSmall,outlined=overHero)
     }
 }
 @Composable fun JelandSidebar(selected:String,onNavigate:(String)->Unit,underHeader:Boolean=false) {
     val c=Jeland.colors
+    val minimal=Jeland.style==DashboardStyle.MINIMAL
+    val itemShape=androidx.compose.foundation.shape.RoundedCornerShape(if(minimal)0.dp else 14.dp)
     Box(Modifier.width(Jeland.railWidth).fillMaxHeight().background(Brush.verticalGradient(listOf(c.rail,c.background)))) {
         val top=if(underHeader)Jeland.headerHeight else 0.dp
         Column(Modifier.fillMaxSize().padding(start=12.dp,end=12.dp,top=top+8.dp,bottom=8.dp)
             .verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             destinations.forEach {item->
                 val active=item.route==selected
-                Column(Modifier.fillMaxWidth().height(108.dp).clip(Jeland.control).background(if(active)c.deep.copy(alpha=.22f)else c.rail.copy(alpha=0f))
-                    .then(if(active)Modifier.border(1.dp,c.accent,Jeland.control)else Modifier)
+                Column(Modifier.fillMaxWidth().height(108.dp).clip(itemShape).background(if(active)c.deep.copy(alpha=.22f)else c.rail.copy(alpha=0f))
+                    .then(if(active&&minimal)Modifier.drawBehind {drawRect(c.accent,size=Size(3.dp.toPx(),size.height))}else if(active)Modifier.border(1.dp,c.accent,itemShape)else Modifier)
                     .clickable {onNavigate(item.route)}.testTag("nav-${item.route}"),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
                     Glyph(item.icon,item.title,Modifier.size(30.dp),active)
-                    Text(item.title,color=if(active)c.accent else c.muted,fontSize=if(item.route=="automations")Jeland.type.footnote else Jeland.type.navigation,
+                    Text(item.title,color=if(active&&minimal)c.text else if(active)c.accent else c.muted,fontSize=if(item.route=="automations")Jeland.type.footnote else Jeland.type.navigation,
                         textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=if(item.route=="automations")1 else 2,modifier=Modifier.padding(top=10.dp))
                 }
             }
@@ -208,7 +213,7 @@ private val destinations=listOf(
 }
 @Composable fun ClimateBottomBar(s:UiState,model:MainViewModel,show:(Popup)->Unit) {
     val c=Jeland.colors;val r=model.dependencies.climate;val climateOn=s.climate.controlsEnabled
-    val shape=androidx.compose.foundation.shape.RoundedCornerShape(22.dp)
+    val shape=androidx.compose.foundation.shape.RoundedCornerShape(if(s.preferences.style==DashboardStyle.MINIMAL)32.dp else 22.dp)
     Row(Modifier.fillMaxWidth().height(Jeland.climateHeight).padding(start=12.dp,end=12.dp,top=2.dp,bottom=14.dp).clip(shape).background(Brush.verticalGradient(listOf(c.rail,c.background))).border(1.dp,c.outline,shape).padding(horizontal=12.dp,vertical=10.dp).testTag("climate-bar"),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween) {
         SeatClimateButton(SeatSide.DRIVER,s.seats.driver,heatKnown=s.seats.known(95),ventilationKnown=s.seats.known(93)){show(Popup.DRIVER)}

@@ -44,6 +44,7 @@
     <application android:name=".JelandApplication" android:label="Jeland OS"
         android:allowBackup="false" android:supportsRtl="true" android:theme="@style/Theme.JelandOS"
         android:usesCleartextTraffic="false" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher">
+        <receiver android:name=".data.updates.UpdateInstallReceiver" android:exported="false" />
         <receiver android:name=".data.SystemBootReceiver" android:enabled="true" android:exported="false">
             <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
         </receiver>

@@ -48,7 +48,9 @@ data class LauncherApp(val id:String,val packageName:String,val activityName:Str
 data class AppsState(val installed:List<LauncherApp> = emptyList(),val favorites:List<String> = emptyList(),val loading:Boolean=true,val error:String?=null) {
     val favoriteApps:List<LauncherApp> get()=favorites.mapNotNull {id->installed.find {it.id==id}}
 }
-data class InterfacePreferences(val showFuel:Boolean=true,val showTires:Boolean=true,val showFavorites:Boolean=true,val developerPanel:Boolean=false)
+enum class DashboardStyle(val title:String) { CLASSIC("Классический"),MINIMAL("Минималистичный") }
+data class InterfacePreferences(val showFuel:Boolean=true,val showTires:Boolean=true,val showFavorites:Boolean=true,val developerPanel:Boolean=false,
+    val style:DashboardStyle=DashboardStyle.CLASSIC)
 data class ConnectivityState(
     val wifi:Boolean=false,val wifiLevel:Int?=null,val cellular:Boolean=false,val mobileLevel:Int?=null,
     val networkType:String?=null,val available:Boolean=false,val demo:Boolean=false,
