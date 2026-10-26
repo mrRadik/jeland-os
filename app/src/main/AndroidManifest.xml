@@ -20,6 +20,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="ivi.vds.permission.SERVICE" />
     <queries>
+        <intent><action android:name="android.intent.action.INSTALL_PACKAGE" /><data android:mimeType="application/vnd.android.package-archive" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:mimeType="application/vnd.android.package-archive" /></intent>
         <package android:name="ru.kost.ruvoice" />
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
         <package android:name="com.iflytek.autofly.sceneengine" />
@@ -44,7 +46,10 @@
     <application android:name=".JelandApplication" android:label="Jeland OS"
         android:allowBackup="false" android:supportsRtl="true" android:theme="@style/Theme.JelandOS"
         android:usesCleartextTraffic="false" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher">
+        <activity android:name=".data.updates.UpdateInstallActivity" android:exported="false" android:excludeFromRecents="true" />
         <receiver android:name=".data.updates.UpdateInstallReceiver" android:exported="false" />
+        <provider android:name=".data.updates.UpdateMaintenanceProvider" android:authorities="${applicationId}.maintenance"
+            android:exported="true" android:permission="android.permission.DUMP" />
         <receiver android:name=".data.SystemBootReceiver" android:enabled="true" android:exported="false">
             <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
         </receiver>
