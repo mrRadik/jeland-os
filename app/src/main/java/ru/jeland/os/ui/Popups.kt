@@ -36,18 +36,15 @@ import ru.jeland.os.ui.theme.Jeland
         Popup.FUEL->FuelPopup(s.vehicle.fuel,model)
         Popup.BATTERY->BatteryDetails(s.vehicle.battery,s.vehicle.live)
         Popup.VEHICLE->VehicleDetailsPopup(s,model,show)
-        Popup.TIRE_FRONT_LEFT,Popup.TIRE_FRONT_RIGHT,Popup.TIRE_REAR_LEFT,Popup.TIRE_REAR_RIGHT->{
-            val saving by model.savingLogs.collectAsStateWithLifecycle()
-            val clearing by model.clearingLogs.collectAsStateWithLifecycle()
-            TireDetailsPopup(p.wheel!!,s.vehicle,model.tyreDiagnostics.collectAsStateWithLifecycle().value,model::saveLogs,model::clearLogs,saving||clearing)
-            val saveMessage by model.logsMessage.collectAsStateWithLifecycle()
-            saveMessage?.let {Label(it,small=true,muted=true)}
-        }
+        Popup.TIRE_FRONT_LEFT,Popup.TIRE_FRONT_RIGHT,Popup.TIRE_REAR_LEFT,Popup.TIRE_REAR_RIGHT->TireDetailsPopup(p.wheel!!,s.vehicle)
         Popup.SHADE->{
-            SunshadeRoofPreview(s.vehicle.shadeUiPosition)
-            Spacer(Modifier.height(24.dp))
+            Label(s.vehicle.shadeUiSummary,Modifier.testTag("shade-state"),small=true,muted=true)
+            Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
-                Shade.entries.forEach {v->Control(v.title,Modifier.weight(1f).testTag("shade-${v.name.lowercase()}"),s.vehicle.shadeUiPosition==v){model.dependencies.vehicle.setShade(v)}}
+                listOf(Shade.HALF,Shade.OPEN,Shade.CLOSED).forEach {v->
+                    Control(when(v){Shade.HALF->"Наполовину";Shade.OPEN->"Полностью";Shade.CLOSED->"Закрыть"},
+                        Modifier.weight(1f).testTag("shade-${v.name.lowercase()}"),s.vehicle.shadeUiPosition==v){model.dependencies.vehicle.setShade(v)}
+                }
             }
             if(!s.car.demo){Spacer(Modifier.height(18.dp));Label("Не перекрывайте проём шторки.",small=true,muted=true)}
         }

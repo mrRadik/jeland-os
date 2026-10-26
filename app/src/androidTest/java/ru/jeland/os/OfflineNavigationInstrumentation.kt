@@ -294,12 +294,16 @@ class OfflineNavigationInstrumentation {
         val lightCapture=InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("screencap -p ${folder.absolutePath}/home-focused-light-screen.png")
         android.os.ParcelFileDescriptor.AutoCloseInputStream(lightCapture).use {while(it.read()!=-1){}}
     }
-    @Test fun russiaOverviewIsRealLocalMapAndDownloadsRequireExplicitConsent() {
+    @Test fun russiaOverviewIsRealLocalMapAndUsesSimplifiedCatalog() {
         openMap()
         ui.onNodeWithTag("navigation-options").performClick()
         ui.onNodeWithTag("navigation-maps").performScrollTo().performClick()
-        ui.onNodeWithTag("map-download-url").performScrollTo().performTextInput("https://example.org/region.jelandnav.zip")
-        ui.onNodeWithTag("map-download-start").performScrollTo().assertIsNotEnabled()
+        ui.onNodeWithTag("map-catalog-source-in-list").assertIsDisplayed()
+        ui.onNodeWithText("Путь до карт").assertIsDisplayed()
+        ui.onNodeWithText("Офлайн-карты").assertDoesNotExist()
+        ui.onNodeWithTag("map-download-url").assertDoesNotExist()
+        ui.onNodeWithTag("map-download-sha256").assertDoesNotExist()
+        ui.onNodeWithTag("map-catalog-refresh").assertIsDisplayed()
         ui.onNodeWithTag("navigation-russia-overview").performScrollTo().performClick()
         lateinit var map:org.maplibre.android.maps.MapLibreMap
         ui.runOnIdle {mapView(ui.activity.window.decorView)!!.getMapAsync {map=it}}

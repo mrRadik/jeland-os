@@ -1,0 +1,15 @@
+# Match the desktop graph builder that produced the application's tested graph.
+pyvalhalla==3.9.1
+osmium==4.3.1
+shapely==2.2.0
+pmtiles==3.8.1
+mapbox-vector-tile==2.2.0
+# Tested transitive versions, pinned for repeatable setup.
+numpy==2.5.4
+protobuf==6.33.6
+pyclipper==1.4.0
+requests==2.34.2
+charset-normalizer==3.5.2
+idna==3.20
+urllib3==2.8.0
+certifi==2026.10.23

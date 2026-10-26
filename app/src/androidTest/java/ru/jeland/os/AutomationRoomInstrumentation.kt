@@ -17,6 +17,25 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 class AutomationRoomInstrumentation {
+    @Test fun togglingAndEditingRulesKeepTheirListPositions()=runBlocking {
+        val db=Room.inMemoryDatabaseBuilder(context,AutomationDatabase::class.java).build()
+        var now=100L
+        try {
+            val repo=RoomAutomationRepository(db){now++}
+            val first=repo.save(rule("Первый"),true)
+            val second=repo.save(rule("Второй"),true)
+            val third=repo.save(rule("Третий"),true)
+            val expected=listOf(third.id,second.id,first.id)
+            assertEquals(expected,repo.rules.first().map {it.id})
+            repo.setEnabled(first.id,false)
+            assertEquals(expected,repo.rules.first().map {it.id})
+            assertFalse(repo.find(first.id)!!.enabled)
+            repo.setEnabled(first.id,true)
+            repo.save(second.copy(name="Новое название"),false)
+            assertEquals(expected,repo.rules.first().map {it.id})
+            assertTrue(repo.find(first.id)!!.updatedAt>first.updatedAt)
+        }finally {db.close()}
+    }
     private val context get()=InstrumentationRegistry.getInstrumentation().targetContext
     private fun rule(name:String="Зимний комфорт")=AutomationRule(name=name,triggerType=TriggerType.BELOW,temperatureThreshold=5.0,
         actions=SeatsAction(SeatLevel.LEVEL_2,SeatLevel.OFF,SeatLevel.LEVEL_1,SeatLevel.KEEP,SeatLevel.LEVEL_3,SeatLevel.OFF).split())

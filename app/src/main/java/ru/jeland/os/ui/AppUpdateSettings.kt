@@ -18,7 +18,7 @@ import java.util.Locale
     val state by manager.state.collectAsStateWithLifecycle()
     var confirmMobile by remember {mutableStateOf(false)}
     var confirmInstall by remember {mutableStateOf(false)}
-    val busy=state.checking||state.downloading
+    val busy=state.checking||state.downloading||state.installing
     val candidate=state.available
     Panel(Modifier.fillMaxWidth().testTag("app-updates")) {
         Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
@@ -38,10 +38,13 @@ import java.util.Locale
                         Label("${state.progress}% · ${state.message}",small=true,muted=true)
                         Control("Остановить",Modifier.fillMaxWidth().testTag("updates-cancel-download")){manager.cancelDownload()}
                     }
-                    state.downloaded->Control("Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){confirmInstall=true}
+                    state.downloaded->{
+                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){confirmInstall=true}
+                        Control("Скачать заново по Wi-Fi",Modifier.fillMaxWidth().testTag("updates-download-again"),enabled=!busy){manager.download()}
+                    }
                     else->{
                         Control("Скачать по Wi-Fi",Modifier.fillMaxWidth().testTag("updates-download"),selected=true,enabled=!busy){manager.download()}
-                        Control("Скачать через мобильную сеть",Modifier.fillMaxWidth().testTag("updates-download-mobile"),enabled=!busy){confirmMobile=true}
+                        Control("Скачать через любую сеть",Modifier.fillMaxWidth().testTag("updates-download-mobile"),enabled=!busy){confirmMobile=true}
                     }
                 }
             }

@@ -3,13 +3,13 @@ package ru.jeland.os.data.updates
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.PackageInstaller
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.core.content.FileProvider
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ru.jeland.os.BuildConfig
@@ -21,6 +21,7 @@ data class AppUpdateState(
     val autoCheck:Boolean=true,val autoDownloadWifi:Boolean=false,val checking:Boolean=false,val downloading:Boolean=false,
     val progress:Int=0,val available:AppUpdateCandidate?=null,val downloaded:Boolean=false,
     val message:String="Обновления из GitHub Releases",val lastChecked:Long?=null,val installPermission:Boolean=false,
+    val installing:Boolean=false,
 )
 
 /** App-scoped downloads; no APK installation, screen launch or vehicle command happens automatically. */
@@ -31,13 +32,17 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
     private val scope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private var foreground=false;private var observing=false
     private var timer:Job?=null;private var checkJob:Job?=null;private var downloadJob:Job?=null
+    private var installJob:Job?=null;private var installWatchdog:Job?=null
+    private val installer=UpdateInstallSession(app)
+    private var confirmation:Intent?=null
     private val initial=runCatching {GitHubUpdateCodec.restore(store.string(PENDING,""))}.getOrNull()
         ?.takeIf {it.manifest.versionCode>BuildConfig.VERSION_CODE&&file(it).length()==it.manifest.size}
     private val mutable=MutableStateFlow(AppUpdateState(
         autoCheck=store.string(AUTO_CHECK,"true").toBooleanStrictOrNull()?:true,
         autoDownloadWifi=store.string(AUTO_DOWNLOAD,"false").toBooleanStrictOrNull()?:false,
         available=initial,downloaded=initial!=null,lastChecked=store.string(LAST_SUCCESS,"").toLongOrNull(),
-        installPermission=canInstall(),message=if(initial==null)"Обновления из GitHub Releases"else"Обновление скачано. Установка только по вашей кнопке."))
+        installPermission=canInstall(),message=if(initial==null)"Обновления из GitHub Releases"else
+            store.string(INSTALL_MESSAGE,"").ifBlank {"Обновление скачано. Установка только по вашей кнопке."}))
     val state=mutable.asStateFlow()
     private fun file(c:AppUpdateCandidate)=File(app.filesDir,"updates/ready/JelandOS-${c.manifest.versionCode}.apk")
     private fun canInstall()=runCatching {app.packageManager.canRequestPackageInstalls()}.getOrDefault(false)
@@ -46,6 +51,16 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
     private fun wifiUnmetered()=runCatching {cm.getNetworkCapabilities(cm.activeNetwork)?.let {
         it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)&&it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)&&it.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
     }==true}.getOrDefault(false)
+    private fun networkState(n:Network)=cm.getNetworkCapabilities(n)?.let {
+        UpdateNetworkState(it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+            it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),it.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED))
+    }
+    private fun downloadNetwork(allowMobile:Boolean,automatic:Boolean):Network? {
+        val active=cm.activeNetwork
+        return (listOfNotNull(active)+cm.allNetworks.toList()).distinct().firstOrNull {
+            networkState(it)?.allows(allowMobile,automatic)==true
+        }
+    }
     private val network=object:ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(n:Network,c:NetworkCapabilities) {scope.launch {if(foreground){check(false);maybeAutoDownload()}}}
     }
@@ -64,7 +79,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         if(value){store.put(LAST_AUTO_DOWNLOAD,"0");maybeAutoDownload()}
     }
     fun check(manual:Boolean=true) {
-        if(checkJob?.isActive==true||downloadJob?.isActive==true)return
+        if(checkJob?.isActive==true||downloadJob?.isActive==true||state.value.installing||installJob?.isActive==true)return
         val now=System.currentTimeMillis()
         if(!manual&&(!state.value.autoCheck||!AppUpdatePolicy.due(store.string(LAST_ATTEMPT,"0").toLongOrNull()?:0,now)))return
         if(!online()){if(manual)mutable.update {it.copy(message="Нет подключения к интернету. Скачанные файлы сохранены.")};return}
@@ -81,7 +96,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                     message=if(available==null)"Установлена актуальная версия"else if(ready)"Обновление готово к установке"else"Доступна версия ${candidate.manifest.versionName}")}
                 report("UPDATE_CHECK latest=${candidate.manifest.versionCode} installed=${BuildConfig.VERSION_CODE}")
             }catch(c:CancellationException){throw c}
-            catch(e:Exception){mutable.update {it.copy(message="Не удалось проверить: ${reason(e)}")};report("UPDATE_CHECK_FAILED ${e.javaClass.simpleName}")}
+            catch(e:Exception){mutable.update {it.copy(message="Не удалось проверить: ${reason(e)}")};report("UPDATE_CHECK_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
             finally {mutable.update {it.copy(checking=false)}}
             maybeAutoDownload()
         }
@@ -91,28 +106,32 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         if(!AppUpdatePolicy.due(store.string(LAST_AUTO_DOWNLOAD,"0").toLongOrNull()?:0,System.currentTimeMillis()))return
         if(checkJob?.isActive==true&&state.value.checking)return
         if(downloadJob?.isActive==true)return
-        store.put(LAST_AUTO_DOWNLOAD,System.currentTimeMillis().toString());download(false)
+        store.put(LAST_AUTO_DOWNLOAD,System.currentTimeMillis().toString());download(automatic=true)
     }
-    fun download(allowMetered:Boolean=false) {
-        if(downloadJob?.isActive==true||state.value.checking)return
+    fun download(allowMetered:Boolean=false,automatic:Boolean=false) {
+        if(downloadJob?.isActive==true||state.value.checking||state.value.installing||installJob?.isActive==true)return
         val candidate=state.value.available?:return
         downloadJob=scope.launch {
             mutable.update {it.copy(downloading=true,progress=0,message="Скачиваем обновление…")}
             try {
                 withContext(Dispatchers.IO) {
-                    check(online()){ "Нет подключения к интернету" }
-                    check(allowMetered||wifiUnmetered()){ "Нужен Wi-Fi без ограничения трафика. Мобильную загрузку нужно подтвердить отдельно" }
+                    val route=checkNotNull(downloadNetwork(allowMetered,automatic)) {
+                        if(automatic)"Автоматическая загрузка ожидает Wi-Fi без тарификации"
+                        else if(allowMetered)"Нет подключения к интернету"else"Wi-Fi не подключён. Подключитесь или разрешите загрузку через любую сеть"
+                    }
+                    report("UPDATE_NETWORK wifi=${networkState(route)?.wifi} unmetered=${networkState(route)?.unmetered} automatic=$automatic mobileAllowed=$allowMetered")
                     val staging=File(app.filesDir,"updates/staging/update.part");check(staging.parentFile!!.mkdirs()||staging.parentFile!!.isDirectory)
                     if(staging.exists())check(staging.delete()){"Не удалось очистить незавершённую загрузку"}
                     check(app.filesDir.usableSpace>candidate.manifest.size+16*1024*1024){"Недостаточно свободного места"}
-                    val connection=source.open(candidate.apk.url)
+                    // Keep DNS, all redirects and APK bytes on the selected network.
+                    val connection=source.open(candidate.apk.url,route)
                     try {
                         check(connection.contentLengthLong<0||connection.contentLengthLong==candidate.manifest.size){"Размер ответа не совпадает с релизом"}
                         connection.inputStream.use {input->staging.outputStream().use {output->
                             val buffer=ByteArray(64*1024);var total=0L;var percent=-1
                             while(true) {
                                 ensureActive()
-                                check(allowMetered||wifiUnmetered()){ "Wi-Fi отключён или стал платным. Загрузка остановлена" }
+                                check(networkState(route)?.allows(allowMetered,automatic)==true){ "Выбранная сеть отключилась. Загрузка остановлена" }
                                 val n=input.read(buffer);if(n<0)break
                                 total+=n;check(total<=candidate.manifest.size){"APK больше заявленного размера"}
                                 output.write(buffer,0,n)
@@ -127,13 +146,14 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                     if(ready.exists())check(ready.delete()){ "Не удалось заменить старый файл обновления" }
                     check(staging.renameTo(ready)){"Не удалось сохранить проверенный APK"}
                     store.put(PENDING,GitHubUpdateCodec.pending(candidate))
+                    store.put(INSTALL_MESSAGE,"")
                     // Only obsolete updater-owned APKs; never logs, installed apps or user-selected files.
                     ready.parentFile?.listFiles()?.filter {it!=ready&&it.isFile&&Regex("JelandOS-[0-9]+\\.apk").matches(it.name)}?.forEach {it.delete()}
                 }
                 mutable.update {it.copy(downloaded=true,message="Обновление проверено. Установите его на стоянке.")}
                 report("UPDATE_READY version=${candidate.manifest.versionCode}")
             }catch(c:CancellationException){throw c}
-            catch(e:Exception){mutable.update {it.copy(downloaded=false,message="Загрузка не завершена: ${reason(e)}")};report("UPDATE_DOWNLOAD_FAILED ${e.javaClass.simpleName}")}
+            catch(e:Exception){mutable.update {it.copy(downloaded=false,message="Загрузка не завершена: ${reason(e)}")};report("UPDATE_DOWNLOAD_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
             finally {mutable.update {it.copy(downloading=false)}}
         }
     }
@@ -142,27 +162,74 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         mutable.update {it.copy(message="Загрузка остановлена. Установленная версия не изменена.")}
     }
     fun install() {
-        if(state.value.downloading||state.value.checking||downloadJob?.isActive==true)return
+        if(state.value.downloading||state.value.checking||state.value.installing||downloadJob?.isActive==true||installJob?.isActive==true)return
         val candidate=state.value.available?.takeIf {state.value.downloaded}?:return
+        report("UPDATE_INSTALL_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
         if(!canInstall()) {
             mutable.update {it.copy(installPermission=false,message="Разрешите Jeland OS установку приложений и нажмите «Установить» ещё раз.")}
             runCatching {app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:${app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
-                .onFailure {mutable.update {it.copy(message="Экран разрешения недоступен. Разрешите установку для Jeland OS в штатных настройках Android.")}}
+                .onFailure {report("UPDATE_INSTALL_PERMISSION_FAILED ${it.javaClass.simpleName}");mutable.update {it.copy(message="Экран разрешения недоступен. Разрешите установку для Jeland OS в штатных настройках Android.")}}
             return
         }
-        downloadJob=scope.launch {
-            mutable.update {it.copy(downloading=true,message="Проверяем APK перед установкой…")}
+        confirmation?.let {openConfirmation(it);return}
+        installJob=scope.launch {
+            mutable.update {it.copy(installing=true,message="Проверяем APK перед установкой…")}
+            var session=-1
             try {
                 val ready=file(candidate)
-                withContext(Dispatchers.IO){validateApk(ready,candidate)}
-                val uri=FileProvider.getUriForFile(app,"${app.packageName}.updates",ready)
-                app.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,"application/vnd.android.package-archive")
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION))
-                mutable.update {it.copy(message="Подтвердите обновление в системном установщике. Данные приложения сохраняются.")}
+                session=withContext(Dispatchers.IO){validateApk(ready,candidate);installer.prepare(ready)}
+                installer.abandon(store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1)
+                if(store is DurableSettingsStore)store.putDurable(INSTALL_SESSION,session.toString())
+                else store.put(INSTALL_SESSION,session.toString())
+                installMessage("Ожидаем системный установщик…")
+                installer.commit(session)
+                report("UPDATE_INSTALL_COMMIT session=$session version=${candidate.manifest.versionCode}")
+                installWatchdog?.cancel();installWatchdog=scope.launch {
+                    delay(20_000)
+                    if(state.value.installing) {
+                        mutable.update {it.copy(installing=false)}
+                        installMessage("Установщик не ответил. Нажмите «Установить обновление» ещё раз; файл сохранён.")
+                        report("UPDATE_INSTALL_TIMEOUT session=$session")
+                    }
+                }
             }catch(c:CancellationException){throw c}
-            catch(e:Exception){mutable.update {it.copy(message="Установка не открыта: ${reason(e)}")}}
-            finally {mutable.update {it.copy(downloading=false)}}
+            catch(e:Exception){installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false)}
+                installMessage("Установка не открыта: ${reason(e)}");report("UPDATE_INSTALL_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
         }
+    }
+    private fun installMessage(message:String) {store.put(INSTALL_MESSAGE,message);mutable.update {it.copy(message=message)}}
+    internal fun installStatus(intent:Intent) {
+        val id=intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID,-1)
+        if(id<0||id!=store.string(INSTALL_SESSION,"-1").toIntOrNull())return
+        installWatchdog?.cancel()
+        val status=intent.getIntExtra(PackageInstaller.EXTRA_STATUS,PackageInstaller.STATUS_FAILURE)
+        report("UPDATE_INSTALL_STATUS session=$id status=$status detail="+intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE).orEmpty().take(200))
+        mutable.update {it.copy(installing=false)}
+        if(status==PackageInstaller.STATUS_PENDING_USER_ACTION) {
+            @Suppress("DEPRECATION") val next=intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+            if(next==null){installMessage("Установщик не передал окно подтверждения. Повторите установку.");return}
+            confirmation=next
+            if(foreground)openConfirmation(next)else installMessage("Установщик готов. Нажмите «Установить обновление», чтобы открыть подтверждение.")
+            return
+        }
+        confirmation=null;store.put(INSTALL_SESSION,"-1")
+        val message=when(status) {
+            PackageInstaller.STATUS_SUCCESS->{store.put(PENDING,"");mutable.update {it.copy(downloaded=false)};"Обновление установлено"}
+            PackageInstaller.STATUS_FAILURE_ABORTED->"Установка отменена. APK сохранён, можно повторить."
+            PackageInstaller.STATUS_FAILURE_BLOCKED->"Android заблокировал установку. Проверьте разрешение установки для Jeland OS. APK сохранён."
+            PackageInstaller.STATUS_FAILURE_STORAGE->"Недостаточно места для установки. Освободите память и повторите."
+            PackageInstaller.STATUS_FAILURE_CONFLICT->"Установка отклонена: конфликт версии или подписи приложения."
+            PackageInstaller.STATUS_FAILURE_INVALID->"Android не смог установить APK. Повторите загрузку; причина сохранена в журнале."
+            PackageInstaller.STATUS_FAILURE_INCOMPATIBLE->"Эта версия APK несовместима с устройством."
+            else->"Установка не выполнена (код $status). APK сохранён, причина записана в журнале."
+        }
+        installMessage(message)
+    }
+    private fun openConfirmation(intent:Intent) {
+        try {app.startActivity(Intent(intent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            installMessage("Подтвердите обновление в системном установщике. Данные приложения сохраняются.")
+            report("UPDATE_INSTALL_CONFIRMATION_OPENED")
+        }catch(e:Exception){confirmation=null;installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
     }
     @Suppress("DEPRECATION") private fun validateApk(file:File,c:AppUpdateCandidate) {
         check(file.length()==c.manifest.size){"Размер APK не совпадает"}
@@ -176,10 +243,16 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         fun identity(info:android.content.pm.PackageInfo)=UpdateApkIdentity(info.packageName,info.longVersionCode,info.versionName,info.applicationInfo?.minSdkVersion?:-1,signers(info))
         AppUpdatePolicy.requireInstallable(c.manifest,identity(current),identity(apk),Build.VERSION.SDK_INT)
     }
-    private fun reason(e:Exception)=if(e is IllegalStateException||e is IllegalArgumentException)e.message?.take(220)?:"Проверка не пройдена"else"Сеть или файл недоступны. Повторите позже"
+    private fun reason(e:Exception)=when(e) {
+        is SecurityException->"Android запретил действие. Проверьте разрешения Jeland OS в штатных настройках."
+        is android.content.ActivityNotFoundException->"На устройстве не найдено системное окно установки или разрешений."
+        is IllegalStateException,is IllegalArgumentException->e.message?.take(220)?:"Проверка не пройдена"
+        else->"Сеть или файл недоступны. Повторите позже"
+    }
     companion object {
         private const val AUTO_CHECK="updates.auto_check";private const val AUTO_DOWNLOAD="updates.auto_download_wifi"
         private const val LAST_ATTEMPT="updates.last_attempt";private const val LAST_SUCCESS="updates.last_success"
         private const val LAST_AUTO_DOWNLOAD="updates.last_auto_download";private const val PENDING="updates.pending"
+        private const val INSTALL_SESSION="updates.install_session";private const val INSTALL_MESSAGE="updates.install_message"
     }
 }

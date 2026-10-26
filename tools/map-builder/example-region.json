@@ -1,0 +1,11 @@
+{
+  "id": "chelyabinsk-center",
+  "title": "Челябинск · центр",
+  "source": "../../navigation-data/source/ural.osm.pbf",
+  "source_url": "https://download.geofabrik.de/russia/ural-fed-district.html",
+  "output": "../../artifacts/maps-built/chelyabinsk-center",
+  "bounds": [61.38, 55.14, 61.43, 55.18],
+  "threads": 2,
+  "min_zoom": 10,
+  "max_zoom": 15
+}

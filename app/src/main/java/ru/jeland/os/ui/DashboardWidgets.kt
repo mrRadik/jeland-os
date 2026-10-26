@@ -29,9 +29,10 @@ import ru.jeland.os.core.*
 import ru.jeland.os.ui.theme.*
 
 @Composable fun WeatherWidget(state:WeatherState,modifier:Modifier=Modifier,onClick:()->Unit) {
-    val c=Jeland.colors
-    Box(modifier.testTag("weather-widget").clip(Jeland.control).clickable(onClick=onClick).padding(16.dp)) {
-        HeroOutlinedText(state.temperatureLabel,fontSize=Jeland.type.weather*1.25f,fontWeight=FontWeight.Medium,modifier=Modifier.testTag("outside-temperature"))
+    Box(modifier.testTag("weather-widget").clip(Jeland.control).clickable(onClick=onClick).padding(if(Jeland.style==DashboardStyle.MINIMAL)6.dp else 16.dp)) {
+        FittedHeroText(state.temperatureLabel,fontSize=Jeland.type.weather*(if(Jeland.style==DashboardStyle.MINIMAL).85f else 1.25f),
+            fontWeight=FontWeight.Medium,outlined=Jeland.style==DashboardStyle.CLASSIC,
+            modifier=Modifier.fillMaxSize().testTag("outside-temperature"),alignment=Alignment.Center)
     }
 }
 @Composable fun FuelWidget(state:FuelState,modifier:Modifier=Modifier,onClick:()->Unit) {
@@ -73,27 +74,33 @@ import ru.jeland.os.ui.theme.*
 }
 @Composable fun FavoriteAppsWidget(state:AppsState,model:MainViewModel,modifier:Modifier=Modifier,compact:Boolean=false,onConfigure:()->Unit) {
     val c=Jeland.colors
+    val frameless=LocalFramelessDashboard.current
+    val headerHeight=if(compact)with(androidx.compose.ui.platform.LocalDensity.current){(Jeland.type.caption*1.2f).toDp()+8.dp}.coerceAtLeast(28.dp)else 38.dp
     Panel(modifier.testTag("favorite-apps-widget")) {
-        Row(Modifier.fillMaxWidth().height(if(compact)28.dp else 38.dp).padding(horizontal=14.dp),verticalAlignment=Alignment.CenterVertically) {
-            Text("Избранные приложения",color=Jeland.colors.text,fontSize=if(compact)Jeland.type.caption else Jeland.type.body,modifier=Modifier.weight(1f))
+        Row(Modifier.fillMaxWidth().height(headerHeight).padding(horizontal=14.dp),verticalAlignment=Alignment.CenterVertically) {
+            Text("Избранные приложения",color=Jeland.colors.text,fontSize=if(compact)Jeland.type.caption else Jeland.type.body,
+                lineHeight=(if(compact)Jeland.type.caption else Jeland.type.body)*1.2f,maxLines=1,modifier=Modifier.weight(1f))
             Row(Modifier.height(38.dp).clickable(onClick=onConfigure).testTag("configure-favorites"),verticalAlignment=Alignment.CenterVertically) {
-                Text("Настроить",color=Jeland.colors.muted,fontSize=Jeland.type.caption);Glyph(JIcons.ChevronRight)
+                Text("Настроить",color=Jeland.colors.muted,fontSize=Jeland.type.caption,lineHeight=Jeland.type.caption*1.2f,maxLines=1);Glyph(JIcons.ChevronRight)
             }
         }
         Row(Modifier.fillMaxWidth().weight(1f).padding(start=12.dp,end=12.dp,bottom=10.dp),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
             val actual=state.favoriteApps
-            repeat(if(compact)5 else 4) {index->
+            repeat(4) {index->
                 val app=actual.getOrNull(index)
                 BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().testTag("favorite-home-card-$index")
-                    .clip(Jeland.control).background(Brush.verticalGradient(listOf(c.raised.copy(alpha=.75f),c.panel)))
-                    .border(1.dp,c.outline.copy(alpha=if(app!=null).85f else .5f),Jeland.control)
+                    .clip(Jeland.control)
+                    .then(if(frameless)Modifier else Modifier.background(Brush.verticalGradient(listOf(c.raised.copy(alpha=.75f),c.panel)))
+                        .border(1.dp,c.outline.copy(alpha=if(app!=null).85f else .5f),Jeland.control))
                     .clickable(onClickLabel=if(app!=null)"Открыть ${app.label}"else"Выбрать приложение") {
                         if(app!=null)model.launchApp(app.id) else onConfigure()
                     }.padding(if(compact)6.dp else 12.dp)) {
                     // Extra height must not change the composition on taller head-unit screens.
                     // Only use a vertical fallback when there really is no room beside the icon.
                     val stacked=compact||maxWidth<156.dp
-                    val iconSize=if(compact)44.dp else 56.dp
+                    val titleSize=if(compact)Jeland.type.footnote else Jeland.type.secondary
+                    val titleHeight=with(androidx.compose.ui.platform.LocalDensity.current){(titleSize*1.25f).toDp()}
+                    val iconSize=if(compact)(maxHeight-titleHeight-6.dp).coerceIn(24.dp,44.dp) else 56.dp
                     val label=app?.label?:"Добавить"
                     val subtitle=if(app!=null)"Открыть"else if(state.loading)"Проверяем…"else"Выбрать ярлык"
                     val icon: @Composable ()->Unit = {
@@ -104,7 +111,7 @@ import ru.jeland.os.ui.theme.*
                         }
                     }
                     val title: @Composable ()->Unit = {
-                        Text(label,color=c.text,fontSize=if(compact)Jeland.type.footnote else Jeland.type.secondary,fontWeight=FontWeight.Medium,
+                        Text(label,color=c.text,fontSize=titleSize,lineHeight=titleSize*1.25f,fontWeight=FontWeight.Medium,
                             maxLines=if(stacked)1 else 2,overflow=TextOverflow.Ellipsis,modifier=Modifier.testTag("favorite-home-title-$index"))
                     }
                     val action: @Composable ()->Unit = {
@@ -113,7 +120,7 @@ import ru.jeland.os.ui.theme.*
                             Icon(JIcons.ChevronRight,null,Modifier.size(14.dp),tint=if(app!=null)c.accent else c.muted)
                         }
                     }
-                    if(stacked)Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp,Alignment.CenterVertically)) {
+                    if(stacked)Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(if(compact)6.dp else 8.dp,Alignment.CenterVertically)) {
                         icon();title();if(!compact)action()
                     } else Row(Modifier.fillMaxSize(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                         icon()

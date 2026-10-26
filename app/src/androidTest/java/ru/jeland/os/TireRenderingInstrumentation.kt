@@ -42,7 +42,7 @@ class TireRenderingInstrumentation {
         for(dark in listOf(true,false)) {
             show(VehicleState(),dark)
             ui.onNodeWithTag("tire-detail-pressure").assertTextEquals("2.4 бар")
-            ui.onNodeWithTag("tire-detail-temperature").assertTextEquals("18 °C")
+            ui.onNodeWithTag("tire-detail-temperature").assertDoesNotExist()
             val icon=ui.onNodeWithTag("tire-detail-icon").assertIsDisplayed().captureToImage().asAndroidBitmap()
             assertEquals(icon.width,icon.height)
             val root=InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null)
@@ -60,7 +60,7 @@ class TireRenderingInstrumentation {
         val live=reducer.vehicle(101)
         assertTrue(live.tires.values.all {it.temperature==null})
         show(live,true)
-        ui.onNodeWithTag("tire-detail-temperature").assertTextEquals("Нет данных")
+        ui.onNodeWithTag("tire-detail-temperature").assertDoesNotExist()
         assertTrue(live.tires.getValue(Wheel.FRONT_LEFT).validBar!=null)
     }
 }

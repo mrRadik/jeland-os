@@ -10,6 +10,12 @@ data class AppUpdateManifest(
 data class AppUpdateCandidate(val manifest:AppUpdateManifest,val apk:UpdateAsset,val releaseTag:String)
 data class UpdateApkIdentity(val applicationId:String,val versionCode:Long,val versionName:String?,val minSdk:Int,val signers:Set<String>)
 
+/** A phone hotspot is Wi-Fi even when Android marks it as metered. */
+data class UpdateNetworkState(val internet:Boolean,val wifi:Boolean,val unmetered:Boolean) {
+    fun allows(allowMobile:Boolean=false,automatic:Boolean=false)=internet&&
+        if(automatic)wifi&&unmetered else (wifi||allowMobile)
+}
+
 /** No access token, arbitrary update URL, version-name ordering or implicit APK selection. */
 object AppUpdatePolicy {
     const val REPOSITORY="mrRadik/jeland-os"
