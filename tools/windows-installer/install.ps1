@@ -76,6 +76,14 @@ function Invoke-JelandBundleInstall {
             $voice=& $step 'voice-permissions' @('shell','dumpsys','package','ru.kost.ruvoice')
             if($voice.Text -notmatch 'android\.permission\.POST_NOTIFICATIONS:\s*granted=true\b'){throw 'Не подтверждены уведомления RuVoice.'}
         }
+        if((Test-Path -LiteralPath (Join-Path $Root 'configure-updates.ps1')) -and -not $Yes) {
+            Write-Host 'Если системная кнопка Установить не нажимается, можно подключить альтернативную установку.'
+            Write-Host 'Служба Jeland OS подтвердит только начатое вами обновление этого приложения. Доступ сохраняется после перезагрузки.'
+            if((Read-Host 'Подключить альтернативную установку? [Y/N]') -match '^[YyДд]$') {
+                & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Root 'configure-updates.ps1') -Serial $Serial -Mode allow -Yes
+                if($LASTEXITCODE -ne 0){throw 'Альтернативную установку подключить не удалось. Приложения установлены; проверьте журнал.'}
+            }
+        }
         $null=& $step 'open-os' @('shell','am','start','--user','0','-n','ru.jeland.os/.MainActivity')
         Write-Host 'Готово. При необходимости включите автозапуск в OS. В настройках навигации выберите RuVoice и проверьте голос.' -ForegroundColor Green
         return 0

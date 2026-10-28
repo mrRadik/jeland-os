@@ -40,7 +40,7 @@ def main():
     destination.mkdir(parents=True)
     def copy(source,name):
         target=destination/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
-    for name in ['install.cmd','install.ps1','engine/AdbTools.ps1','engine/Install-APK.ps1',
+    for name in ['install.cmd','install.ps1','configure-updates.ps1','enable-updates.cmd','engine/InstallAssist.ps1','engine/AdbTools.ps1','engine/Install-APK.ps1',
                  'install-helper/helper.dex','install-helper/InstallVariants.java']:
         copy(SOURCE/name,name)
     for path in destination.rglob('*'):
@@ -67,9 +67,10 @@ def main():
 4. Запустите install.cmd. Если подключено несколько устройств, выберите нужное.
 5. Проверьте модель/устройство и подтвердите установку буквой Y.
 6. Дождитесь «Готово». Будут установлены Jeland OS и оригинальный RuVoice 1.1.1.
-7. В Jeland OS при необходимости включите «Запускать вместе с системой».
-   В настройках навигации подключите RuVoice, подтвердите условия модели,
-   выберите голос и нажмите проверку голоса.
+7. Если системная кнопка «Установить» не работает, согласитесь на подключение
+   альтернативного варианта установки. Позже это можно сделать через enable-updates.cmd.
+8. Пройдите начальную настройку Jeland OS: язык, оформление, разрешения,
+   автозапуск, карты и голос. Условия модели RuVoice нужно подтвердить перед озвучкой.
 
 Интернет при установке, Python, Android SDK и отдельный помощник не нужны.
 Системный синтезатор по умолчанию не меняется. Приложения и настройки не удаляются.
@@ -78,7 +79,13 @@ def main():
 Разрешения Jeland OS: GPS, состояние связи, Bluetooth и уведомления (если доступны
 в этой версии Android), SYSTEM_ALERT_WINDOW для автозапуска и
 REQUEST_INSTALL_PACKAGES для обновлений. RuVoice получает только уведомления.
-Это не выдача root или системной подписи. Опция автозапуска включается в приложении.
+Опция автозапуска включается в приложении.
+
+Альтернативная установка подключается только после отдельного согласия. Служба
+Jeland OS нажимает «Установить» только для начатого и подтверждённого вами обновления
+Jeland OS. Доступ сохраняется после перезагрузки; другие службы не изменяются.
+Отключение: enable-updates.cmd запускает настройки этой функции с компьютера;
+configure-updates.ps1 -Mode revoke отключает только службу Jeland OS.
 
 Если установка не подтверждена, следующие действия автоматически не выполняются.
 Не запускайте повтор вслепую при неизвестном результате: проверьте версии на ГУ.

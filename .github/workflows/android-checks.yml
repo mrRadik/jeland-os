@@ -34,6 +34,7 @@ jobs:
             if($errors.Count){ throw ($errors | Out-String) }
           }
           & ./tools/windows-installer/test-installer.ps1
+          & ./tools/windows-installer/test-install-assist.ps1
 
   android:
     name: Android checks
@@ -66,7 +67,7 @@ jobs:
       - name: Build, run unit tests and Android Lint
         run: >-
           bash ./gradlew --no-daemon --console=plain --stacktrace --continue
-          testDebugUnitTest lintDebug assembleDebug compileDebugAndroidTestKotlin
+          testDebugUnitTest testReleaseUnitTest lintDebug assembleDebug compileDebugAndroidTestKotlin
 
       - name: Publish the test summary
         if: ${{ !cancelled() }}

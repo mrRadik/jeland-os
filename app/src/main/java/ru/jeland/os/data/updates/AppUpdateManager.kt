@@ -256,7 +256,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         val actual=runCatching {app.packageManager.getPackageInfo(app.packageName,0).longVersionCode}.getOrDefault(0)
         val installed=expected!=null&&actual>=expected
         mutable.update {it.copy(installing=false,installFallback=!installed,installPermission=canInstall(),downloaded=it.downloaded&&!installed)}
-        if(installed){store.put(PENDING,"");installMessage("Обновление установлено");return}
+        if(installed){InstalledUpdateCleanup.run(app);store.put(PENDING,"");installMessage("Обновление установлено");return}
         val message=when {
             !canInstall()->"Установка не разрешена. Разрешите её в Android или выполните start.cmd → U. APK сохранён."
             result==Activity.RESULT_CANCELED->"Системный установщик закрылся без установки. APK сохранён; можно попробовать другой способ."
@@ -313,7 +313,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         installAssist.cancel()
         mutable.update {it.copy(installFallback=status!=PackageInstaller.STATUS_SUCCESS)}
         val message=when(status) {
-            PackageInstaller.STATUS_SUCCESS->{store.put(PENDING,"");mutable.update {it.copy(downloaded=false)};"Обновление установлено"}
+            PackageInstaller.STATUS_SUCCESS->{InstalledUpdateCleanup.run(app);store.put(PENDING,"");mutable.update {it.copy(downloaded=false)};"Обновление установлено"}
             PackageInstaller.STATUS_FAILURE_ABORTED->"Установка отменена. APK сохранён, можно повторить."
             PackageInstaller.STATUS_FAILURE_BLOCKED->"Android заблокировал установку. Проверьте разрешение установки для Jeland OS. APK сохранён."
             PackageInstaller.STATUS_FAILURE_STORAGE->"Недостаточно места для установки. Освободите память и повторите."

@@ -15,8 +15,8 @@ import ru.jeland.os.ui.theme.Jeland
                 Modifier.testTag("setting-system-startup")){onEnabled(!state.enabled)}
             if(state.enabled&&!state.permissionGranted) {
                 Label(if(state.permissionScreenUnavailable)
-                    "На этом ГУ нет экрана разрешений. На компьютере: START.cmd → A → подтвердите разрешение для Jeland OS. Затем вернитесь сюда."
-                    else "Нужно разрешение «Поверх других приложений». Если его экран не открывается: на компьютере START.cmd → A. Плавающие окна не создаются.",small=true,muted=true)
+                    "Для автозапуска выдайте разрешение с помощью установщика на компьютере. Затем вернитесь сюда."
+                    else "Автозапуску требуется разрешение. Если системный экран недоступен, используйте установщик на компьютере.",small=true,muted=true)
                 Control(if(state.permissionScreenUnavailable)"Проверить разрешение"else"Разрешение для автозапуска",
                     Modifier.fillMaxWidth().testTag("startup-permission"),onClick=onPermission)
             }else if(state.enabled) {

@@ -1,0 +1,7 @@
+<resources>
+    <string name="startup_channel">Jeland OS wake startup</string>
+    <string name="startup_channel_description">Return to the app when the vehicle wakes up</string>
+    <string name="startup_notification_title">Jeland OS auto start</string>
+    <string name="startup_notification_body">After restart and wake from sleep</string>
+    <string name="startup_disable">Turn off auto start</string>
+</resources>

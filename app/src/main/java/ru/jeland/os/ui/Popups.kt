@@ -1,9 +1,10 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -32,7 +33,7 @@ import ru.jeland.os.ui.theme.Jeland
         Popup.PASSENGER->SeatControlPopup(SeatSide.PASSENGER,s,model)
         Popup.CLIMATE->ClimatePopup(s.climate,model)
         Popup.APPS->AppsPicker(model,s.apps)
-        Popup.DEBUG->if(s.car.demo)DashboardDebugPanel(s,model)else VehicleConnectionPanel(s,model)
+        Popup.DEBUG->if(ru.jeland.os.BuildConfig.DEMO_FEATURES){if(s.car.demo)DashboardDebugPanel(s,model)else VehicleConnectionPanel(s,model)}
         Popup.FUEL->FuelPopup(s.vehicle.fuel,model)
         Popup.BATTERY->BatteryDetails(s.vehicle.battery,s.vehicle.live)
         Popup.VEHICLE->VehicleDetailsPopup(s,model,show)
@@ -90,11 +91,11 @@ import ru.jeland.os.ui.theme.Jeland
             Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.controlGap)) {
                 (0..3).forEach {v->Control(v.toString(),Modifier.weight(1f).testTag("seat-level-$v"),s.seats.known(cmd) && level==v,accent=glow){model.dependencies.seats.setLevel(side,mode,v)}}
             }
-            Label("${if(mode==SeatMode.HEAT)"Подогрев"else"Вентиляция"}: ${if(s.seats.known(cmd))"$level / 3"else"нет данных"} · ${if(s.car.demo)"DEMO"else"ГУ"}",modifier=Modifier.testTag("seat-value"),small=true,muted=true)
+            Label("${if(mode==SeatMode.HEAT)"Подогрев"else"Вентиляция"}: ${if(s.seats.known(cmd))"$level / 3"else"нет данных"}",modifier=Modifier.testTag("seat-value"),small=true,muted=true)
             if(side==SeatSide.PASSENGER) {
                 RearSeatsControls(s.seats,model.dependencies.seats)
             }
-            Label(if(s.car.demo)"Только локальная модель. В демо нагрев и вентиляция взаимно исключаются."else"Ступени 0…3 → OEM 1…4. Показания обновляются только по GET/событиям, без имитации успеха. Задний ряд — только подогрев.",small=true,muted=true)
+            if(ru.jeland.os.BuildConfig.DEMO_FEATURES)Label("DEMO",small=true,muted=true)
         }
     }
 }

@@ -14,6 +14,7 @@ class AndroidSettingsStore(context: Context) : DurableSettingsStore {
 /** Constructor DI keeps mock implementations replaceable without a service locator in UI. */
 class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data.automation.AutomationDatabase?=null,settingsStoreOverride:SettingsStore?=null) {
     private val store:SettingsStore=settingsStoreOverride?:AndroidSettingsStore(context)
+    val firstRun=FirstRunSettings(store)
     private val routing=VehicleRouting(context,store)
     val car=routing.session
     val startup=SystemStartup(context,store,car::recordIntegration,wakeControl={WakeStartupService.sync(context,it)})

@@ -1,10 +1,12 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +28,12 @@ import ru.jeland.os.ui.theme.JIcons
     val direction=s.reportedAirflow
     val enabled=s.controlsEnabled
     Column(Modifier.testTag("climate-dashboard"),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-        Row(Modifier.fillMaxWidth().height(86.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)) {
+        Row(Modifier.fillMaxWidth().height(98.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)) {
             Box(Modifier.size(76.dp).clip(Jeland.control).background(Brush.radialGradient(listOf(c.deep.copy(alpha=.5f),c.panel))).border(1.dp,c.accent.copy(alpha=.7f),Jeland.control),contentAlignment=Alignment.Center) {
                 ClimateFan(s,Modifier.size(48.dp).testTag("climate-fan-icon"))
             }
-            Column(Modifier.width(185.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
-                Text("Скорость вентилятора",color=c.muted,fontSize=16.sp)
+            Column(Modifier.width(212.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                Text("Скорость вентилятора",color=c.text,fontSize=Jeland.type.secondary)
                 Row(Modifier.testTag("fan-value").semantics(mergeDescendants=true){},verticalAlignment=Alignment.Bottom){
                     Text(if(s.known(12))"${s.fan}"else"—",color=if(enabled)c.accent else c.unknown,fontSize=34.sp)
                     Text(" / $maximum",color=c.text,fontSize=25.sp,modifier=Modifier.padding(bottom=3.dp))
@@ -51,7 +53,7 @@ import ru.jeland.os.ui.theme.JIcons
             AirOutlet.entries.forEach {outlet->
                 val selected=direction?.outlets?.contains(outlet)==true
                 val icon=when(outlet){AirOutlet.FACE->JIcons.AirFace;AirOutlet.FEET->JIcons.AirFeet;AirOutlet.WINDSHIELD->JIcons.Windshield}
-                Column(Modifier.weight(1f).height(152.dp).clip(Jeland.control)
+                Column(Modifier.weight(1f).height(166.dp).clip(Jeland.control)
                     .background(Brush.verticalGradient(listOf(if(selected&&enabled)c.deep.copy(alpha=.5f)else c.raised.copy(alpha=.3f),c.panel)))
                     .border(if(selected&&enabled)1.5.dp else 1.dp,if(selected&&enabled)c.accent else c.outline,Jeland.control)
                     .testTag("airflow-${outlet.name.lowercase()}").semantics {this.selected=selected;contentDescription=outlet.title}
@@ -60,8 +62,8 @@ import ru.jeland.os.ui.theme.JIcons
                         val target=direction?.toggle(outlet)?:Airflow.fromOutlets(setOf(outlet))!!
                         if(target!=direction)r.setAirflow(target)
                     }),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                    Icon(icon,null,Modifier.size(65.dp),tint=if(!enabled)c.unknown.copy(alpha=.4f)else if(selected)c.accent else c.muted)
-                    Text(outlet.title,color=if(enabled)c.text else c.unknown,fontSize=19.sp,modifier=Modifier.padding(top=12.dp))
+                    Icon(icon,null,Modifier.size(74.dp),tint=if(!enabled)c.unknown.copy(alpha=.5f)else if(selected)c.accent else c.text)
+                    Text(outlet.title,color=if(enabled)c.text else c.unknown,fontSize=Jeland.type.body,modifier=Modifier.padding(top=12.dp))
                 }
             }
         }
@@ -82,24 +84,24 @@ import ru.jeland.os.ui.theme.JIcons
 
 @Composable private fun ClimateAction(title:String,icon:ImageVector?,active:Boolean,enabled:Boolean,modifier:Modifier,onClick:()->Unit,word:String?=null) {
     val c=Jeland.colors
-    Column(modifier.height(108.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.4f)else c.raised.copy(alpha=.35f))
-        .border(1.dp,if(active&&enabled)c.accent else c.outline,Jeland.control).semantics {selected=active;if(!enabled)disabled()}
+    Column(modifier.height(124.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.48f)else c.raised.copy(alpha=.7f))
+        .border(1.dp,if(active&&enabled)c.accent else c.outline,Jeland.control).semantics {selected=active;contentDescription=title;if(!enabled)disabled()}
         .clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=3.dp,vertical=12.dp),
         horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(10.dp,Alignment.CenterVertically)) {
-        if(icon!=null)Icon(icon,null,Modifier.size(34.dp),tint=if(!enabled)c.unknown else if(active)c.accent else c.muted)
-        else Text(word.orEmpty(),color=if(!enabled)c.unknown else if(active)c.accent else c.text,fontSize=21.sp)
-        Text(title,color=if(enabled)c.text else c.unknown,fontSize=if(title=="Рециркуляция")11.sp else 13.sp,lineHeight=17.sp,textAlign=TextAlign.Center,maxLines=2,softWrap=title!="Рециркуляция")
+        if(icon!=null)Icon(icon,null,Modifier.size(40.dp),tint=if(!enabled)c.unknown else if(active)c.accent else c.text)
+        else Text(word.orEmpty(),color=if(!enabled)c.unknown else if(active)c.accent else c.text,fontSize=Jeland.type.clockSmall)
+        Text(if(title=="Рециркуляция")"Рецирк."else title,color=if(enabled)c.text else c.unknown,fontSize=Jeland.type.caption,lineHeight=20.sp,textAlign=TextAlign.Center,maxLines=2,softWrap=true)
     }
 }
 
 /** Compact square controls in both the fan selector and permanent dock. */
 @Composable fun ClimateBarButton(icon:ImageVector?=null,text:String?=null,description:String,active:Boolean=false,enabled:Boolean=true,modifier:Modifier=Modifier,accent:Color=Jeland.colors.accent,onClick:()->Unit) {
     val c=Jeland.colors
-    Box(modifier.height(56.dp).widthIn(min=52.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.4f)else c.raised.copy(alpha=.35f))
-        .border(1.dp,if(active&&enabled)accent else c.outline,Jeland.control).semantics {contentDescription=description;selected=active;if(!enabled)disabled()}
+    Box(modifier.height(64.dp).widthIn(min=58.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.48f)else c.raised.copy(alpha=.8f))
+        .border(1.4.dp,if(active&&enabled)accent else c.outline,Jeland.control).semantics {contentDescription=description;selected=active;if(!enabled)disabled()}
         .clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=9.dp),contentAlignment=Alignment.Center) {
         val tint=if(!enabled)c.unknown else if(active)accent else c.text
-        if(icon!=null)Icon(icon,null,Modifier.size(27.dp),tint=tint)else Text(text.orEmpty(),fontSize=16.sp,color=tint)
+        if(icon!=null)Icon(icon,null,Modifier.size(32.dp),tint=tint)else Text(text.orEmpty(),fontSize=Jeland.type.control,color=tint,maxLines=1)
     }
 }
 

@@ -1,9 +1,10 @@
 package ru.jeland.os.navigation
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag

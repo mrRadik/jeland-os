@@ -1,5 +1,7 @@
 package ru.jeland.os.navigation
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults

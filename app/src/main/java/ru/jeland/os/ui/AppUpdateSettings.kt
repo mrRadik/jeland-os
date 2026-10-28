@@ -33,8 +33,8 @@ import java.util.Locale
             SettingsToggle("Автоматически скачивать по Wi-Fi","Только сеть без ограничения трафика. Установка — после вашего подтверждения",state.autoDownloadWifi,
                 Modifier.testTag("updates-auto-download")){manager.autoDownload(!state.autoDownloadWifi)}
             Label(state.message,Modifier.testTag("updates-status"),small=true)
-            SettingsToggle("Если не нажимается «Установить»",
-                "Помощь через специальные возможности Android. Одно нажатие только для обновления Jeland OS после вашего подтверждения.",
+            SettingsToggle("Альтернативный вариант установки",
+                "Включите, если кнопка «Установить» в системном окне не нажимается. Подтверждение обновления выполняется после вашего согласия.",
                 assist.enabled,Modifier.testTag("updates-install-assist")){
                     manager.installAssist.enabled(!assist.enabled)
                     if(!assist.enabled&&!assist.available)manager.installAssist.openPermission()
@@ -45,11 +45,11 @@ import java.util.Locale
                 else Label("Помощь при установке подключена",small=true,muted=true)
             }
             if(assist.message.isNotBlank())Label(assist.message,small=true)
-            state.lastChecked?.let {at->Label("Последняя успешная проверка: "+DateTimeFormatter.ofPattern("d MMM, HH:mm",Locale.forLanguageTag("ru"))
+            state.lastChecked?.let {at->Label("Последняя успешная проверка: "+DateTimeFormatter.ofPattern("d MMM, HH:mm",ru.jeland.os.localization.AppLocale.current)
                 .withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(at)),small=true,muted=true)}
             Control(if(state.checking)"Проверяем…"else"Проверить обновления",Modifier.fillMaxWidth().testTag("updates-check"),enabled=!busy){manager.check()}
             candidate?.let {update->
-                Label("${update.manifest.versionName} · ${String.format(Locale.forLanguageTag("ru"),"%.1f",update.manifest.size/1048576.0)} МБ",small=true)
+                Label("${update.manifest.versionName} · ${String.format(ru.jeland.os.localization.AppLocale.current,"%.1f",update.manifest.size/1048576.0)} МБ",small=true)
                 when {
                     state.downloading->{
                         Label("${state.progress}% · ${state.message}",small=true,muted=true)
@@ -67,7 +67,7 @@ import java.util.Locale
                 }
             }
             Control(if(state.cleaningApks)"Очищаем…"else"Удалить скачанные APK",Modifier.fillMaxWidth().testTag("updates-clear-apks"),enabled=!busy){confirmCleanup=true}
-            Label("Источник: mrRadik/jeland-os · проверка размера, SHA-256, пакета и подписи APK. Данные приложения сохраняются. Устанавливайте только на стоянке.",small=true,muted=true)
+            Label("Обновления сохраняют ваши настройки. Устанавливайте на стоянке.",small=true,muted=true)
         }
     }
     if(confirmCleanup)Dialog(onDismissRequest={confirmCleanup=false}) {
@@ -79,7 +79,7 @@ import java.util.Locale
     }
     if(confirmMobile&&candidate!=null)Dialog(onDismissRequest={confirmMobile=false}) {
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
-            SectionTitle("Использовать мобильный интернет?","Будет скачано ${String.format(Locale.forLanguageTag("ru"),"%.1f",candidate.manifest.size/1048576.0)} МБ. Возможны расходы по тарифу.")
+            SectionTitle("Использовать мобильный интернет?","Будет скачано ${String.format(ru.jeland.os.localization.AppLocale.current,"%.1f",candidate.manifest.size/1048576.0)} МБ. Возможны расходы по тарифу.")
             Control("Отмена",Modifier.fillMaxWidth()){confirmMobile=false}
             Control("Скачать",Modifier.fillMaxWidth(),selected=true){confirmMobile=false;manager.download(allowMetered=true)}
         }}

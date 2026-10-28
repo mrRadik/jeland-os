@@ -29,7 +29,7 @@ class DesayCarSession(context: Context, private val settings: SettingsStore) {
     private val stateLock=Any()
     @Volatile private var epoch=0
     @Volatile private var foreground=false
-    @Volatile private var vehicleMode=settings.string("car.live","false")=="true"
+    @Volatile private var vehicleMode=!ru.jeland.os.BuildConfig.DEMO_FEATURES||settings.string("car.live","false")=="true"
     @Volatile private var writes=false
     @Volatile private var bus: IVDBus?=null
     private var binding: ServiceConnection?=null
@@ -64,6 +64,7 @@ class DesayCarSession(context: Context, private val settings: SettingsStore) {
         runCatching {journal.appendText("${System.currentTimeMillis()} $text\n")}
     }
     fun useVehicle(value: Boolean) {
+        if(!ru.jeland.os.BuildConfig.DEMO_FEATURES&&!value)return
         stop(); vehicleMode=value; settings.put("car.live",value.toString())
         linkFlow.value=VehicleLinkState(demo=!value,detail=if(value)"ГУ: ожидаем подключение"else"DEMO · без подключения к авто")
         report("MODE_CHANGE ${if(value)"VEHICLE"else"DEMO"}; writes locked")

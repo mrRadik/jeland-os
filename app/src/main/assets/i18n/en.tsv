@@ -1,0 +1,845 @@
++ Добавить	+ Add
++ Создать автоматизацию	+ Create automation
+0 выключает режим; «Не изменять» сохраняет текущий. Подогрев и вентиляция взаимоисключаются только у этого сиденья.	0 turns the mode off; Keep unchanged preserves its current state. Heating and ventilation are mutually exclusive for this seat.
+2ГИС	2GIS
+31 л	31 L
+Bluetooth включён, подключение неизвестно	Bluetooth is on; connection unknown
+Bluetooth выключен	Bluetooth is off
+Bluetooth: нет данных	Bluetooth: unavailable
+Bluetooth: нет подключения	Bluetooth: disconnected
+Bluetooth: телефон подключён	Bluetooth: phone connected
+DEMO · БЕЗ ПОДКЛЮЧЕНИЯ К АВТО	DEMO · NO VEHICLE CONNECTED
+DEMO · без аудио	DEMO · no audio
+DEMO · без подключения к авто	DEMO · no vehicle connected
+DEMO · пример показаний аккумулятора	DEMO · sample battery readings
+DEMO-панель автомобиля	Vehicle demo
+DEMO: команды автомобилю недоступны. Переключитесь в режим ГУ.	DEMO: vehicle controls are unavailable. Switch to vehicle mode.
+EN / РУС	EN / RU
+GPS не запрошен	GPS has not been requested
+GitHub Releases · не чаще одного раза в 6 часов при открытом приложении	Check while the app is open, at most once every 6 hours
+Jeland OS подключается к автомобилю автоматически	Jeland OS connects to your vehicle automatically
+RuVoice · Silero · без сети	RuVoice · Silero · offline
+RuVoice · Silero · офлайн, отдельный APK из комплекта	Offline voice guidance · RuVoice from the installation bundle
+RuVoice · {0} · без сети	RuVoice · {0} · offline
+RuVoice · подтвердите условия модели	RuVoice · accept the voice model terms
+Wi-Fi выключен	Wi-Fi is off
+Wi-Fi не подключён	Wi-Fi is disconnected
+Wi-Fi подключён, уровень {0}	Wi-Fi connected, signal {0}
+{0} · {1} МБ	{0} · {1} MB
+{0} · бак 55 л	{0} · 55 L tank
+{0} · данные не из сети	{0} · local data
+{0} · команда отправляется	{0} · sending command
+{0} · отключено	{0} · off
+{0} · прибытие {1}	{0} · arrival {1}
+{0} · точность ±{1} м	{0} · accuracy ±{1} m
+{0} · управление заблокировано	{0} · controls unavailable
+{0} · управление телефоном	{0} · phone controls
+{0} КБ	{0} KB
+{0} бар	{0} bar
+{0} голос · {1}	{0} voice · {1}
+{0} из 3	{0} of 3
+{0} композиций	{0} tracks
+{0} л	{0} L
+{0} м	{0} m
+{0} мин	{0} min
+{0} мин · {1}	{0} min · {1}
+{0} мин · {1} км	{0} min · {1} km
+{0}: {1} бар	{0}: {1} bar
+{0}: выберите действие	{0}: choose an action
+{0}: давление шины	{0}: tire pressure
+{0}: нагрев и вентиляция несовместимы	{0}: heating and ventilation cannot run together
+{0}: нет свежего состояния. Сценарий не отправлен.	{0}: no current reading. Automation was not sent.
+{0}: подогрев и вентиляция несовместимы. Сценарий не отправлен.	{0}: heating and ventilation cannot run together. Automation was not sent.
+{0}{1} л	{0}{1} L
+«{0}» будет удалена. Журнал прошлых сессий останется.	Delete “{0}”? Previous session history will be kept.
+А	A
+АКБ	Battery
+АККУМУЛЯТОР	BATTERY
+Авто	Auto
+Авто — день и ночь по настройкам автомобиля	Auto follows the vehicle's day and night setting
+Автозапирание	Auto lock
+Автозапуск	Auto start
+Автозапуск включён	Auto start is on
+Автоматизации	Automations
+Автоматически · {0} · без температурного условия	Automatic · {0} · any temperature
+Автоматически · выше {0} · {1}	Automatic · above {0} · {1}
+Автоматически · ниже {0} · {1}	Automatic · below {0} · {1}
+Автоматически скачивать по Wi-Fi	Download automatically over Wi-Fi
+Автоматический запуск	Automatic start
+Автоматический запуск сценариев	Run automations automatically
+Автоматический климат	Automatic climate control
+Автоматический свет	Automatic headlights
+Автомобиль	Vehicle
+Автомобиль припаркован — установить	Vehicle is parked — install
+Адрес или организация	Address or business
+Аккумулятор	Battery
+Альтернативный вариант установки	Alternative installation method
+Аудио автомобиля	Vehicle audio
+Багажник	Trunk
+Бак 55 л	55 L tank
+Без условий	Any temperature
+Ближайший участок маршрута	Upcoming route section
+Бортовая сеть	Vehicle electrical system
+Будет скачано {0} МБ. Возможны расходы по тарифу.	The download is {0} MB. Data charges may apply.
+Будут удалены пакеты обновления Jeland OS и незавершённая загрузка. Неактивная попытка обновления отменится. Установленные приложения, карты и настройки сохранятся.	Delete Jeland OS update packages and incomplete downloads. An inactive installation will be cancelled. Installed apps, maps and settings will be kept.
+Быстрые	Quick controls
+Быстрые действия	Quick actions
+В	V
+В избранном	Saved
+В избранном пока пусто	No favorites yet
+В лицо	Face
+В ноги	Feet
+В этом источнике пока нет карт.	No maps are available from this source yet.
+Ваш стиль	Your style
+Введите адрес или название	Enter an address or name
+Введите значение	Enter a value
+Введите название	Enter a name
+Введите название точки	Name this place
+Вентилятор {0}	Fan {0}
+Вентиляция	Ventilation
+Весь маршрут	Full route
+Включите точное местоположение и GPS в настройках устройства.	Enable precise location and GPS on your device.
+Включите, если кнопка «Установить» в системном окне не нажимается. Подтверждение обновления выполняется после вашего согласия.	Enable this if the Install button in the system installer does not respond. The update is confirmed only after you agree.
+Включить подогрев	Turn heating on
+Включён · DEMO	On · DEMO
+Включён · ГУ	On
+Водитель · вентиляция	Driver · ventilation
+Водитель · подогрев	Driver · heating
+Водительская	Driver
+Водительская дверь	Driver's door
+Вождение	Driving
+Воспроизведение / пауза	Play / pause
+Воспроизвести	Play
+Воспроизвести демо	Play demo
+Вращается	Spinning
+Вручную	Manual
+Вручную · без температурного условия	Manual · any temperature
+Все · {0}	All · {0}
+Всегда под рукой	Ready when you are
+Встроенная карта	Built-in map
+Всё готово	All set
+Вы прибыли	You have arrived
+Выберите звезду на карточке в разделе «Все».	Tap the star on an app in All apps.
+Выберите место на карте	Choose a place on the map
+Выберите навигатор в настройках	Choose a navigation app in settings
+Выберите нужные функции. Если права уже выданы установщиком, переключатели будут включены.	Choose the features you need. Permissions already granted by the installer will appear enabled.
+Выбрано	Selected
+Выбрать положение	Choose position
+Выбрать приложение	Choose an app
+Выбрать ярлык	Choose a shortcut
+Выкл.	Off
+Выключен	Off
+Выключить встроенную карту	Turn off the built-in map
+Выполнение прервано	Run interrupted
+Выполнение прервано. Часть команд могла быть отправлена; автоматического повтора нет.	Run interrupted. Some commands may have been sent; there will be no automatic retry.
+Выше	Above
+Выше — важнее. При равенстве побеждает последнее изменённое правило. Если устройство общее, уступивший сценарий пропускается целиком.	Higher priority wins. If equal, the most recently edited rule wins. If rules share a device, the lower-priority rule is skipped entirely.
+ГУ	Vehicle
+ГУ · НЕТ СВЯЗИ	VEHICLE · DISCONNECTED
+ГУ · ТОЛЬКО ЧТЕНИЕ	VEHICLE · READ ONLY
+ГУ · УПРАВЛЕНИЕ РАЗРЕШЕНО	VEHICLE · CONNECTED
+Главная	Home
+Главный экран	Home screen
+Голос не поддерживается на этом устройстве	Voice is not supported on this device
+Голос недоступен	Voice unavailable
+Голос: аудиоканал занят	Voice: audio channel is busy
+Голосовые подсказки	Voice guidance
+Готовим установку…	Preparing installation…
+Громкость голоса	Voice volume
+Громкость голоса — 0	Voice volume is zero
+Группа сидений заменена отдельными устройствами	Seat group replaced with individual seats
+ДАВЛЕНИЕ В ШИНАХ	TIRE PRESSURE
+Давление	Pressure
+Давление в норме	Pressure is normal
+Далее	Next
+Данные о давлении отсутствуют	Tire pressure is unavailable
+Двери и замки	Doors and locks
+Движок и основная модель: CC BY-NC-SA 4.0 — некоммерческое использование с указанием авторства. RuVoice устанавливается отдельно, работает офлайн. Jeland явно выбирает Xenia / Aidar и не меняет голос остальных приложений.	Engine and base model: CC BY-NC-SA 4.0 — non-commercial use with attribution. RuVoice is installed separately and works offline. Jeland uses Xenia / Aidar without changing other apps' voices.
+Диагностика ГУ	Vehicle diagnostics
+Для индикатора мобильной сети	For the mobile signal indicator
+Для навигации и автозапуска	For navigation and auto start
+Для определения позиции и ведения по маршруту	For your position and route guidance
+Для состояния подключения телефона	For phone connection status
+До полного	To full
+До полного\n{0} л	To full\n{0} L
+До полного {0} л	To full: {0} L
+Добавить	Add
+Добавить композицию в избранное	Like this track
+Добавить место	Add a place
+Добавьте устройства из списка выше и настройте их действия.	Add devices from the list above and choose their actions.
+Добавьте хотя бы одно устройство	Add at least one device
+Добро пожаловать в Jeland OS	Welcome to Jeland OS
+Добровольная благодарность автору. Все функции приложения доступны бесплатно.	Support is voluntary. All app features are free.
+Домой	Home
+Доступ разрешён · ожидание подключения	Access granted · waiting for connection
+Доступные карты	Available maps
+Другие	Other
+Екатеринбург	Yekaterinburg
+Если подогрев уже включён, повторная команда не нужна.	If heating is already on, it will not be sent again.
+Ждём подключения ГУ и подтверждённого начала движения.	Waiting for the vehicle connection and confirmed movement.
+Журналы обрабатываются…	Processing logs…
+ЗЛ	RL
+ЗП	RR
+За бортом: {0}	Outside: {0}
+Завершить маршрут	End route
+Загружаем правило…	Loading automation…
+Загружаем сохранённые правила…	Loading saved automations…
+Загрузка списка…	Loading list…
+Задать место	Set place
+Заднее левое	Rear left
+Заднее левое · подогрев	Rear left · heating
+Заднее левое сиденье	Rear left seat
+Заднее правое	Rear right
+Заднее правое · подогрев	Rear right · heating
+Заднее правое сиденье	Rear right seat
+Заднее сиденье — только подогрев. 0 выключает его; «Не изменять» сохраняет текущий режим.	Rear seats support heating only. 0 turns it off; Keep unchanged preserves the current setting.
+Задние сиденья · подогрев	Rear seat heating
+Задняя левая	Rear left
+Задняя левая дверь	Rear left door
+Задняя правая	Rear right
+Задняя правая дверь	Rear right door
+Закрывается	Closing
+Закрыта	Closed
+Закрыто	Closed
+Закрыть	Close
+Закрыть настройки карты	Close map settings
+Закрыть панель	Close panel
+Закрыть плейлист	Close playlist
+Закрыть список карт	Close map list
+Закрыть температуру	Close temperature control
+Запуск приложения	App startup
+Запускать вместе с системой	Start with the system
+Запустить вручную	Run now
+Заряд	Charge
+Заряд {0}%	Charge {0}%
+Заряд АКБ	Battery charge
+Звук приветствия	Welcome sound
+Звуки ассистентов	Assistant sounds
+Зеркала	Mirrors
+Зеркала при запирании	Fold mirrors when locking
+Избранное ({0})	Favorites ({0})
+Избранное {0}	Favorites {0}
+Избранное · {0}	Favorites · {0}
+Избранное не прочитано. Не перезаписываем исходные данные.	Unable to read favorites. Your saved data has been kept.
+Избранное не удалось прочитать. Исходные данные сохранены.	Unable to read favorites. Your saved data has been kept.
+Избранное: {0}. Звезда добавляет ярлык, стрелки меняют порядок. Значки берутся с устройства.	Favorites: {0}. Tap a star to add an app and use arrows to change the order.
+Избранные приложения	Favorite apps
+Избранные точки останутся.	Saved places will be kept.
+Избранных точек пока нет. Нажмите звезду у результата поиска или выбранной точки на карте.	No saved places yet. Tap the star on a search result or a selected map location.
+Изменение не сохранено. Повторите после проверки хранилища.	Unable to save the change. Check device storage and try again.
+Изменения не нужны	No changes needed
+Измените запрос или очистите поиск.	Change your query or clear the search.
+Изменить	Edit
+Изменить {0}	Edit {0}
+Иллюстрация салона и распределение воздуха	Cabin airflow illustration
+Иллюстрация сиденья	Seat illustration
+Индикаторы связи	Connection indicators
+Индикация полосы	Lane indicator
+Инженерное\nменю	Engineering\nmenu
+Инженерное меню недоступно на этом устройстве.	Engineering menu is unavailable on this device.
+Использовать мобильный интернет?	Use mobile data?
+Историю не удалось прочитать. Исходные данные сохранены.	Unable to read history. Your saved data has been kept.
+История ({0})	History ({0})
+История пока пуста. Она сохраняет запросы по кнопке «Найти» и выбранные результаты.	No history yet. Searches and selected results will appear here.
+Источник временно ограничил запросы. Попробуйте позже.	The source has temporarily limited requests. Try again later.
+Источник — датчик наружной температуры ГУ. Нет свежего значения — сценарий пропускается.	Uses the vehicle's outside temperature sensor. Automations are skipped if the reading is unavailable.
+Ищем…	Searching…
+Как подключить через компьютер	Set up using a computer
+Камеры\n360°	360°\ncameras
+Капот	Hood
+Карта «{0}» превышает допустимый размер 512 МБ	Map “{0}” exceeds the 512 MB size limit
+Карта на север	North up
+Карта недоступна	Map unavailable
+Карты и голос можно настроить позже в навигации	You can set up maps and voice later in Navigation
+Каталог карт не найден. Проверьте путь до карт.	Map catalog not found. Check the map source.
+Клавиатура	Keyboard
+Классический	Classic
+Климат	Climate
+Климат выключен	Climate is off
+Климат выключен или нет данных о питании	Climate is off or its power status is unavailable
+Когда запускать	When to run
+Коллекция	Collection
+Команды отправлены	Commands sent
+Компонент недоступен	Component unavailable
+Комфорт	Comfort
+Комфорт по вашим правилам	Comfort your way
+Кондиционер	Air conditioning
+Контур автомобиля, вид сверху	Vehicle outline, top view
+Конфликт режимов	Conflicting modes
+Критическое давление в шине	Critical tire pressure
+Крыша Jeland J7. Шторка открывается слева направо	Jeland J7 roof. The shade opens from left to right
+Куда поедем?	Where to?
+Кузов и давление в шинах	Body status and tire pressure
+Левый	Left
+Лицо + ноги	Face + feet
+Лицо + ноги + стекло	Face + feet + windshield
+Лицо + стекло	Face + windshield
+Маршрут	Route
+Маршрут остановлен	Route stopped
+Место назначения	Destination
+Место не задано.	No place selected.
+Место не сохранено.	Place not saved.
+Местоположение	Location
+Минималистичный	Minimal
+Моб.	Mobile
+Мобильный сигнал {0} из 4	Mobile signal {0} of 4
+Мобильный сигнал недоступен	Mobile signal unavailable
+Можно ехать	You're ready
+Можно сохранить до 100 избранных точек	You can save up to 100 favorite places
+Мои места	My places
+Москва	Moscow
+Музыка	Music
+На компьютере: START.cmd → A. Затем вернитесь в Jeland OS.	Run the Windows installer to grant auto start permission, then return to Jeland OS.
+На лобовое	Windshield
+На работу	Work
+На этом ГУ нет экрана разрешений. На компьютере: START.cmd → A → подтвердите разрешение для Jeland OS. Затем вернитесь сюда.	This head unit has no permission settings screen. Use the Windows installer to grant Jeland OS permission, then return here.
+На этом ГУ разрешение выдаётся с компьютера: START.cmd → A.	Use the Windows installer to grant this permission on your head unit.
+Навигатор не подключён.	Navigation app not connected.
+Навигация	Navigation
+Навигация · {0}	Navigation · {0}
+Нажмите карточку для запуска · звезда добавляет в избранное	Tap an app to open it · tap a star to add it to favorites
+Нажмите на дом или найдите адрес	Tap a building or search for an address
+Нажмите, чтобы выбрать дом	Tap to choose a place
+Назад	Back
+Назад в карте	Back to map
+Название	Name
+Название · {0}/50	Name · {0}/50
+Название, способ запуска и устройства сценария	Name, trigger and devices
+Найти	Search
+Наполовину	Half open
+Направление: нет данных	Airflow direction unavailable
+Например: Мир 1 или Мира 1 Чебаркуль. Можно вводить часть улицы и номера дома.	Enter a street or business name. Partial street names and building numbers are supported.
+Напряжение IBS	Battery sensor voltage
+Напряжение бортсети	System voltage
+Наружная температура	Outside temperature
+Настоящие ярлыки устройства · стрелки меняют порядок избранного	Installed apps · use arrows to arrange favorites
+Настроить	Customize
+Настройка автоматизации	Automation settings
+Настройки	Settings
+Настройки доступа	Access settings
+Настройки доступа к уведомлениям недоступны.	Notification access settings are unavailable.
+Настройки карты	Map settings
+Настройки навигации	Navigation settings
+Настройте приложение под себя	Make it your own
+Начать пользоваться	Get started
+Не больше 50 символов в названии	Names can contain up to 50 characters
+Не в избранном	Not saved
+Не изменять	Keep unchanged
+Не перекрывайте проём шторки.	Keep the shade opening clear.
+Не подключены	Not connected
+Не удалось загрузить правило. Данные не изменены.	Unable to load this automation. Your data has not changed.
+Не удалось загрузить список карт	Unable to load the map list
+Не удалось запустить сценарий. Автоматического повтора нет.	Unable to run the automation. It will not retry automatically.
+Не удалось начать загрузку	Unable to start the download
+Не удалось определить репозиторий GitHub	Unable to identify the GitHub repository
+Не удалось открыть страницу. Ссылка для другого устройства: {0}	Unable to open the page. Open this link on another device: {0}
+Не удалось подготовить голос RuVoice	Unable to prepare RuVoice
+Не удалось получить список карт (HTTP {0})	Unable to load maps (HTTP {0})
+Не удалось прочитать журнал сессий.	Unable to read session history.
+Не удалось прочитать правила. Данные не удалены.	Unable to read automations. Your data has been kept.
+Не удалось сохранить точки. Изменение не применено.	Unable to save places. The change was not applied.
+Не удалось сохранить. Проверьте, что правило не удалено, и повторите.	Unable to save. Check that the automation still exists and try again.
+Не удалось удалить	Unable to delete
+Не установлен или отключён	Not installed or disabled
+Небезопасные условия	Unable to run safely
+Неверная ссылка на релизы GitHub	Invalid GitHub release link
+Недопустимый размер APK	Invalid APK size
+Недоступна	Unavailable
+Некорректная версия	Invalid version
+Некорректная версия Android	Invalid Android version
+Некорректная голосовая подсказка	Invalid voice prompt
+Некорректная контрольная сумма карты	Invalid map checksum
+Некорректная точка	Invalid location
+Некорректное имя APK	Invalid APK filename
+Некорректный набор действий. Команды не отправлены.	Invalid actions. No commands were sent.
+Некорректный релиз	Invalid release
+Необходимые разрешения предоставлены	Required permissions granted
+Неподдерживаемый формат обновления	Unsupported update format
+Нет активного подключения к ГУ.	No vehicle connection.
+Нет актуальной наружной температуры. Действий нет.	Outside temperature is unavailable. No actions were run.
+Нет данных	Unavailable
+Нет данных об остатке	Fuel level unavailable
+Нет доступных приложений	No apps available
+Нет доступных приложений по этому запросу.	No apps match this search.
+Нет корректной SHA-256	Checksum unavailable
+Нет обложки	No artwork
+Нет подтверждения	Not confirmed
+Нет свежего состояния подогрева руля. Сценарий не отправлен.	Steering wheel heating status is unavailable. Automation was not sent.
+Нет свежего состояния шторки. Сценарий не отправлен.	Shade status is unavailable. Automation was not sent.
+Нет свежей наружной температуры: температурные сценарии не выполнятся.	Outside temperature is unavailable. Temperature-based automations will not run.
+Нет свежей температуры	Temperature unavailable
+Нет свежих данных температуры	Temperature unavailable
+Нет связи	Disconnected
+Ниже	Below
+Низкий уровень топлива	Low fuel
+Ничего не найдено	No results
+Ничего не найдено в загруженном регионе. Можно выбрать точку на карте.	No results in the downloaded region. You can choose a location on the map.
+Ноги + стекло	Feet + windshield
+Нужно активное подключение к ГУ. Команды не отправлены.	A vehicle connection is required. No commands were sent.
+Нужно разрешение «Поверх других приложений». Если его экран не открывается: на компьютере START.cmd → A. Плавающие окна не создаются.	Auto start needs display-over-apps permission. If the system settings are unavailable, grant it using the Windows installer.
+ОФЛАЙН	OFFLINE
+Оба	Both
+Обдув\nлобового	Front\ndefrost
+Обдув лобового	Front defrost
+Обзор России	Russia overview
+Облачно	Cloudy
+Обложка альбома	Album artwork
+Обложка демонстрационной композиции	Demo artwork
+Обновить приложение на стоянке?	Update while parked?
+Обновить приложения	Refresh apps
+Обновить список карт	Refresh maps
+Обновить список навигаторов	Refresh navigation apps
+Обновление Jeland OS	Jeland OS update
+Обновление другого приложения	Update belongs to another app
+Обновления сохраняют ваши настройки. Устанавливайте на стоянке.	Updates keep your settings. Install while parked.
+Обновляем список…	Refreshing list…
+Обогрев\nзаднего	Rear\nheating
+Обогрев\nлобового	Front\nheating
+Обогрев заднего стекла	Rear window heating
+Обогрев лобового стекла	Windshield heating
+Общее устройство со сценарием «{0}» (приоритет {1}). Сценарий пропущен целиком.	Shares a device with “{0}” (priority {1}). This automation was skipped.
+Объём оценочный, округлён до целого литра. Это не точный замер.	Estimated volume, rounded to the nearest liter.
+Ожидаем данные	Waiting for data
+Ожидаем ответ автомобиля	Waiting for the vehicle
+Ожидаем спутниковый фикс…	Waiting for GPS…
+Ожидает	Waiting
+Ожидание выхода из сна использует тихое служебное уведомление. Экран и процессор не удерживаются включёнными.	A silent notification keeps auto start ready after sleep.
+Освещение	Lighting
+Осталось менее 10%. Заправьте автомобиль.	Less than 10% remaining. Refuel soon.
+Остановить	Stop
+Остановлен	Stopped
+Остаток {0} л	{0} L remaining
+Отдалить карту	Zoom out
+Откроется по выбранному событию запуска. Остановка автомобиля не требуется.	Opens at the selected trigger. The vehicle does not need to be stopped.
+Открывается	Opening
+Открывать после загрузки и пробуждения ГУ	Open after system startup and wake from sleep
+Открыт багажник	Trunk open
+Открыт капот	Hood open
+Открыта	Open
+Открыта {0}	{0} open
+Открытие слева направо  →	Opens from left to right →
+Открыто: {0}	Open: {0}
+Открыть	Open
+Открыть APK обычным способом	Open with the standard installer
+Открыть {0}	Open {0}
+Открыть заново	Reopen
+Открыть и подключить подсказки	Open and connect guidance
+Открыть карту и маршрут	Open map and route
+Открыть наполовину	Open halfway
+Открыть полностью	Open fully
+Открыть приложение	Open app
+Открыть расширенное состояние автомобиля	Open vehicle details
+Отмена	Cancel
+Отменить	Cancel
+Отменить загрузку	Cancel download
+Отображаются только доступные launcher-приложения. Попробуйте обновить список.	Only launchable apps are shown. Try refreshing the list.
+Отпирание в P	Unlock in Park
+Отправка прервана	Sending interrupted
+Оформление	Appearance
+Оценка	Estimate
+Оценка состояния · SOH	Battery health · SOH
+Очистить	Clear
+Очистить адрес	Clear address
+Очистить историю	Clear history
+Очистить историю поиска?	Clear search history?
+Очистить логи Jeland OS?	Clear Jeland OS logs?
+Очистить логи с ГУ	Clear device logs
+Очистить поиск	Clear search
+Очищаем…	Clearing…
+Ошибка воспроизведения голоса	Unable to play voice guidance
+Ошибка выполнения	Run failed
+Ошибка исполнителя. Повтор автоматически не выполняется.	Run failed. It will not retry automatically.
+Ошибка правила	Automation error
+ПАНОРАМНАЯ КРЫША	PANORAMIC ROOF
+ПЛ	FL
+ПП	FR
+ПРОСМОТР	PREVIEW
+ПРОСМОТР · НЕ GPS-ВЕДЕНИЕ	PREVIEW · NO GPS GUIDANCE
+Пакет APK не подходит	Incompatible APK
+Панорамная\nшторка	Panoramic\nshade
+Панорамная шторка	Panoramic shade
+Параметры APK не совпадают с описанием	APK details do not match the update manifest
+Пассажир · вентиляция	Passenger · ventilation
+Пассажир · подогрев	Passenger · heating
+Пауза	Pause
+Перед первым запуском подтвердите условия голосовой модели.	Accept the voice model terms before first use.
+Переднее левое	Front left
+Переднее пассажирское	Front passenger
+Переднее правое	Front right
+Передняя правая	Front right
+Передняя правая дверь	Front right door
+Переименовать точку	Rename place
+Персональные сценарии комфорта	Your personal comfort routines
+Питание	Power
+Плейлист USB	USB playlist
+Плейлист · {0} композиций  ›	Playlist · {0} tracks ›
+По двигателю или движению — выбирается в каждом сценарии	Choose engine start or movement for each automation
+По температуре	By temperature
+По ходу движения	Heading up
+Поблагодарить разработчика	Support the developer
+Повторить начальную настройку	Run setup again
+Повторяющиеся карты в каталоге	Duplicate maps in the catalog
+Погода	Weather
+Подвинуть {0} позже	Move {0} later
+Подвинуть {0} раньше	Move {0} earlier
+Подготовка голоса · {0}	Preparing voice · {0}
+Подготовка офлайн-карты…	Preparing offline map…
+Поддержать Jeland OS	Support Jeland OS
+Подключение автомобиля	Vehicle connection
+Подключение к автомобилю…	Connecting to vehicle…
+Подключение подсказок…	Connecting guidance…
+Подключено · ожидаем подсказку навигатора	Connected · waiting for guidance
+Подключены реальные команды ГУ. Событие запуска выбирается в каждом сценарии.	Vehicle controls are connected. Choose a trigger for each automation.
+Подключить голос	Set up voice
+Подогрев	Heating
+Подогрев\nруля	Steering wheel\nheating
+Подогрев {0} / 3	Heating {0} / 3
+Подогрев руля	Steering wheel heating
+Подогрев: {0}; вентиляция: {1}	Heating: {0}; ventilation: {1}
+Подпись APK отличается от установленного Jeland OS. Обновление заблокировано	The APK signature differs from installed Jeland OS. Update blocked
+Подсветка салона	Cabin lighting
+Подсказки на главной	Guidance on the home screen
+Подтвердите условия RuVoice в настройках голоса	Accept the RuVoice terms in voice settings
+Подтверждено автомобилем	Confirmed by vehicle
+Поехали	Go
+Поиск	Search
+Поиск места	Search places
+Поиск недоступен: {0}	Search unavailable: {0}
+Поиск приложений	Search apps
+Поиск, карта и ведение открываются в выбранном приложении. Возврат в Jeland OS — кнопкой «Назад» или через список приложений.	Search, maps and guidance open in the selected app. Use Back or the app list to return to Jeland OS.
+Показано: {0}	Showing: {0}
+Полностью	Fully open
+Полный	Full
+Положение неизвестно	Position unknown
+Получаем уведомления выбранного навигатора	Receiving guidance from the selected navigation app
+Помощь при установке подключена	Alternative installation is ready
+Порог наружной температуры	Outside temperature threshold
+Порядок избранного	Favorite order
+После начала движения	When driving starts
+После остановки и устойчивого начала движения. Открытие приложения на ходу не считается новым стартом.	After a stop followed by confirmed movement. Opening the app while driving does not count as a new trip.
+После подтверждения работы двигателя, не дожидаясь движения. Для всех выбранных устройств, включая шторку.	Once the engine is confirmed running, before moving. Applies to all selected devices, including the shade.
+Последний запуск · {0} · {1}	Last run · {0} · {1}
+Последняя успешная проверка: {0}	Last checked: {0}
+Потоки выключены	Airflow is off
+Правило уже удалено	This automation has been deleted
+Правый	Right
+Предыдущая композиция	Previous track
+При запуске двигателя	When the engine starts
+При перемещении карты вручную слежение отключается	Moving the map manually pauses following
+Прибавить вентилятор	Increase fan speed
+Приблизить карту	Zoom in
+Приветственное освещение	Welcome lighting
+Приложение не установлено	App not installed
+Приложение по умолчанию	Default app
+Приложения	Apps
+Приложения и избранное	Apps and favorites
+Принимаю условия	Accept terms
+Принимая условия, вы соглашаетесь с лицензией модели и ограничениями её использования, приведёнными ниже.	By accepting, you agree to the model license and the usage restrictions below.
+Приоритет {0} · ручная кнопка доступна всегда	Priority {0} · manual start is always available
+Приоритет должен быть от 0 до 10	Priority must be between 0 and 10
+Приоритет: {0}	Priority: {0}
+Пробел	Space
+Проверить голос	Test voice
+Проверить обновления	Check for updates
+Проверить разрешение	Check permission
+Проверка	Checking
+Проверка один раз по выбранному событию. Пробуждение ГУ само по себе не является запуском двигателя.	Runs once for the selected trigger. Waking the head unit is not an engine start.
+Проверьте давление в шине	Check tire pressure
+Проверьте двери и багажник	Check doors and trunk
+Проверьте основные функции на стоянке. Все выбранные настройки сохранены.	Check the main functions while parked. Your settings are saved.
+Проверяем…	Checking…
+Проверять обновления автоматически	Check for updates automatically
+Продолжайте движение	Continue driving
+Просмотр	Preview
+Просмотр маршрута	Route preview
+Просмотреть маршрут	Preview route
+Пусковое напряжение · SOF	Starting voltage · SOF
+Путь до карт	Map source
+РУС / EN	RU / EN
+Радио	Radio
+Разложены	Unfolded
+Разработка	Development
+Разрешение для автозапуска	Auto start permission
+Разрешения	Permissions
+Разрешено	Allowed
+Разрешите доступ к GPS	Allow location access
+Разрешите управление на стоянке	Enable controls while parked
+Разрешить GPS	Allow location
+Разрешить подсказки	Allow guidance
+Разрешить чтение индикаторов	Allow connection indicators
+Расширенный климат	Climate controls
+Реальное управление подключено. Запуск и пробуждение приложения сами по себе сценарии не выполняют.	Vehicle controls are connected. Opening or waking the app does not trigger automations.
+Редактировать {0}	Edit {0}
+Рецирк.	Recirc.
+Рециркуляция	Recirculation
+Россия · обзорная карта дорог	Russia · road overview
+Руль	Steering wheel
+Руль → включить подогрев	Steering wheel → turn heating on
+Ручной запуск.{0}	Manual start.{0}
+Ручной старт — только просмотр, не определение вашего местоположения.	A manual starting point is for preview only, not your actual location.
+Сбросить выбранную точку	Clear selected location
+Свет после выхода	Follow-me-home lights
+Светлая	Light
+Сделайте Jeland OS удобным для себя	Make Jeland OS your own
+Сиденье водителя	Driver's seat
+Сиденье пассажира	Passenger seat
+Сиденья	Seats
+Сиденья · старый формат	Seats · legacy format
+Симулятор автомобиля	Vehicle simulator
+Синхр.	Sync
+Скачайте карты нужного региона. Настройки доступны и позже на вкладке навигации.	Download maps for your region. You can change these settings later in Navigation.
+Скачать	Download
+Скачать заново по Wi-Fi	Download again over Wi-Fi
+Скачать карты	Download maps
+Скачать по Wi-Fi	Download over Wi-Fi
+Скачать через любую сеть	Download over any network
+Скачать через мобильную сеть?	Download using mobile data?
+Скорость вентилятора	Fan speed
+Скрыть клавиатуру	Hide keyboard
+Следовать за автомобилем	Follow vehicle
+Следующая композиция	Next track
+Следующий манёвр	Next maneuver
+Слишком большой каталог карт	Map catalog is too large
+Слишком много перенаправлений каталога	Too many catalog redirects
+Слишком много релизов	Too many releases
+Слишком много файлов в релизе	Too many release files
+Сменить язык клавиатуры	Change keyboard language
+Сначала очистите повреждённую историю. Избранное не затрагивается.	Clear the damaged history first. Favorites will be kept.
+Событие запуска выбирается в каждом сценарии. Шторка работает и при запуске двигателя, и после начала движения.	Choose a trigger for each automation. The shade supports engine start and movement triggers.
+Создать первую автоматизацию	Create your first automation
+Состояние Wi-Fi недоступно	Wi-Fi status unavailable
+Состояние автомобиля	Vehicle status
+Состояние неизвестно	Status unavailable
+Состояние связи	Mobile connection
+Состояния дверей и багажника — только чтение	Door and trunk status
+Сохранить	Save
+Сохранить точку	Save place
+Сохранить точку в избранное	Save to favorites
+Сохраняем…	Saving…
+Список композиций пока недоступен	Playlist is not available yet
+Способ запуска	Trigger mode
+Спутниковое позиционирование выключено в настройках	GPS is disabled in device settings
+Старт в центре региона	Start from region center
+Строим…	Calculating…
+Сценарий не найден.	Automation not found.
+Сценарий управляет автомобилем. Перед отправкой проверяются связь и доступность устройств.	This automation controls your vehicle. Connection and device availability are checked before running.
+ТОПЛИВО	FUEL
+Текущий маршрут будет завершён.	The current route will end.
+\nТекущий маршрут будет завершён.	\nThe current route will end.
+Темп речи · {0}×	Speech rate · {0}×
+Температура	Temperature
+Температура АКБ	Battery temperature
+Температура водителя	Driver temperature
+Температура должна быть от −60 до +60 °C	Temperature must be between −60 and +60 °C
+Температура пассажира	Passenger temperature
+Ток АКБ	Battery current
+Ток покоя	Quiescent current
+Только по кнопке, без проверки температуры.	Manual only, with no temperature condition.
+Только сеть без ограничения трафика. Установка — после вашего подтверждения	Unmetered networks only. Installation requires your confirmation
+Только чтение состояния. Без поиска устройств, подключения к сетям и фонового трафика.	Read-only status. No device scanning, network connections or background data use.
+Топливо	Fuel
+Требуется разрешение Android	Android permission required
+Тёмная	Dark
+У заднего сиденья нет вентиляции	Rear seats do not support ventilation
+Убавить вентилятор	Decrease fan speed
+Убедитесь, что автомобиль припаркован. Откроется системный установщик; Jeland OS может закрыться. Это обновление приложения, не прошивки автомобиля.	Make sure the vehicle is parked. The system installer will open and Jeland OS may close. Only the app will be updated, not the vehicle firmware.
+Убрать {0}	Remove {0}
+Убрать из избранного	Remove from favorites
+Уведомления	Notifications
+Увеличить приоритет	Increase priority
+Увеличить температурный порог	Increase temperature threshold
+Увеличить температуру {0}	Increase {0} temperature
+Удаление карты…	Deleting map…
+Удаление…	Deleting…
+Удалить	Delete
+Удалить APK	Delete APKs
+Удалить {0}	Delete {0}
+Удалить автоматизацию?	Delete automation?
+Удалить запись истории	Delete history entry
+Удалить карту?	Delete map?
+Удалить композицию из избранного	Unlike this track
+Удалить логи	Delete logs
+Удалить место	Delete place
+Удалить символ	Delete character
+Удалить скачанные APK	Delete downloaded APKs
+Удалить скачанные APK?	Delete downloaded APKs?
+Удобная посадка	Easy entry
+Укажите корректные координаты старта	Enter a valid starting location
+Укажите репозиторий GitHub, страницу релизов или maps.json	Enter a GitHub repository, release page or maps.json URL
+Укажите ссылку на каталог maps.json	Enter a maps.json catalog URL
+Укажите ссылку на репозиторий или его релизы	Enter a repository or release page URL
+Уменьшить приоритет	Decrease priority
+Уменьшить температурный порог	Decrease temperature threshold
+Уменьшить температуру {0}	Decrease {0} temperature
+Уровень и объём до полного бака	Fuel level and volume to full
+Условие не выполнено	Condition not met
+Условия голосовой модели	Voice model terms
+Условия и лицензии	Terms and licenses
+Установите	Install
+Установите ruvoice-tts-1.1.1.apk через START.cmd → установка APK. Системный голос менять не нужно.	Install RuVoice from the Windows installation bundle. There is no need to change the system voice.
+Установить	Install
+Установить карту?	Install map?
+Установить обновление	Install update
+Установка офлайн-карты…	Installing offline map…
+Установка…	Installing…
+Установлен · {0}	Installed · {0}
+Установлена	Installed
+Установлена {0}	Installed {0}
+Установлено: {0} · избранное: {1}	Installed: {0} · favorites: {1}
+Устройства сценария	Devices
+Устройство можно добавить только один раз	Each device can only be added once
+Уступила приоритет	Skipped by priority
+Файлы из разных релизов	Files belong to different releases
+Цветовая тема	Color theme
+Частично открыта	Partially open
+Челябинск	Chelyabinsk
+Четыре отдельных сиденья, панорамная шторка и подогрев руля	Four individual seats, panoramic shade and steering wheel heating
+Четыре ярлыка на главной	Four shortcuts on the home screen
+Читаем доступные приложения…	Loading installed apps…
+Широта, долгота	Latitude, longitude
+Широта, долгота старта	Starting latitude, longitude
+Штатная погода	Vehicle weather
+Штатная погода недоступна.	Vehicle weather app unavailable.
+Штатные камеры	Vehicle cameras
+Штатные камеры доступны на ГУ в режиме автомобиля.	Vehicle cameras are available on the head unit.
+Штатные настройки недоступны.	Vehicle settings unavailable.
+Шторка	Shade
+Шторка движется или недоступна. Сценарий не отправлен.	Shade is moving or unavailable. Automation was not sent.
+Шторка панорамной крыши	Panoramic roof shade
+Шторка → {0}	Shade → {0}
+Этому режиму температурный порог не нужен	This mode does not need a temperature condition
+Этот формат карты не поддерживается	This map format is not supported
+Язык	Language
+Язык можно изменить позже в настройках	You can change the language later in Settings
+Язык приложения	App language
+Яндекс Навигатор	Yandex Navigator
+бар	bar
+водителя	driver
+выключить	turn off
+выключить подогрев	turn heating off
+навигатор	navigation app
+налево	left
+направо	right
+не обнаружены	none
+неизвестен	unknown
+нет данных	unavailable
+нет данных о давлении	pressure unavailable
+нет свежих данных	unavailable
+ночь	night
+обновить	update
+открыто	open
+пассажира	passenger
+подогрев {0}	heating {0}
+светлый день	day
+установить	install
+— В	— V
+— л	— L
+− Убрать	− Remove
+ · обзорная	 · overview
+%.1f МБ	%.1f MB
+%.1f бар	%.1f bar
+Объём округлён до целого литра	Volume is rounded to the nearest liter
+Для автозапуска выдайте разрешение с помощью установщика на компьютере. Затем вернитесь сюда.	Grant auto start permission using the Windows installer, then return here.
+Автозапуску требуется разрешение. Если системный экран недоступен, используйте установщик на компьютере.	Auto start needs permission. If system settings are unavailable, use the Windows installer.
+Установка обновлений	Install updates
+Чтобы устанавливать новые версии из приложения	To install new versions from the app
+Разрешение можно выдать установщиком на компьютере	Grant this permission using the Windows installer
+Обновления из GitHub Releases	Updates from GitHub Releases
+Обновление скачано. Установка только по вашей кнопке.	Update downloaded. Tap Install when you're ready.
+Нет подключения к интернету. Скачанные файлы сохранены.	No internet connection. Downloaded files have been kept.
+Проверяем GitHub Releases…	Checking GitHub Releases…
+Установлена актуальная версия	You're up to date
+Обновление готово к установке	Update ready to install
+Доступна версия {0}	Version {0} is available
+Не удалось проверить: {0}	Unable to check: {0}
+Скачиваем обновление…	Downloading update…
+Автоматическая загрузка ожидает Wi-Fi без тарификации	Automatic download is waiting for unmetered Wi-Fi
+Нет подключения к интернету	No internet connection
+Wi-Fi не подключён. Подключитесь или разрешите загрузку через любую сеть	Wi-Fi is disconnected. Connect to Wi-Fi or allow downloading over any network
+Не удалось очистить незавершённую загрузку	Unable to clear the incomplete download
+Недостаточно свободного места	Not enough storage space
+Размер ответа не совпадает с релизом	Download size does not match the release
+Выбранная сеть отключилась. Загрузка остановлена	Network disconnected. Download stopped
+Не удалось заменить старый файл обновления	Unable to replace the previous update file
+Не удалось сохранить проверенный APK	Unable to save the verified APK
+Обновление проверено. Установите его на стоянке.	Update verified. Install while parked.
+Загрузка не завершена: {0}	Download incomplete: {0}
+Загрузка остановлена. Установленная версия не изменена.	Download stopped. Your installed version has not changed.
+Разрешите установку обновлений для Jeland OS и повторите установку.	Allow Jeland OS to install updates, then try again.
+Экран разрешения недоступен. Разрешите установку через START.cmd → U или комплектный установщик.	Permission settings unavailable. Grant update permission using the Windows installer.
+Подключите службу через компьютер: install.cmd из комплекта помощи при установке. После этого повторите обновление.	Enable alternative installation using the Windows installer, then retry the update.
+Проверяем APK перед установкой…	Verifying APK before installation…
+Вернитесь в Jeland OS и повторите установку	Return to Jeland OS and try installing again
+Открываем системное подтверждение установки…	Opening system installation confirmation…
+Ожидаем системный установщик…	Waiting for the system installer…
+Установщик не ответил. Нажмите «Установить обновление» ещё раз; файл сохранён.	The installer did not respond. Tap Install update again; the file has been kept.
+Установка не открыта: {0}	Unable to open installer: {0}
+Подтвердите установку в системном окне. Данные приложения сохраняются.	Confirm installation in the system window. Your app data will be kept.
+Не удалось открыть установку: {0}. APK сохранён; можно попробовать другой способ.	Unable to open installer: {0}. The APK has been kept; try the alternative method.
+Обновление установлено	Update installed
+Установка не разрешена. Разрешите её в Android или выполните start.cmd → U. APK сохранён.	Update installation is not allowed. Grant permission using the Windows installer. The APK has been kept.
+Системный установщик закрылся без установки. APK сохранён; можно попробовать другой способ.	The installer closed without installing. The APK has been kept; try another method.
+Установка не подтверждена (результат {0}, код {1}). APK сохранён; можно попробовать другой способ.	Installation was not confirmed ({0}, {1}). The APK has been kept; try another method.
+Дождитесь завершения установки и повторите очистку	Wait for installation to finish, then try clearing again
+Удалено файлов: {0}. Не удалось удалить: {1}.	Deleted: {0}. Unable to delete: {1}.
+Скачанных APK для очистки нет	No downloaded APKs to clear
+Удалено файлов: {0} · освобождено {1} МБ	Deleted: {0} · freed {1} MB
+Очистка не завершена: {0}	Cleanup incomplete: {0}
+Установщик не передал окно подтверждения. Повторите установку.	No installation confirmation was received. Try again.
+Установщик готов. Нажмите «Установить обновление», чтобы открыть подтверждение.	Installer ready. Tap Install update to confirm.
+Установка отменена. APK сохранён, можно повторить.	Installation cancelled. The APK has been kept for another attempt.
+Android заблокировал установку. Проверьте разрешение установки для Jeland OS. APK сохранён.	Android blocked installation. Check installation permission for Jeland OS. The APK has been kept.
+Недостаточно места для установки. Освободите память и повторите.	Not enough storage space. Free some space and try again.
+Установка отклонена: конфликт версии или подписи приложения.	Installation rejected: conflicting app version or signature.
+Android не смог установить APK. Повторите загрузку; причина сохранена в журнале.	Android could not install the APK. Download it again.
+Эта версия APK несовместима с устройством.	This APK is incompatible with your device.
+Установка не выполнена (код {0}). APK сохранён, причина записана в журнале.	Installation failed ({0}). The APK has been kept.
+Подтвердите обновление в системном установщике. Данные приложения сохраняются.	Confirm the update in the system installer. Your data will be kept.
+Не удалось открыть установщик: {0}	Unable to open installer: {0}
+Ожидаем результат установки от Android…	Waiting for Android to finish installation…
+Android запретил действие. Проверьте разрешения Jeland OS в штатных настройках.	Android denied the action. Check Jeland OS permissions.
+На устройстве не найдено системное окно установки или разрешений.	No system installer or permission screen is available.
+Проверка не пройдена	Verification failed
+Сеть или файл недоступны. Повторите позже	Network or file unavailable. Try again later
+Поверните налево	Turn left
+Поверните направо	Turn right
+Поверните налево на улицу {0}	Turn left onto {0}
+Поверните направо на улицу {0}	Turn right onto {0}
+Поверните налево на {0}	Turn left onto {0}
+Поверните направо на {0}	Turn right onto {0}
+Продолжайте движение прямо	Continue straight
+Продолжайте движение по {0}	Continue on {0}
+Начните движение	Start driving
+Развернитесь	Make a U-turn
+Круговое движение	Roundabout
+Через {0} м {1}	In {0} m, {1}
+Через {0} км {1}	In {0} km, {1}
+Через {0} м	In {0} m
+Через {0} км	In {0} km
+%.1f км	%.1f km
+Карта недоступна: {0}	Map unavailable: {0}
+Нет свежего GNSS-фикса. Разрешите GPS или явно выберите просмотр маршрута.	Waiting for GPS. Allow location access or choose a route preview.
+Нажмите на дом на карте или выберите адрес поиском	Tap a building on the map or search for an address
+ПРОСМОТР маршрута · старт выбран вручную, не GNSS	ROUTE PREVIEW · manually selected starting point
+Маршрут от текущей GNSS-позиции	Route from your current location
+Точка на карте	Map location
+Ошибка маршрута	Route error
+Загружен регион: {0}	Region loaded: {0}
+Импорт не выполнен: {0}	Import failed: {0}
+Установлена карта: {0}	Map installed: {0}
+Обзорная карта установлена	Overview map installed
+Карта не установлена: {0}	Map not installed: {0}
+Ошибка проверки	Verification failed
+Выбранная карта уже не активна	The selected map is no longer active
+Карта удалена	Map deleted
+Не удалось удалить карту: {0}	Unable to delete map: {0}
+В загруженном регионе ничего не найдено	No results in the downloaded region
+Населённый пункт	Locality
+Населённый пункт не указан	Locality unavailable
+Адрес не указан	Address unavailable
+Женский	Female
+Мужской	Male
+Подключите ГУ к компьютеру по USB и запустите enable-updates.cmd из установщика Jeland OS.	Connect the head unit to your computer by USB and run enable-updates.cmd from the Jeland OS installer.
+Автомобиль. Открыты: {0}	Vehicle. Open: {0}
+{0} В	{0} V
+{0} А	{0} A

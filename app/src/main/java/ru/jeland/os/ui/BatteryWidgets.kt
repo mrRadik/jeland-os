@@ -1,9 +1,11 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +19,7 @@ import ru.jeland.os.ui.theme.JIcons
 import androidx.compose.ui.text.font.FontWeight
 import java.util.Locale
 
-private fun number(value:Double?,unit:String,digits:Int=1)=value?.let {String.format(Locale.forLanguageTag("ru"),"%.${digits}f %s",it,unit)}?:"Нет данных"
+private fun number(value:Double?,unit:String,digits:Int=1)=value?.let {String.format(ru.jeland.os.localization.AppLocale.current,"%.${digits}f %s",it,unit)}?:"Нет данных"
 
 @Composable fun BatteryIndicator(reading:BatteryReading,modifier:Modifier=Modifier,expanded:Boolean=false,wide:Boolean=false,gauge:Boolean=false,onClick:()->Unit) {
     val c=Jeland.colors
@@ -78,7 +80,6 @@ private fun number(value:Double?,unit:String,digits:Int=1)=value?.let {String.fo
                 Text(value,color=c.text,fontSize=Jeland.type.secondary)
             }
         }
-        Label(if(live)"Данные ГУ · пересчёт по штатному EngMode. Сопоставление каналов требует проверки; SOH — оценка датчика, не диагностика аккумулятора."
-            else "DEMO · пример показаний аккумулятора",small=true,muted=true)
+        if(ru.jeland.os.BuildConfig.DEMO_FEATURES&&!live)Label("DEMO",small=true,muted=true)
     }
 }

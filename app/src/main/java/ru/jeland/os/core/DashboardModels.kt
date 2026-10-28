@@ -7,6 +7,7 @@ data class FuelState(val remainingLiters:Double?=null,val estimated:Boolean=fals
     val validLiters:Double? get()=remainingLiters?.takeIf {it.isFinite()}?.coerceIn(0.0,CAPACITY)
     val displayLiters:Int? get()=validLiters?.roundToInt()
     val litersToFull:Int? get()=validLiters?.let {(CAPACITY-it).coerceAtLeast(0.0).roundToInt()}
+    val low:Boolean get()=validLiters?.let {it/CAPACITY<.10}==true
     companion object {
         const val CAPACITY=ExperimentalVehicleConversions.TANK_LITERS
         fun fromRelative(level:Double?)=FuelState(level?.takeIf {it.isFinite() && it in 0.0..1.0}?.times(CAPACITY),estimated=true)

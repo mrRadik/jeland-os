@@ -32,7 +32,7 @@ class UpdateInstallAssist(context:Context,private val store:SettingsStore,privat
         mutable.value=mutable.value.copy(enabled=store.string(KEY,"").toBooleanStrictOrNull()?:available,available=available)
     }
     fun enabled(value:Boolean) {store.put(KEY,value.toString());if(!value)cancel();refresh()}
-    fun openPermission() {mutable.value=mutable.value.copy(message="Подключите компьютер к ГУ по USB и запустите install.cmd из комплекта помощи при установке. Меню Android не требуется.")}
+    fun openPermission() {mutable.value=mutable.value.copy(message="Подключите ГУ к компьютеру по USB и запустите enable-updates.cmd из установщика Jeland OS.")}
     /** Called only after APK size, SHA-256, identity and signing checks pass. */
     fun arm() {
         cancel();refresh()

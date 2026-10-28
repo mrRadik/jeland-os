@@ -1,5 +1,7 @@
 package ru.jeland.os.ui.automation
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -8,7 +10,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -48,7 +49,7 @@ import kotlin.math.roundToInt
             Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 SettingsToggle("Автоматический запуск сценариев","По двигателю или движению — выбирается в каждом сценарии",trip.enabled,
                     Modifier.testTag("automation-trip-enabled")){model.tripDetection(!trip.enabled)}
-                Label(trip.detail,small=true,muted=true)
+                if(ru.jeland.os.BuildConfig.DEMO_FEATURES)Label(trip.detail,small=true,muted=true)
                 Label(if(link.demo)"DEMO: команды автомобилю недоступны. Переключитесь в режим ГУ."
                     else if(!link.connected||!link.writesEnabled)"Нет активного подключения к ГУ."
                     else "Реальное управление подключено. Запуск и пробуждение приложения сами по себе сценарии не выполняют.",small=true,muted=true)

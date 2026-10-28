@@ -1,5 +1,7 @@
 package ru.jeland.os.navigation
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -163,4 +165,4 @@ import java.util.Locale
 }
 
 internal fun mapSize(bytes:Long):String=if(bytes<1048576)"${(bytes/1024).coerceAtLeast(1)} КБ"
-    else String.format(Locale.forLanguageTag("ru"),"%.1f МБ",bytes/1048576.0)
+    else String.format(ru.jeland.os.localization.AppLocale.current,"%.1f МБ",bytes/1048576.0)

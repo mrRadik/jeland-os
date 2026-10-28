@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,17 +7,34 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 android {
+    val releaseProperties=Properties()
+    val releasePropertiesFile=rootProject.file(".local/signing/keystore.properties")
+    if(releasePropertiesFile.isFile)releasePropertiesFile.inputStream().use {releaseProperties.load(it)}
+    if(releaseProperties.isNotEmpty())signingConfigs.create("production") {
+        storeFile=rootProject.file(releaseProperties.getProperty("storeFile"))
+        storePassword=releaseProperties.getProperty("storePassword")
+        keyAlias=releaseProperties.getProperty("keyAlias")
+        keyPassword=releaseProperties.getProperty("keyPassword")
+    }
     namespace = "ru.jeland.os"
     compileSdk = 36
     defaultConfig {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 94
-        versionName = "0.9.39.1"
+        versionCode = 100
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
+    testBuildType=providers.gradleProperty("testBuildType").getOrElse("debug")
+    buildTypes {
+        getByName("debug") { buildConfigField("boolean", "DEMO_FEATURES", "true") }
+        getByName("release") {
+            buildConfigField("boolean", "DEMO_FEATURES", "false")
+            if(releaseProperties.isNotEmpty())signingConfig=signingConfigs.getByName("production")
+        }
+    }
     sourceSets["androidTest"].assets.srcDir("schemas")
     // Preserve the previous model on disk, but no longer ship it in the application.
     androidResources { ignoreAssetsPattern = "supertonic-3-int8" }

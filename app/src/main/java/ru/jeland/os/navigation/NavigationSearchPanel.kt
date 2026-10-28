@@ -1,5 +1,9 @@
 package ru.jeland.os.navigation
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -141,7 +145,8 @@ internal fun editNavigationAddress(value:TextFieldValue,key:String):TextFieldVal
 }
 
 @Composable internal fun NavigationAddressKeyboard(onKey:(String)->Unit) {
-    var english by rememberSaveable {mutableStateOf(false)}
+    val appLanguage=ru.jeland.os.localization.LocalAppLanguage.current
+    var english by rememberSaveable {mutableStateOf(appLanguage=="en")}
     BoxWithConstraints(Modifier.fillMaxWidth().testTag("navigation-address-keyboard")) {
         val keyHeight=(maxWidth/12).coerceIn(34.dp,48.dp)
         Column(verticalArrangement=Arrangement.spacedBy(5.dp)) {

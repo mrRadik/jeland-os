@@ -1,5 +1,7 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -80,13 +82,13 @@ import ru.jeland.os.ui.theme.Jeland
     Column(modifier,verticalArrangement=Arrangement.Center,horizontalAlignment=if(centered)Alignment.CenterHorizontally else Alignment.Start) {
         val time: @Composable (Modifier)->Unit={timeModifier->
             FittedHeroText(now.format(DateTimeFormatter.ofPattern("HH:mm")),fontSize=Jeland.type.clock*(if(compact).8f else 1f),
-                fontWeight=FontWeight.Light,letterSpacing=Jeland.type.trackTight,outlined=outlined,modifier=timeModifier.testTag("hero-clock"))
+                fontWeight=FontWeight.Medium,letterSpacing=Jeland.type.trackTight,outlined=outlined,modifier=timeModifier.testTag("hero-clock"))
         }
         if(temperature!=null)Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             time(Modifier.weight(1f))
-            WeatherWidget(temperature,Modifier.width(84.dp).height(64.dp),onWeather)
+            WeatherWidget(temperature,Modifier.width(100.dp).height(70.dp),onWeather)
         }else time(Modifier)
-        FittedHeroText(now.format(DateTimeFormatter.ofPattern("d MMMM, EEE",Locale.forLanguageTag("ru"))),
+        FittedHeroText(now.format(DateTimeFormatter.ofPattern("d MMMM, EEE",ru.jeland.os.localization.AppLocale.current)),
             fontSize=Jeland.type.body,fontWeight=FontWeight.Medium,outlined=outlined,modifier=Modifier.fillMaxWidth().testTag("hero-date"),
             alignment=if(centered)Alignment.Center else Alignment.CenterStart)
     }

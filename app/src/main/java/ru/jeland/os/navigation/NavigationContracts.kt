@@ -70,7 +70,7 @@ fun guidanceLabel(type:String?,modifier:String?,text:String):String {
 fun distanceLabel(meters:Double):String=when {
     !meters.isFinite()||meters<0->"—"
     meters<1000->"${meters.toInt()} м"
-    else->"%.1f км".format(java.util.Locale.forLanguageTag("ru"),meters/1000)
+    else->"%.1f км".format(ru.jeland.os.localization.AppLocale.current,meters/1000)
 }
 
 fun distanceGuidance(meters:Int,instruction:String):String {
@@ -78,7 +78,7 @@ fun distanceGuidance(meters:Int,instruction:String):String {
     if(clean.isBlank())return ""
     if(meters<30||clean.startsWith("Через ",ignoreCase=true)||clean.startsWith("Вы прибыли",ignoreCase=true))return clean
     val rounded=if(meters in 50..999)kotlin.math.round(meters/10.0)*10 else meters.toDouble()
-    return "Через ${distanceLabel(rounded)} ${clean.replaceFirstChar {it.lowercase(java.util.Locale.forLanguageTag("ru"))}}"
+    return "Через ${distanceLabel(rounded)} ${clean.replaceFirstChar {it.lowercase(ru.jeland.os.localization.AppLocale.current)}}"
 }
 
 /** Engine-independent boundary. No vehicle, display, Binder or VDS references. */
