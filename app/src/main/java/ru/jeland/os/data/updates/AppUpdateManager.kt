@@ -1,6 +1,7 @@
 package ru.jeland.os.data.updates
 
 import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageInstaller
@@ -10,6 +11,7 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ru.jeland.os.BuildConfig
@@ -21,7 +23,7 @@ data class AppUpdateState(
     val autoCheck:Boolean=true,val autoDownloadWifi:Boolean=false,val checking:Boolean=false,val downloading:Boolean=false,
     val progress:Int=0,val available:AppUpdateCandidate?=null,val downloaded:Boolean=false,
     val message:String="Обновления из GitHub Releases",val lastChecked:Long?=null,val installPermission:Boolean=false,
-    val installing:Boolean=false,
+    val installing:Boolean=false,val installFallback:Boolean=false,val cleaningApks:Boolean=false,
 )
 
 /** App-scoped downloads; no APK installation, screen launch or vehicle command happens automatically. */
@@ -79,6 +81,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         if(value){store.put(LAST_AUTO_DOWNLOAD,"0");maybeAutoDownload()}
     }
     fun check(manual:Boolean=true) {
+        if(state.value.cleaningApks)return
         if(checkJob?.isActive==true||downloadJob?.isActive==true||state.value.installing||installJob?.isActive==true)return
         val now=System.currentTimeMillis()
         if(!manual&&(!state.value.autoCheck||!AppUpdatePolicy.due(store.string(LAST_ATTEMPT,"0").toLongOrNull()?:0,now)))return
@@ -109,6 +112,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         store.put(LAST_AUTO_DOWNLOAD,System.currentTimeMillis().toString());download(automatic=true)
     }
     fun download(allowMetered:Boolean=false,automatic:Boolean=false) {
+        if(state.value.cleaningApks)return
         if(downloadJob?.isActive==true||state.value.checking||state.value.installing||installJob?.isActive==true)return
         val candidate=state.value.available?:return
         downloadJob=scope.launch {
@@ -161,14 +165,35 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         downloadJob?.cancel()
         mutable.update {it.copy(message="Загрузка остановлена. Установленная версия не изменена.")}
     }
-    fun install() {
+    fun install(useSession:Boolean=false) {
+        if(state.value.cleaningApks)return
         if(state.value.downloading||state.value.checking||state.value.installing||downloadJob?.isActive==true||installJob?.isActive==true)return
         val candidate=state.value.available?.takeIf {state.value.downloaded}?:return
         report("UPDATE_INSTALL_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
+        if(!useSession) {
+            installJob=scope.launch {
+                mutable.update {it.copy(installing=true,installFallback=false)}
+                installMessage("Проверяем APK перед установкой…")
+                try {
+                    val ready=file(candidate)
+                    withContext(Dispatchers.IO){validateApk(ready,candidate)}
+                    check(foreground){"Вернитесь в Jeland OS и повторите установку"}
+                    confirmation=null;installWatchdog?.cancel()
+                    installer.abandon(store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1)
+                    store.put(INSTALL_SESSION,"-1");store.put(INSTALL_METHOD,"package_intent")
+                    val uri=FileProvider.getUriForFile(app,app.packageName+".updates",ready)
+                    app.startActivity(Intent(app,UpdateInstallActivity::class.java).setData(uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    report("UPDATE_INSTALL_NATIVE_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
+                    installMessage("Открываем системное подтверждение установки…")
+                }catch(c:CancellationException){throw c}
+                catch(e:Exception){nativeInstallFailed(e)}
+            }
+            return
+        }
         if(!canInstall()) {
-            mutable.update {it.copy(installPermission=false,message="Разрешите Jeland OS установку приложений и нажмите «Установить» ещё раз.")}
+            mutable.update {it.copy(installPermission=false,message="Нет разрешения установки. Разрешите его в Android или через start.cmd → U только для Jeland OS.")}
             runCatching {app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:${app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
-                .onFailure {report("UPDATE_INSTALL_PERMISSION_FAILED ${it.javaClass.simpleName}");mutable.update {it.copy(message="Экран разрешения недоступен. Разрешите установку для Jeland OS в штатных настройках Android.")}}
+                .onFailure {report("UPDATE_INSTALL_PERMISSION_FAILED ${it.javaClass.simpleName}");mutable.update {it.copy(message="Экран разрешения недоступен. Подключите компьютер и выполните start.cmd → U для Jeland OS.")}}
             return
         }
         confirmation?.let {openConfirmation(it);return}
@@ -181,6 +206,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 installer.abandon(store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1)
                 if(store is DurableSettingsStore)store.putDurable(INSTALL_SESSION,session.toString())
                 else store.put(INSTALL_SESSION,session.toString())
+                store.put(INSTALL_METHOD,"session")
                 installMessage("Ожидаем системный установщик…")
                 installer.commit(session)
                 report("UPDATE_INSTALL_COMMIT session=$session version=${candidate.manifest.versionCode}")
@@ -196,6 +222,62 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
             catch(e:Exception){installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false)}
                 installMessage("Установка не открыта: ${reason(e)}");report("UPDATE_INSTALL_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
         }
+    }
+    internal fun nativeInstallerOpened(intent:Intent) {
+        val component=intent.resolveActivity(app.packageManager)?.flattenToShortString().orEmpty()
+        store.put(INSTALL_COMPONENT,component)
+        report("UPDATE_INSTALL_NATIVE_LAUNCHED action=${intent.action} component=$component permission=${canInstall()}")
+        installMessage("Подтвердите установку в системном окне. Данные приложения сохраняются.")
+    }
+    internal fun nativeInstallFailed(e:Exception) {
+        mutable.update {it.copy(installing=false,installFallback=true,installPermission=canInstall())}
+        installMessage("Не удалось открыть установку: ${reason(e)}. APK сохранён; можно попробовать другой способ.")
+        report("UPDATE_INSTALL_NATIVE_FAILED ${e.javaClass.simpleName}: ${e.message.orEmpty().take(200)}")
+    }
+    internal fun nativeInstallReturned(result:Int,data:Intent?) {
+        val legacy=data?.getIntExtra("android.intent.extra.INSTALL_RESULT",Int.MIN_VALUE)
+        store.put(INSTALL_RESULT,"activity=$result legacy=$legacy")
+        report("UPDATE_INSTALL_NATIVE_RESULT activity=$result legacy=$legacy permission=${canInstall()}")
+        val expected=state.value.available?.manifest?.versionCode
+        val actual=runCatching {app.packageManager.getPackageInfo(app.packageName,0).longVersionCode}.getOrDefault(0)
+        val installed=expected!=null&&actual>=expected
+        mutable.update {it.copy(installing=false,installFallback=!installed,installPermission=canInstall(),downloaded=it.downloaded&&!installed)}
+        if(installed){store.put(PENDING,"");installMessage("Обновление установлено");return}
+        val message=when {
+            !canInstall()->"Установка не разрешена. Разрешите её в Android или выполните start.cmd → U. APK сохранён."
+            result==Activity.RESULT_CANCELED->"Системный установщик закрылся без установки. APK сохранён; можно попробовать другой способ."
+            else->"Установка не подтверждена (результат $result, код $legacy). APK сохранён; можно попробовать другой способ."
+        }
+        installMessage(message)
+    }
+    fun clearDownloadedApks(){scope.launch {clearDownloadedApksNow()}}
+    internal suspend fun apkCacheInfo()=withContext(Dispatchers.IO){OwnUpdateApkCache.inspect(app.filesDir)}
+    internal suspend fun clearDownloadedApksNow():UpdateApkCleanupResult=withContext(Dispatchers.Main.immediate) {
+        if(state.value.cleaningApks||state.value.downloading||state.value.installing||state.value.checking||
+            downloadJob?.isActive==true||installJob?.isActive==true||checkJob?.isActive==true)
+            return@withContext UpdateApkCleanupResult(busy=true)
+        mutable.update {it.copy(cleaningApks=true)}
+        try {
+            val result=withContext(Dispatchers.IO) {
+                val id=store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1
+                val session=app.packageManager.packageInstaller.mySessions.firstOrNull {it.sessionId==id}
+                check(session?.isActive!=true){"Дождитесь завершения установки и повторите очистку"}
+                if(session!=null)app.packageManager.packageInstaller.abandonSession(id)
+                OwnUpdateApkCache.clear(app.filesDir)
+            }
+            confirmation=null;installWatchdog?.cancel();store.put(INSTALL_SESSION,"-1")
+            val ready=state.value.available?.let {file(it).isFile}==true
+            if(!ready)store.put(PENDING,"")
+            store.put(LAST_AUTO_DOWNLOAD,System.currentTimeMillis().toString())
+            mutable.update {it.copy(downloaded=ready,installFallback=false)}
+            installMessage(if(result.failed>0)"Удалено файлов: ${result.deleted}. Не удалось удалить: ${result.failed}." else
+                if(result.deleted==0)"Скачанных APK для очистки нет" else "Удалено файлов: ${result.deleted} · освобождено ${result.bytes/1048576} МБ")
+            report("UPDATE_CACHE_CLEARED files=${result.deleted} bytes=${result.bytes} failed=${result.failed}")
+            result
+        }catch(e:Exception) {
+            installMessage("Очистка не завершена: ${reason(e)}");report("UPDATE_CACHE_CLEAR_FAILED ${e.javaClass.simpleName}")
+            UpdateApkCleanupResult(failed=1)
+        }finally {mutable.update {it.copy(cleaningApks=false)}}
     }
     private fun installMessage(message:String) {store.put(INSTALL_MESSAGE,message);mutable.update {it.copy(message=message)}}
     internal fun installStatus(intent:Intent) {
@@ -254,5 +336,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         private const val LAST_ATTEMPT="updates.last_attempt";private const val LAST_SUCCESS="updates.last_success"
         private const val LAST_AUTO_DOWNLOAD="updates.last_auto_download";private const val PENDING="updates.pending"
         private const val INSTALL_SESSION="updates.install_session";private const val INSTALL_MESSAGE="updates.install_message"
+        private const val INSTALL_METHOD="updates.install_method";private const val INSTALL_COMPONENT="updates.install_component"
+        private const val INSTALL_RESULT="updates.install_result"
     }
 }

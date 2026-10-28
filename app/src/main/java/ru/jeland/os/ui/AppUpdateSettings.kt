@@ -18,7 +18,9 @@ import java.util.Locale
     val state by manager.state.collectAsStateWithLifecycle()
     var confirmMobile by remember {mutableStateOf(false)}
     var confirmInstall by remember {mutableStateOf(false)}
-    val busy=state.checking||state.downloading||state.installing
+    var installWithSession by remember {mutableStateOf(false)}
+    var confirmCleanup by remember {mutableStateOf(false)}
+    val busy=state.checking||state.downloading||state.installing||state.cleaningApks
     val candidate=state.available
     Panel(Modifier.fillMaxWidth().testTag("app-updates")) {
         Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
@@ -39,7 +41,8 @@ import java.util.Locale
                         Control("Остановить",Modifier.fillMaxWidth().testTag("updates-cancel-download")){manager.cancelDownload()}
                     }
                     state.downloaded->{
-                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){confirmInstall=true}
+                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){installWithSession=false;confirmInstall=true}
+                        if(state.installFallback)Control("Попробовать другой способ установки",Modifier.fillMaxWidth().testTag("updates-install-fallback"),enabled=!busy){installWithSession=true;confirmInstall=true}
                         Control("Скачать заново по Wi-Fi",Modifier.fillMaxWidth().testTag("updates-download-again"),enabled=!busy){manager.download()}
                     }
                     else->{
@@ -48,8 +51,16 @@ import java.util.Locale
                     }
                 }
             }
+            Control(if(state.cleaningApks)"Очищаем…"else"Удалить скачанные APK",Modifier.fillMaxWidth().testTag("updates-clear-apks"),enabled=!busy){confirmCleanup=true}
             Label("Источник: mrRadik/jeland-os · проверка размера, SHA-256, пакета и подписи APK. Данные приложения сохраняются. Устанавливайте только на стоянке.",small=true,muted=true)
         }
+    }
+    if(confirmCleanup)Dialog(onDismissRequest={confirmCleanup=false}) {
+        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
+            SectionTitle("Удалить скачанные APK?","Будут удалены пакеты обновления Jeland OS и незавершённая загрузка. Неактивная попытка обновления отменится. Установленные приложения, карты и настройки сохранятся.")
+            Control("Отмена",Modifier.fillMaxWidth()){confirmCleanup=false}
+            Control("Удалить APK",Modifier.fillMaxWidth().testTag("updates-confirm-clear-apks"),enabled=!busy){confirmCleanup=false;manager.clearDownloadedApks()}
+        }}
     }
     if(confirmMobile&&candidate!=null)Dialog(onDismissRequest={confirmMobile=false}) {
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
@@ -62,7 +73,7 @@ import java.util.Locale
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
             SectionTitle("Обновить приложение на стоянке?","Убедитесь, что автомобиль припаркован. Откроется системный установщик; Jeland OS может закрыться. Это обновление приложения, не прошивки автомобиля.")
             Control("Отмена",Modifier.fillMaxWidth()){confirmInstall=false}
-            Control("Автомобиль припаркован — установить",Modifier.fillMaxWidth(),selected=true){confirmInstall=false;manager.install()}
+            Control("Автомобиль припаркован — установить",Modifier.fillMaxWidth(),selected=true){confirmInstall=false;manager.install(useSession=installWithSession)}
         }}
     }
 }
