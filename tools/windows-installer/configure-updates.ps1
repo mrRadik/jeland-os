@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param([string]$Serial,[ValidateSet('allow','revoke','status')][string]$Mode='allow',[switch]$Yes)
 $ErrorActionPreference='Stop'
-. (Join-Path $PSScriptRoot 'install.ps1') -LibraryOnly
+. (Join-Path $PSScriptRoot 'install.ps1') -LibraryOnly -Serial $Serial -Yes:$Yes
 . (Join-Path $PSScriptRoot 'engine/InstallAssist.ps1')
 try {
     $null=Read-JelandBundle $PSScriptRoot
