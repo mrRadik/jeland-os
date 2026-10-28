@@ -54,6 +54,8 @@ import kotlin.math.*
                 .basicMarquee(iterations=Int.MAX_VALUE,repeatDelayMillis=1800,velocity=28.dp))
     }
 }
+@Composable internal fun musicDisplayTitle(state:MediaState):String =
+    if(state.live&&state.liveTrack==null)ru.jeland.os.localization.localized("Музыка")else state.track.title
 
 @Composable fun AlbumArtwork(s:MediaState,modifier:Modifier=Modifier,square:Boolean=false) {
     val art=s.artwork

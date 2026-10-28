@@ -103,7 +103,7 @@ import ru.jeland.os.ui.theme.Jeland
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                     AlbumArtwork(s,Modifier.size(64.dp))
                     Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
-                        MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
+                        MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
                         MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.secondary,Modifier.testTag("media-artist"))
                         Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.footnote,maxLines=1,modifier=Modifier.testTag("media-status"))
                     }
@@ -126,7 +126,7 @@ import ru.jeland.os.ui.theme.Jeland
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                             AlbumArtwork(s,Modifier.size(64.dp),square=true)
                             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                                MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
+                                MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
                                 MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
                             }
                         }
@@ -138,7 +138,7 @@ import ru.jeland.os.ui.theme.Jeland
                     } else Row(Modifier.fillMaxSize().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                         AlbumArtwork(s,Modifier.size(82.dp),square=true)
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
-                            MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.clockSmall,Modifier.testTag("media-title"))
+                            MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.clockSmall,Modifier.testTag("media-title"))
                             MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
                             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                                 MusicTransport(s,r,Modifier.weight(1f),compact=true,borderless=true)
@@ -158,7 +158,7 @@ import ru.jeland.os.ui.theme.Jeland
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     AlbumArtwork(s,Modifier.size(38.dp))
                     Column(Modifier.weight(1f)) {
-                        MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
+                        MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
                         MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.footnote,Modifier.testTag("media-artist"))
                     }
                     Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,modifier=Modifier.widthIn(max=64.dp).testTag("media-status"))
@@ -177,7 +177,7 @@ import ru.jeland.os.ui.theme.Jeland
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
                 AlbumArtwork(s,Modifier.size(if(expanded)148.dp else 66.dp))
                 Column(Modifier.weight(1f)) {
-                    MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
+                    MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
                     MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.secondary,Modifier.padding(top=Jeland.space.compact).testTag("media-artist"))
                     Label(s.source,small=true,muted=true,modifier=Modifier.padding(top=Jeland.space.iconGap).testTag("media-status"))
                 }

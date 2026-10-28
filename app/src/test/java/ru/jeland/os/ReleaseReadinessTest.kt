@@ -41,6 +41,7 @@ class ReleaseReadinessTest {
         assertEquals("Home",catalog.translate("Главная"))
         assertEquals("Installed 1.0.0",catalog.translate("Установлена 1.0.0"))
         assertEquals("30 L",catalog.translate("30 л"))
+        assertEquals("5.9 km",catalog.translate("5.9 км"))
         assertEquals("Улица Худяково",catalog.translate("Улица Худяково"))
         assertEquals("Мёртвые звёзды",catalog.translate("Мёртвые звёзды"))
     }

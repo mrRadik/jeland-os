@@ -64,6 +64,8 @@ class ReleaseReadinessInstrumentation {
         ui.onNodeWithTag("setup-next").performClick()
         ui.onNodeWithTag("first-run").assertDoesNotExist()
         assertTrue(app.firstRun.state.value.complete)
+        ui.onNodeWithTag("media-title").assertTextEquals("Music")
+        capture("home-release-en")
         assertFalse("No fake vehicle readings in release",app.car.link.value.demo)
         ui.runOnIdle {app.car.useVehicle(false)}
         assertFalse("Release cannot switch to DEMO",app.car.link.value.demo)
