@@ -3,6 +3,8 @@ package ru.jeland.os.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,9 +18,10 @@ import java.util.Locale
 
 @Composable fun AppUpdateSettings(manager:AppUpdateManager) {
     val state by manager.state.collectAsStateWithLifecycle()
+    val assist by manager.installAssist.state.collectAsStateWithLifecycle()
     var confirmMobile by remember {mutableStateOf(false)}
     var confirmInstall by remember {mutableStateOf(false)}
-    var installWithSession by remember {mutableStateOf(false)}
+    var installWithSession by remember {mutableStateOf(true)}
     var confirmCleanup by remember {mutableStateOf(false)}
     val busy=state.checking||state.downloading||state.installing||state.cleaningApks
     val candidate=state.available
@@ -30,19 +33,31 @@ import java.util.Locale
             SettingsToggle("Автоматически скачивать по Wi-Fi","Только сеть без ограничения трафика. Установка — после вашего подтверждения",state.autoDownloadWifi,
                 Modifier.testTag("updates-auto-download")){manager.autoDownload(!state.autoDownloadWifi)}
             Label(state.message,Modifier.testTag("updates-status"),small=true)
-            state.lastChecked?.let {at->Label("Последняя успешная проверка: "+DateTimeFormatter.ofPattern("d MMM, HH:mm",Locale.forLanguageTag("ru"))
+            SettingsToggle("Альтернативный вариант установки",
+                "Включите, если кнопка «Установить» в системном окне не нажимается. Подтверждение обновления выполняется после вашего согласия.",
+                assist.enabled,Modifier.testTag("updates-install-assist")){
+                    manager.installAssist.enabled(!assist.enabled)
+                    if(!assist.enabled&&!assist.available)manager.installAssist.openPermission()
+                }
+            if(assist.enabled)Box(Modifier.fillMaxWidth().heightIn(min=58.dp),contentAlignment=Alignment.CenterStart) {
+                if(!assist.available)Control("Как подключить через компьютер",Modifier.fillMaxWidth()
+                    .testTag("updates-install-assist-permission")){manager.installAssist.openPermission()}
+                else Label("Помощь при установке подключена",small=true,muted=true)
+            }
+            if(assist.message.isNotBlank())Label(assist.message,small=true)
+            state.lastChecked?.let {at->Label("Последняя успешная проверка: "+DateTimeFormatter.ofPattern("d MMM, HH:mm",ru.jeland.os.localization.AppLocale.current)
                 .withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(at)),small=true,muted=true)}
             Control(if(state.checking)"Проверяем…"else"Проверить обновления",Modifier.fillMaxWidth().testTag("updates-check"),enabled=!busy){manager.check()}
             candidate?.let {update->
-                Label("${update.manifest.versionName} · ${String.format(Locale.forLanguageTag("ru"),"%.1f",update.manifest.size/1048576.0)} МБ",small=true)
+                Label("${update.manifest.versionName} · ${String.format(ru.jeland.os.localization.AppLocale.current,"%.1f",update.manifest.size/1048576.0)} МБ",small=true)
                 when {
                     state.downloading->{
                         Label("${state.progress}% · ${state.message}",small=true,muted=true)
                         Control("Остановить",Modifier.fillMaxWidth().testTag("updates-cancel-download")){manager.cancelDownload()}
                     }
                     state.downloaded->{
-                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){installWithSession=false;confirmInstall=true}
-                        if(state.installFallback)Control("Попробовать другой способ установки",Modifier.fillMaxWidth().testTag("updates-install-fallback"),enabled=!busy){installWithSession=true;confirmInstall=true}
+                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){installWithSession=true;confirmInstall=true}
+                        if(state.installFallback)Control("Открыть APK обычным способом",Modifier.fillMaxWidth().testTag("updates-install-fallback"),enabled=!busy){installWithSession=false;confirmInstall=true}
                         Control("Скачать заново по Wi-Fi",Modifier.fillMaxWidth().testTag("updates-download-again"),enabled=!busy){manager.download()}
                     }
                     else->{
@@ -52,7 +67,7 @@ import java.util.Locale
                 }
             }
             Control(if(state.cleaningApks)"Очищаем…"else"Удалить скачанные APK",Modifier.fillMaxWidth().testTag("updates-clear-apks"),enabled=!busy){confirmCleanup=true}
-            Label("Источник: mrRadik/jeland-os · проверка размера, SHA-256, пакета и подписи APK. Данные приложения сохраняются. Устанавливайте только на стоянке.",small=true,muted=true)
+            Label("Обновления сохраняют ваши настройки. Устанавливайте на стоянке.",small=true,muted=true)
         }
     }
     if(confirmCleanup)Dialog(onDismissRequest={confirmCleanup=false}) {
@@ -64,7 +79,7 @@ import java.util.Locale
     }
     if(confirmMobile&&candidate!=null)Dialog(onDismissRequest={confirmMobile=false}) {
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
-            SectionTitle("Использовать мобильный интернет?","Будет скачано ${String.format(Locale.forLanguageTag("ru"),"%.1f",candidate.manifest.size/1048576.0)} МБ. Возможны расходы по тарифу.")
+            SectionTitle("Использовать мобильный интернет?","Будет скачано ${String.format(ru.jeland.os.localization.AppLocale.current,"%.1f",candidate.manifest.size/1048576.0)} МБ. Возможны расходы по тарифу.")
             Control("Отмена",Modifier.fillMaxWidth()){confirmMobile=false}
             Control("Скачать",Modifier.fillMaxWidth(),selected=true){confirmMobile=false;manager.download(allowMetered=true)}
         }}

@@ -1,5 +1,7 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedText as Text
+
 import android.graphics.BitmapFactory
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -47,11 +49,13 @@ import kotlin.math.*
 @OptIn(ExperimentalFoundationApi::class)
 @Composable fun MusicMarqueeText(text:String,color:Color,fontSize:TextUnit,modifier:Modifier=Modifier) {
     key(text) {
-        Text(text.replace('\n',' ').replace('\r',' '),color=color,fontSize=fontSize,maxLines=1,softWrap=false,
+        androidx.compose.material3.Text(text.replace('\n',' ').replace('\r',' '),color=color,fontSize=fontSize,maxLines=1,softWrap=false,
             overflow=TextOverflow.Clip,modifier=modifier.fillMaxWidth().clipToBounds()
                 .basicMarquee(iterations=Int.MAX_VALUE,repeatDelayMillis=1800,velocity=28.dp))
     }
 }
+@Composable internal fun musicDisplayTitle(state:MediaState):String =
+    if(state.live&&state.liveTrack==null)ru.jeland.os.localization.localized("Музыка")else state.track.title
 
 @Composable fun AlbumArtwork(s:MediaState,modifier:Modifier=Modifier,square:Boolean=false) {
     val art=s.artwork
@@ -188,9 +192,9 @@ import kotlin.math.*
 /** Filled transport glyphs, independent of the thin outline icons used elsewhere. */
 @Composable fun MusicTransport(s:MediaState,r:MediaRepository,modifier:Modifier=Modifier,compact:Boolean=false,borderless:Boolean=false) {
     Row(modifier,horizontalArrangement=Arrangement.spacedBy(if(borderless)8.dp else if(compact)28.dp else 64.dp,Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically) {
-        MusicTransportButton(-1,false,"Предыдущая композиция",Modifier.size(if(borderless)44.dp else if(compact)48.dp else 96.dp).testTag("media-previous"),s.controlsEnabled,false,borderless,r::previous)
-        MusicTransportButton(0,s.playing,if(s.playing)"Пауза"else"Воспроизвести",Modifier.size(if(borderless)44.dp else if(compact)60.dp else 120.dp).testTag("media-play"),s.controlsEnabled,true,borderless,r::togglePlay)
-        MusicTransportButton(1,false,"Следующая композиция",Modifier.size(if(borderless)44.dp else if(compact)48.dp else 96.dp).testTag("media-next"),s.controlsEnabled,false,borderless,r::next)
+        MusicTransportButton(-1,false,"Предыдущая композиция",Modifier.size(if(borderless)54.dp else if(compact)58.dp else 108.dp).testTag("media-previous"),s.controlsEnabled,false,borderless,r::previous)
+        MusicTransportButton(0,s.playing,if(s.playing)"Пауза"else"Воспроизвести",Modifier.size(if(borderless)54.dp else if(compact)72.dp else 136.dp).testTag("media-play"),s.controlsEnabled,true,borderless,r::togglePlay)
+        MusicTransportButton(1,false,"Следующая композиция",Modifier.size(if(borderless)54.dp else if(compact)58.dp else 108.dp).testTag("media-next"),s.controlsEnabled,false,borderless,r::next)
     }
 }
 

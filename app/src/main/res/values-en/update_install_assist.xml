@@ -1,0 +1,4 @@
+<resources>
+    <string name="update_install_assist_label">Jeland OS — alternative installation</string>
+    <string name="update_install_assist_description">Confirms the Install button in the system installer only for a Jeland OS update you have started and approved. Use it if the button does not respond to touch. It does not change permissions or control other apps. You can disable access at any time.</string>
+</resources>

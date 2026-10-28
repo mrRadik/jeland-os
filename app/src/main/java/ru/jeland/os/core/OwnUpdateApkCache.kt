@@ -24,8 +24,17 @@ object OwnUpdateApkCache {
     }
     fun inspect(appFiles:File):UpdateApkCacheInfo=files(appFiles).let {UpdateApkCacheInfo(it.size,it.sumOf(File::length))}
     fun clear(appFiles:File):UpdateApkCleanupResult {
+        return remove(files(appFiles))
+    }
+    /** A newer download must survive a restart of an older installed version. */
+    fun clearInstalled(appFiles:File,installedVersion:Long,clearStaging:Boolean=false):UpdateApkCleanupResult =
+        remove(files(appFiles).filter {file->
+            if(file.name=="update.part")clearStaging
+            else file.name.removePrefix("JelandOS-").removeSuffix(".apk").toLongOrNull()?.let {it<=installedVersion}==true
+        })
+    private fun remove(files:List<File>):UpdateApkCleanupResult {
         var count=0;var bytes=0L;var failed=0
-        for(file in files(appFiles)) {
+        for(file in files) {
             val size=file.length()
             if(file.delete()){count++;bytes+=size}else failed++
         }

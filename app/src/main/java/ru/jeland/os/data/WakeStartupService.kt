@@ -46,17 +46,20 @@ class WakeStartupService:Service() {
         if(intent?.action==DISABLE){store.put(SystemStartup.ENABLED_KEY,"false");record("user_disabled");stopSelf();return START_NOT_STICKY}
         if(!allowed()){gate.clear();stopSelf();return START_NOT_STICKY}
         try {
+            val strings=createConfigurationContext(android.content.res.Configuration(resources.configuration).apply {
+                setLocale(java.util.Locale.forLanguageTag(store.string("app.language","ru")))
+            })
             val manager=getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(NotificationChannel(CHANNEL,"Запуск Jeland OS после сна",NotificationManager.IMPORTANCE_LOW).apply {
-                description="Ожидание пробуждения ГУ без удержания экрана и процессора включёнными"
+            manager.createNotificationChannel(NotificationChannel(CHANNEL,strings.getString(R.string.startup_channel),NotificationManager.IMPORTANCE_LOW).apply {
+                description=strings.getString(R.string.startup_channel_description)
                 setShowBadge(false)
             })
             val open=PendingIntent.getActivity(this,0,SystemStartup.launchIntent(this,"startup_notification"),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val disable=PendingIntent.getService(this,1,Intent(this,WakeStartupService::class.java).setAction(DISABLE),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification=Notification.Builder(this,CHANNEL).setSmallIcon(R.drawable.ic_startup_notification)
-                .setContentTitle("Автозапуск Jeland OS").setContentText("После перезагрузки и пробуждения ГУ")
+                .setContentTitle(strings.getString(R.string.startup_notification_title)).setContentText(strings.getString(R.string.startup_notification_body))
                 .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).setShowWhen(false)
-                .addAction(Notification.Action.Builder(null,"Отключить автозапуск",disable).build()).build()
+                .addAction(Notification.Action.Builder(null,strings.getString(R.string.startup_disable),disable).build()).build()
             if(Build.VERSION.SDK_INT>=34)startForeground(NOTIFICATION_ID,notification,ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
             else startForeground(NOTIFICATION_ID,notification)
             if(!registered) {

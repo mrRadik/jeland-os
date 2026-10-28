@@ -1,5 +1,9 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -8,8 +12,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -53,6 +55,7 @@ private val destinations=listOf(
 
 @Composable fun JelandApp(model:MainViewModel) {
     val state by model.state.collectAsStateWithLifecycle()
+    val setup by model.dependencies.firstRun.state.collectAsStateWithLifecycle()
     val owner=LocalLifecycleOwner.current
     DisposableEffect(owner,model) {
         val observer=LifecycleEventObserver {_,event->when(event){Lifecycle.Event.ON_RESUME->model.resume();Lifecycle.Event.ON_PAUSE->model.pause();else->Unit}}
@@ -64,7 +67,11 @@ private val destinations=listOf(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val scale=(maxWidth.value/1000f).coerceIn(.65f,1.8f)
         CompositionLocalProvider(LocalDensity provides Density(original.density*scale,original.fontScale)) {
-            JelandTheme(state.dark,state.preferences.style) {JelandScaffold(state,model)}
+            ru.jeland.os.localization.AppLocalization(setup.language.tag) {
+                JelandTheme(state.dark,state.preferences.style) {
+                    if(setup.complete)JelandScaffold(state,model)else FirstRunScreen(state,model)
+                }
+            }
         }
     }
 }
@@ -73,7 +80,7 @@ private val destinations=listOf(
     val route=entry?.destination?.route?:"home"
     var popupName by rememberSaveable {mutableStateOf<String?>(null)}
     val popup=popupName?.let(Popup::valueOf)
-    val show:(Popup)->Unit={popupName=if(popupName==it.name)null else it.name}
+    val show:(Popup)->Unit={if(it!=Popup.DEBUG||ru.jeland.os.BuildConfig.DEMO_FEATURES)popupName=if(popupName==it.name)null else it.name}
     val navigate:(String)->Unit={to->
         popupName=null
         if(route.startsWith("automation-edit/")&&to!="car")nav.popBackStack("automations",false)
@@ -140,9 +147,9 @@ private val destinations=listOf(
                     Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically) {
                         Text(when(popup){Popup.DRIVER->SeatSide.DRIVER.title;Popup.PASSENGER->SeatSide.PASSENGER.title
                             Popup.CLIMATE->"Климат";Popup.SHADE->"Панорамная шторка";Popup.WEATHER->"Погода"
-                            Popup.APPS->"Приложения и избранное";Popup.DEBUG->if(state.car.demo)"Симулятор автомобиля"else"Подключение автомобиля";Popup.FUEL->if(state.car.demo)"Топливо · DEMO"else"Топливо · предварительный расчёт"
+                            Popup.APPS->"Приложения и избранное";Popup.DEBUG->if(state.car.demo)"Симулятор автомобиля"else"Подключение автомобиля";Popup.FUEL->"Топливо"
                             Popup.BATTERY->"Аккумулятор"
-                            Popup.VEHICLE->if(state.car.demo)"Состояние автомобиля · DEMO"else"Состояние автомобиля · ГУ"
+                            Popup.VEHICLE->"Состояние автомобиля"
                             Popup.DRIVER_TEMPERATURE,Popup.PASSENGER_TEMPERATURE->"Температура"
                             Popup.TIRE_FRONT_LEFT,Popup.TIRE_FRONT_RIGHT,Popup.TIRE_REAR_LEFT,Popup.TIRE_REAR_RIGHT->popup.wheel!!.title},color=c.text,style=Jeland.heading,modifier=Modifier.weight(1f))
                         RoundControl(JIcons.Close,"Закрыть панель",Modifier.testTag("close-popup")){popupName=null}
@@ -154,6 +161,7 @@ private val destinations=listOf(
             Column(Modifier.align(Alignment.TopCenter).padding(start=Jeland.railWidth+24.dp,end=24.dp,top=Jeland.headerHeight+14.dp),
                 horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 VehicleEventNotifications(vehicleNotices,!state.car.demo)
+                LowFuelNotification(state.vehicle.fuel)
                 if(message!=null)Panel(Modifier.clickable {model.clearMessage()}.testTag("ui-message")) {
                     Label(message!!,Modifier.padding(18.dp),small=true)
                 }
@@ -171,7 +179,7 @@ private val destinations=listOf(
         Box(Modifier.width(Jeland.railWidth),contentAlignment=Alignment.Center) {HeroOutlinedText("JELAND",fontSize=Jeland.type.clockSmall,letterSpacing=Jeland.type.trackTight,outlined=overHero)}
         Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             Canvas(Modifier.size(6.dp)){drawCircle(c.accent)}
-            HeroOutlinedText(if(car.demo)"DEMO · БЕЗ ПОДКЛЮЧЕНИЯ К АВТО"else if(!car.connected)"ГУ · НЕТ СВЯЗИ"else if(car.writesEnabled)"ГУ · УПРАВЛЕНИЕ РАЗРЕШЕНО"else"ГУ · ТОЛЬКО ЧТЕНИЕ",color=if(overHero)c.text else c.muted,fontSize=Jeland.type.footnote,fontWeight=FontWeight.Medium,outlined=overHero)
+            HeroOutlinedText(if(!ru.jeland.os.BuildConfig.DEMO_FEATURES){if(car.connected)""else"Подключение к автомобилю…"}else if(car.demo)"DEMO · БЕЗ ПОДКЛЮЧЕНИЯ К АВТО"else if(!car.connected)"ГУ · НЕТ СВЯЗИ"else if(car.writesEnabled)"ГУ · УПРАВЛЕНИЕ РАЗРЕШЕНО"else"ГУ · ТОЛЬКО ЧТЕНИЕ",color=if(overHero)c.text else c.muted,fontSize=Jeland.type.footnote,fontWeight=FontWeight.Medium,outlined=overHero)
         }
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
             Canvas(Modifier.size(25.dp).semantics {contentDescription=if(connection.mobileLevel!=null)"Мобильный сигнал ${connection.mobileLevel} из 4"else"Мобильный сигнал недоступен"}) {
@@ -200,10 +208,10 @@ private val destinations=listOf(
             .verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             destinations.forEach {item->
                 val active=item.route==selected
-                Column(Modifier.fillMaxWidth().height(108.dp).clip(itemShape).background(if(active)c.deep.copy(alpha=.22f)else c.rail.copy(alpha=0f))
+                Column(Modifier.fillMaxWidth().height(114.dp).clip(itemShape).background(if(active)c.deep.copy(alpha=.3f)else c.rail.copy(alpha=0f))
                     .then(if(active&&minimal)Modifier.drawBehind {drawRect(c.accent,size=Size(3.dp.toPx(),size.height))}else if(active)Modifier.border(1.dp,c.accent,itemShape)else Modifier)
                     .clickable {onNavigate(item.route)}.testTag("nav-${item.route}"),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                    Glyph(item.icon,item.title,Modifier.size(30.dp),active)
+                    Glyph(item.icon,item.title,Modifier.size(38.dp),active)
                     Text(item.title,color=if(active&&minimal)c.text else if(active)c.accent else c.muted,fontSize=if(item.route=="automations")Jeland.type.footnote else Jeland.type.navigation,
                         textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=if(item.route=="automations")1 else 2,modifier=Modifier.padding(top=10.dp))
                 }
@@ -214,12 +222,12 @@ private val destinations=listOf(
 @Composable fun ClimateBottomBar(s:UiState,model:MainViewModel,show:(Popup)->Unit) {
     val c=Jeland.colors;val r=model.dependencies.climate;val climateOn=s.climate.controlsEnabled
     val shape=androidx.compose.foundation.shape.RoundedCornerShape(if(s.preferences.style==DashboardStyle.MINIMAL)32.dp else 22.dp)
-    Row(Modifier.fillMaxWidth().height(Jeland.climateHeight).padding(start=12.dp,end=12.dp,top=2.dp,bottom=14.dp).clip(shape).background(Brush.verticalGradient(listOf(c.rail,c.background))).border(1.dp,c.outline,shape).padding(horizontal=12.dp,vertical=10.dp).testTag("climate-bar"),
+    Row(Modifier.fillMaxWidth().height(Jeland.climateHeight).padding(start=12.dp,end=12.dp,top=2.dp,bottom=14.dp).clip(shape).background(Brush.verticalGradient(listOf(c.rail,c.background))).border(1.4.dp,c.outline,shape).padding(horizontal=10.dp,vertical=10.dp).testTag("climate-bar"),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween) {
         SeatClimateButton(SeatSide.DRIVER,s.seats.driver,heatKnown=s.seats.known(95),ventilationKnown=s.seats.known(93)){show(Popup.DRIVER)}
         Temperature(true,model){show(Popup.DRIVER_TEMPERATURE)}
-            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)) {
-                RoundControl(JIcons.Fan,"Расширенный климат",Modifier.size(58.dp).testTag("expand-climate"),climateOn&&s.climate.known(12)&&s.climate.fan>0,spin=climateOn&&s.climate.known(12)&&s.climate.fan>0,spinSpeed=s.climate.fan){show(Popup.CLIMATE)}
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                RoundControl(JIcons.Fan,"Расширенный климат",Modifier.size(64.dp).testTag("expand-climate"),climateOn&&s.climate.known(12)&&s.climate.fan>0,spin=climateOn&&s.climate.known(12)&&s.climate.fan>0,spinSpeed=s.climate.fan){show(Popup.CLIMATE)}
                 ClimateBarButton(text="AUTO",description="Автоматический климат",active=s.climate.known(4)&&s.climate.auto,enabled=climateOn&&s.climate.known(4),modifier=Modifier.testTag("bar-auto"),onClick=r::toggleAuto)
                 ClimateBarButton(text="A/C",description="Кондиционер",active=s.climate.known(1)&&s.climate.ac,enabled=climateOn&&s.climate.known(1),modifier=Modifier.testTag("bar-ac"),onClick=r::toggleAc)
                 ClimateBarButton(icon=JIcons.Loop,description="Рециркуляция",active=s.climate.known(8)&&s.climate.recirculation,enabled=climateOn&&s.climate.known(8),modifier=Modifier.testTag("bar-recirculation"),onClick=r::toggleRecirculation)
@@ -249,10 +257,10 @@ private val destinations=listOf(
     val climate=model.state.collectAsStateWithLifecycle().value.climate
     val enabled=climate.controlsEnabled&&climate.known(if(driver)10 else 13)
     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-        RoundControl(JIcons.Remove,"Уменьшить температуру ${if(driver)"водителя"else"пассажира"}",Modifier.size(52.dp).testTag("$tag-minus"),enabled=enabled){model.dependencies.climate.adjustTemperature(driver,-.5)}
+        RoundControl(JIcons.Remove,"Уменьшить температуру ${if(driver)"водителя"else"пассажира"}",Modifier.size(60.dp).testTag("$tag-minus"),enabled=enabled){model.dependencies.climate.adjustTemperature(driver,-.5)}
         val text=climateDockTemperature(climate,driver)
-        Text(text,color=if(enabled)Jeland.colors.text else Jeland.colors.unknown,fontSize=Jeland.type.title,textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=1,modifier=Modifier.width(44.dp).heightIn(min=48.dp).wrapContentHeight(Alignment.CenterVertically).testTag("$tag-temp")
+        Text(text,color=if(enabled)Jeland.colors.text else Jeland.colors.unknown,fontSize=Jeland.type.temperature,fontWeight=FontWeight.SemiBold,textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=1,modifier=Modifier.width(54.dp).heightIn(min=60.dp).wrapContentHeight(Alignment.CenterVertically).testTag("$tag-temp")
             .clickable(enabled=enabled,role=androidx.compose.ui.semantics.Role.Button,onClick=onClick))
-        RoundControl(JIcons.Add,"Увеличить температуру ${if(driver)"водителя"else"пассажира"}",Modifier.size(52.dp).testTag("$tag-plus"),enabled=enabled){model.dependencies.climate.adjustTemperature(driver,.5)}
+        RoundControl(JIcons.Add,"Увеличить температуру ${if(driver)"водителя"else"пассажира"}",Modifier.size(60.dp).testTag("$tag-plus"),enabled=enabled){model.dependencies.climate.adjustTemperature(driver,.5)}
     }
 }

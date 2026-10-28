@@ -1,0 +1,7 @@
+<resources>
+    <string name="startup_channel">Запуск Jeland OS после сна</string>
+    <string name="startup_channel_description">Возврат в приложение после пробуждения автомобиля</string>
+    <string name="startup_notification_title">Автозапуск Jeland OS</string>
+    <string name="startup_notification_body">После перезагрузки и пробуждения ГУ</string>
+    <string name="startup_disable">Отключить автозапуск</string>
+</resources>

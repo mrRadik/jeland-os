@@ -2,6 +2,7 @@ package ru.jeland.os.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
@@ -31,23 +32,23 @@ data class JelandColors(
 )
 private val Dark = JelandColors(
     ThemeBases.darkBackground,Color(0xFF040F19),Color(0xFF081925),Color(0xFF102A3D),
-    Color(0xFF28495D),Color(0xFFE7F3FC),Color(0xFF91B5CE),Color(0xFF55D9FF),
+    Color(0xFF355C74),Color(0xFFF5FAFF),Color(0xFFBCD3E3),Color(0xFF55D9FF),
     Color(0xFF136CB0),Color(0xFFFFAC66),Color(0xFF65E6BE),Color(0xBB000710),
 )
 private val Light = JelandColors(
     ThemeBases.lightBackground,Color(0xFFDFEAF1),Color(0xFFF8FBFD),Color(0xFFE1EDF6),
-    Color(0xFFAABFCE),Color(0xFF132C3D),Color(0xFF526E83),Color(0xFF007CA8),
+    Color(0xFF91AABC),Color(0xFF0B2335),Color(0xFF3D5669),Color(0xFF006487),
     Color(0xFF1171B6),Color(0xFFC26619),Color(0xFF167862),Color(0x660D2538),
     critical=Color(0xFFBD2735),unknown=Color(0xFF627482),
 )
 private val MinimalDark=JelandColors(
     background=Color(0xFF050E1B),rail=Color(0xFF081728),panel=Color(0xFF0A1B2E),raised=Color(0xFF16354B),
-    outline=Color(0xFF385B70),text=Color(0xFFF7F3E9),muted=Color(0xFFA2BBCB),accent=Color(0xFF72DDE8),
+    outline=Color(0xFF47748B),text=Color(0xFFFFFCF5),muted=Color(0xFFC2D4DE),accent=Color(0xFF72DDE8),
     deep=Color(0xFF125570),warm=Color(0xFFEDC78F),success=Color(0xFF7ED9B0),scrim=Color(0xBB020812),
     unknown=Color(0xFF83939D),critical=Color(0xFFFF777A))
 private val MinimalLight=JelandColors(
     background=Color(0xFFF8F3E9),rail=Color(0xFFECE7DB),panel=Color(0xFFFFFDFA),raised=Color(0xFFE4EBEA),
-    outline=Color(0xFFB5BCB4),text=Color(0xFF102E46),muted=Color(0xFF526876),accent=Color(0xFF006A7E),
+    outline=Color(0xFF93A49F),text=Color(0xFF0A2538),muted=Color(0xFF3E5565),accent=Color(0xFF005B6D),
     deep=Color(0xFF427B91),warm=Color(0xFF85561F),success=Color(0xFF28775F),scrim=Color(0x77102E46),
     unknown=Color(0xFF65777C),critical=Color(0xFFB4333F))
 fun jelandPalette(dark:Boolean,style:DashboardStyle=DashboardStyle.CLASSIC):JelandColors=
@@ -65,9 +66,9 @@ object Jeland {
     val control = RoundedCornerShape(14.dp)
     val gap = 16.dp
     val inset = 22.dp
-    val railWidth = 124.dp
-    val climateHeight = 104.dp
-    val headerHeight = 46.dp
+    val railWidth = 136.dp
+    val climateHeight = 124.dp
+    val headerHeight = 52.dp
     val heading = TextStyle(fontFamily=FontFamily.SansSerif,fontWeight=FontWeight.Medium,fontSize=TypeScale.heading)
     val body = TextStyle(fontFamily=FontFamily.SansSerif,fontSize=TypeScale.body)
     val caption = TextStyle(fontFamily=FontFamily.SansSerif,fontSize=TypeScale.caption)
@@ -76,7 +77,11 @@ object Jeland {
     val c = jelandPalette(dark,style)
     val scheme = if(dark) darkColorScheme(primary=c.accent,background=c.background,surface=c.panel,onSurface=c.text,onBackground=c.text)
         else lightColorScheme(primary=c.accent,background=c.background,surface=c.panel,onSurface=c.text,onBackground=c.text)
+    val typography=Typography(
+        bodyLarge=TextStyle(fontFamily=FontFamily.SansSerif,fontSize=TypeScale.body,fontWeight=FontWeight.Medium),
+        bodyMedium=TextStyle(fontFamily=FontFamily.SansSerif,fontSize=TypeScale.secondary,fontWeight=FontWeight.Medium),
+        labelLarge=TextStyle(fontFamily=FontFamily.SansSerif,fontSize=TypeScale.control,fontWeight=FontWeight.SemiBold))
     CompositionLocalProvider(LocalJelandColors provides c,LocalDashboardStyle provides style) {
-        MaterialTheme(colorScheme=scheme,content=content)
+        MaterialTheme(colorScheme=scheme,typography=typography,content=content)
     }
 }

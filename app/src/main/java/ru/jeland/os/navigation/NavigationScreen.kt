@@ -1,5 +1,9 @@
 package ru.jeland.os.navigation
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -214,7 +218,7 @@ import java.util.Locale
                             Label(gpsStatus,small=true,muted=true)
                             NavigationVoicePanel(repository.provider.voice){sheet="voice-license"}
                             Control("Скачать карты",Modifier.fillMaxWidth().testTag("navigation-maps")){sheet="maps"}
-                            Label("Навигационная версия для проверки. Реальное ведение на ГУ ещё требует испытаний. Оформление карты следует теме Jeland OS.",small=true,muted=true)
+                            if(ru.jeland.os.BuildConfig.DEMO_FEATURES)Label("Предварительная версия навигации",small=true,muted=true)
                         }
                     }
                 }

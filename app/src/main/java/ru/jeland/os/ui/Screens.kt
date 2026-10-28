@@ -1,5 +1,9 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -62,7 +66,9 @@ import ru.jeland.os.ui.theme.Jeland
         // No side haze in daylight; the pale image only meets the app background at its lower edge.
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to c.background.copy(alpha=0f),(if(s.dark).78f else .92f) to c.background.copy(alpha=0f),1f to c.background)))
         DashboardClock(Modifier.align(Alignment.TopStart).padding(start=24.dp,end=24.dp,top=topInset+8.dp))
-        WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(start=18.dp,end=18.dp,top=topInset+14.dp),onWeather)
+        // Weather fits text to its slot; keep that slot local to the top-right corner.
+        WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(start=18.dp,end=18.dp,top=topInset+14.dp)
+            .size(width=184.dp,height=96.dp),onWeather)
     }
 }
 @Composable fun QuickActions(s:UiState,model:MainViewModel,modifier:Modifier,show:(Popup)->Unit,navigate:(String)->Unit) {
@@ -75,18 +81,17 @@ import ru.jeland.os.ui.theme.Jeland
 }
 @Composable private fun QuickTile(title:String,detail:String,icon:ImageVector,modifier:Modifier,active:Boolean,tintOverride:androidx.compose.ui.graphics.Color?=null,onClick:()->Unit) {
     Panel(modifier.fillMaxHeight().clickable(onClick=onClick)) {
-        Row(Modifier.fillMaxSize().padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxSize().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             val tint=tintOverride?:if(active)Jeland.colors.warm else Jeland.colors.accent
-            Box(Modifier.size(52.dp).clip(Jeland.control)
+            Box(Modifier.size(56.dp).clip(Jeland.control)
                 .background(Brush.radialGradient(listOf(tint.copy(alpha=if(active).24f else .13f),Jeland.colors.raised.copy(alpha=.4f))))
                 .border(1.dp,tint.copy(alpha=if(active).55f else .22f),Jeland.control),contentAlignment=Alignment.Center) {
-                Icon(icon,null,Modifier.size(34.dp),tint=tintOverride?:if(active)Jeland.colors.warm else if(Jeland.style==DashboardStyle.MINIMAL)Jeland.colors.accent else Jeland.colors.artMuted)
+                Icon(icon,null,Modifier.size(40.dp),tint=tintOverride?:if(active)Jeland.colors.warm else if(Jeland.style==DashboardStyle.MINIMAL)Jeland.colors.accent else Jeland.colors.artText)
             }
             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
               Text(title,color=Jeland.colors.text,fontSize=Jeland.type.caption,lineHeight=Jeland.type.secondary,maxLines=2)
               Text(detail,color=if(active)Jeland.colors.accent else Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
-            if(Jeland.style==DashboardStyle.MINIMAL)Icon(JIcons.ChevronRight,null,Modifier.size(14.dp),tint=Jeland.colors.muted)
         }
     }
 }
@@ -98,7 +103,7 @@ import ru.jeland.os.ui.theme.Jeland
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                     AlbumArtwork(s,Modifier.size(64.dp))
                     Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
-                        MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
+                        MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
                         MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.secondary,Modifier.testTag("media-artist"))
                         Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.footnote,maxLines=1,modifier=Modifier.testTag("media-status"))
                     }
@@ -121,7 +126,7 @@ import ru.jeland.os.ui.theme.Jeland
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                             AlbumArtwork(s,Modifier.size(64.dp),square=true)
                             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                                MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
+                                MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
                                 MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
                             }
                         }
@@ -133,7 +138,7 @@ import ru.jeland.os.ui.theme.Jeland
                     } else Row(Modifier.fillMaxSize().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                         AlbumArtwork(s,Modifier.size(82.dp),square=true)
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
-                            MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.clockSmall,Modifier.testTag("media-title"))
+                            MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.clockSmall,Modifier.testTag("media-title"))
                             MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
                             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                                 MusicTransport(s,r,Modifier.weight(1f),compact=true,borderless=true)
@@ -153,7 +158,7 @@ import ru.jeland.os.ui.theme.Jeland
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     AlbumArtwork(s,Modifier.size(38.dp))
                     Column(Modifier.weight(1f)) {
-                        MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
+                        MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.secondary,Modifier.testTag("media-title"))
                         MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.footnote,Modifier.testTag("media-artist"))
                     }
                     Text(s.source,color=Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,modifier=Modifier.widthIn(max=64.dp).testTag("media-status"))
@@ -172,7 +177,7 @@ import ru.jeland.os.ui.theme.Jeland
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
                 AlbumArtwork(s,Modifier.size(if(expanded)148.dp else 66.dp))
                 Column(Modifier.weight(1f)) {
-                    MusicMarqueeText(s.track.title,Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
+                    MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.title,Modifier.testTag("media-title"))
                     MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.secondary,Modifier.padding(top=Jeland.space.compact).testTag("media-artist"))
                     Label(s.source,small=true,muted=true,modifier=Modifier.padding(top=Jeland.space.iconGap).testTag("media-status"))
                 }
@@ -255,7 +260,7 @@ import ru.jeland.os.ui.theme.Jeland
                 Control("Шторка",Modifier.weight(1f)){show(Popup.SHADE)}
             }
         }
-        Control(if(s.car.demo)"Открыть симулятор кузова и шин"else"Подключение автомобиля",Modifier.fillMaxWidth().testTag("car-debug")){show(Popup.DEBUG)}
+        if(BuildConfig.DEMO_FEATURES)Control(if(s.car.demo)"Открыть симулятор кузова и шин"else"Подключение автомобиля",Modifier.fillMaxWidth().testTag("car-debug")){show(Popup.DEBUG)}
     }
 }
 private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
@@ -275,47 +280,30 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
     val preferences=model.dependencies.preferences
     val startup by model.startup.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("settings-scroll").padding(bottom=Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.roomy)) {
-        SectionTitle("Настройки","Оформление и персонализация Jeland OS")
+        SectionTitle("Настройки","Сделайте Jeland OS удобным для себя")
+        LanguageSettings(model)
         SystemStartupSettings(startup,model::setSystemStartup,model::openStartupPermission)
         AppUpdateSettings(model.dependencies.updates)
-        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-            SectionTitle("Навигация","Собственная встроенная офлайн-карта")
-            ru.jeland.os.navigation.NavigationMapSettings(model.dependencies.navigation)
-        }}
-        s.navigation.external?.let {NavigationPreferences(model,it)}
-        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){VehicleConnectionPanel(s,model)}}
-        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){IndicatorPermissions(model)}}
-        if(s.car.demo)Control("DEMO-панель автомобиля",Modifier.testTag("open-demo-car"),onClick=onDemoVehicle)
+        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){PermissionSettings(model)}}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
             SectionTitle("Оформление")
-            Label("Вид интерфейса",small=true,muted=true)
-            Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
-                DashboardStyle.entries.forEach {style->Control(style.title,Modifier.weight(1f).testTag("style-${style.name.lowercase()}"),s.preferences.style==style){preferences.change(s.preferences.copy(style=style))}}
-            }
-            Label("Минималистичный — автомобиль в центре и спокойная палитра. Светлая и тёмная темы работают в обоих вариантах.",small=true,muted=true)
-            Row(horizontalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
-                ThemeMode.entries.forEach {mode->Control(mode.title,Modifier.weight(1f).testTag("theme-${mode.name.lowercase()}"),s.theme==mode){model.dependencies.theme.setMode(mode)}}
-            }
-            Label("Авто — день/ночь по системному режиму ГУ, как в штатном интерфейсе.",small=true,muted=true)
-            if(s.car.demo)Control(if(s.night)"Демо: ночь → переключить на день"else"Демо: день → переключить на ночь",Modifier.testTag("toggle-night"),onClick=model.dependencies.dayNight::toggle)
+            AppearancePicker(s,model)
         }}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(24.dp)) {
-            SectionTitle("Главный экран","Изменения сохраняются между запусками")
-            SettingsToggle("Топливо в hero","Литры и объём до полного бака 55 л",s.preferences.showFuel,Modifier.testTag("setting-fuel")){preferences.change(s.preferences.copy(showFuel=!s.preferences.showFuel))}
-            SettingsToggle("Состояние автомобиля","Кузов и давление около каждого колеса",s.preferences.showTires,Modifier.testTag("setting-tires")){preferences.change(s.preferences.copy(showTires=!s.preferences.showTires))}
+            SectionTitle("Главный экран")
+            SettingsToggle("Топливо","Уровень и объём до полного бака",s.preferences.showFuel,Modifier.testTag("setting-fuel")){preferences.change(s.preferences.copy(showFuel=!s.preferences.showFuel))}
+            SettingsToggle("Состояние автомобиля","Кузов и давление в шинах",s.preferences.showTires,Modifier.testTag("setting-tires")){preferences.change(s.preferences.copy(showTires=!s.preferences.showTires))}
             SettingsToggle("Избранные приложения","Четыре ярлыка на главной",s.preferences.showFavorites,Modifier.testTag("setting-favorites")){preferences.change(s.preferences.copy(showFavorites=!s.preferences.showFavorites))}
-            SettingsToggle("Панель разработчика","Быстрый доступ к локальным тестовым событиям",s.preferences.developerPanel,Modifier.testTag("setting-developer")){preferences.change(s.preferences.copy(developerPanel=!s.preferences.developerPanel))}
-            if(s.preferences.developerPanel)Control("Симулятор автомобиля",Modifier.testTag("settings-debug")){show(Popup.DEBUG)}
         }}
-        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.pair)) {
-            SectionTitle("Сеть и остальные функции",if(s.car.demo)"Режим DEMO · автомобиль отключён"else"Автомобиль: ${s.car.detail}")
-            Label(when {s.connectivity.wifi->"Wi-Fi подключён";s.connectivity.cellular->"Мобильная сеть подключена";s.connectivity.available->"Нет подключения к сети";else->"Сведения о сети недоступны"},small=true,muted=true)
-            Label((if(s.media.live)"Музыка — штатный источник\n"else"Музыка — демо без звука\n")+
-                "Навигация — встроенная офлайн-карта\n"+
-                (if(s.weather.demo)"Погода — DEMO"else"Погода — штатное приложение, без отдельной загрузки")+
-                "\nКамеры — открытие штатного интерфейса\nПриборка — не подключена",small=true,muted=true)
-            Label("Обычное OEM-разрешение ivi.vds.permission.SERVICE. Без root, priv-app и замены штатной оболочки. Служба подсказок работает только с разрешённым пользователем доступом к уведомлениям. Probe остаётся отдельным приложением.",small=true,muted=true)
-            Label("Jeland OS · ${BuildConfig.VERSION_NAME}\nОтдельное Android-приложение, не системная прошивка",small=true,muted=true)
+        if(BuildConfig.DEMO_FEATURES)Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)) {
+            SectionTitle("Разработка")
+            VehicleConnectionPanel(s,model)
+            Control("Симулятор автомобиля",Modifier.testTag("settings-debug")){show(Popup.DEBUG)}
+            if(s.car.demo)Control("DEMO-панель автомобиля",Modifier.testTag("open-demo-car"),onClick=onDemoVehicle)
+        }}
+        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            SectionTitle("Jeland OS",BuildConfig.VERSION_NAME)
+            Control("Повторить начальную настройку",Modifier.fillMaxWidth().testTag("repeat-setup")){model.dependencies.firstRun.reopen()}
         }}
     }
 }

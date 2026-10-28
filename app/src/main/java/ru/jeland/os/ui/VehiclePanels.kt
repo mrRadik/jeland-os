@@ -1,13 +1,15 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,8 +51,8 @@ import java.util.Locale
                 Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
                     Text(when {
                         notice.persistent->if(live){if(openings.size==1)openings.single().openEventTitle else"Проверьте двери и багажник"}else"Движение с открытым кузовом · DEMO"
-                        openings.size==1->"${openings.single().openEventTitle} · ${if(live)"ГУ"else"DEMO"}"
-                        else->"Открыто зон: ${openings.size} · ${if(live)"ГУ"else"DEMO"}"
+                        openings.size==1->openings.single().openEventTitle
+                        else->"Открыто: ${openings.size}"
                     },color=if(notice.persistent)accent else c.text,fontSize=Jeland.type.secondary,maxLines=2,overflow=TextOverflow.Ellipsis)
                     if(openings.size>1 || (notice.persistent && !live))Text(openings.joinToString {it.displayName},color=c.muted,
                         fontSize=Jeland.type.caption,maxLines=2,overflow=TextOverflow.Ellipsis)
@@ -65,9 +67,9 @@ import java.util.Locale
     val severity=vehicle.tireThresholds.severity(reading)
     val c=Jeland.colors
     val status=when(severity) {
-        TireSeverity.NORMAL->if(vehicle.live)"Расчётное давление · предварительная калибровка"else"В пределах тестовых порогов"
-        TireSeverity.WARNING->"Внимание: давление за тестовым порогом"
-        TireSeverity.CRITICAL->"Критическое значение по тестовым порогам"
+        TireSeverity.NORMAL->"Давление в норме"
+        TireSeverity.WARNING->"Проверьте давление в шине"
+        TireSeverity.CRITICAL->"Критическое давление в шине"
         TireSeverity.UNKNOWN->"Данные о давлении отсутствуют"
     }
     val color=when(severity) {TireSeverity.NORMAL->c.muted;TireSeverity.WARNING->c.warm;TireSeverity.CRITICAL->c.critical;TireSeverity.UNKNOWN->c.unknown}
@@ -80,7 +82,7 @@ import java.util.Locale
             }
         }
         Text(status,color=color,fontSize=Jeland.type.secondary)
-        Label(if(vehicle.live)"Давление расчётное, сопоставление колёс предварительное. Штатные предупреждения не заменяются."else"DEMO · значения не из датчиков автомобиля. Пороги демонстрационные, не заводские нормы.",small=true,muted=true)
+        if(ru.jeland.os.BuildConfig.DEMO_FEATURES)Label("DEMO",small=true,muted=true)
     }
 }
 
@@ -91,7 +93,7 @@ import java.util.Locale
         if(vehicle.live) {
             Label("Состояния дверей и багажника — только чтение",small=true,muted=true)
             VehicleOpening.entries.forEach {opening->Label("${opening.displayName}: ${when{opening !in vehicle.knownOpenings->"нет свежих данных";opening in vehicle.openings->"открыто";else->"закрыто"}}",small=true)}
-            Control("Подключение автомобиля",Modifier.testTag("live-vehicle-debug")){show(Popup.DEBUG)}
+            if(ru.jeland.os.BuildConfig.DEMO_FEATURES)Control("Подключение автомобиля",Modifier.testTag("live-vehicle-debug")){show(Popup.DEBUG)}
             return@Column
         }
         Label("Кузов · нажмите переключатель, чтобы изменить DEMO-состояние",small=true,muted=true)

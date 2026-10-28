@@ -1,11 +1,13 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -45,14 +47,14 @@ import ru.jeland.os.ui.theme.*
             Spacer(Modifier.weight(1f));Icon(JIcons.ChevronRight,null,tint=c.artMuted,modifier=Modifier.size(18.dp))
         }
         Text(state.litersToFull?.let {"До полного $it л"}?:"Бак 55 л",color=c.artMuted,fontSize=Jeland.type.caption,modifier=Modifier.padding(top=7.dp))
-        if(state.estimated)Text(if(state.experimental)"Экспериментальный расчёт"else"Оценочный объём · DEMO",color=c.artMuted,fontSize=Jeland.type.micro)
+        if(ru.jeland.os.BuildConfig.DEMO_FEATURES&&state.estimated)Text("Оценка",color=c.artMuted,fontSize=Jeland.type.micro)
     }
 }
 @Composable fun FuelPopup(state:FuelState,model:MainViewModel) {
     Column(verticalArrangement=Arrangement.spacedBy(16.dp)) {
         Label("${state.displayLiters?.let {"Остаток $it л"}?:"Нет данных об остатке"} · бак 55 л")
         Label(state.litersToFull?.let {"До полного $it л"}?:"Ожидаем данные",muted=true)
-        Label(if(state.estimated)"Объём оценочный, округлён до целого литра. Это не точный замер."else"Демонстрационные данные, не показания автомобиля.",small=true,muted=true)
+        if(state.estimated)Label("Объём округлён до целого литра",small=true,muted=true)
         if(model.state.collectAsStateWithLifecycle().value.car.demo)Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
             Control("31 л"){model.dependencies.vehicle.simulateFuel(FuelState(31.0))}
             Control("Полный"){model.dependencies.vehicle.simulateFuel(FuelState(55.0))}
@@ -100,7 +102,7 @@ import ru.jeland.os.ui.theme.*
                     val stacked=compact||maxWidth<156.dp
                     val titleSize=if(compact)Jeland.type.footnote else Jeland.type.secondary
                     val titleHeight=with(androidx.compose.ui.platform.LocalDensity.current){(titleSize*1.25f).toDp()}
-                    val iconSize=if(compact)(maxHeight-titleHeight-6.dp).coerceIn(24.dp,44.dp) else 56.dp
+                    val iconSize=if(compact)(maxHeight-titleHeight-6.dp).coerceIn(28.dp,52.dp) else 64.dp
                     val label=app?.label?:"Добавить"
                     val subtitle=if(app!=null)"Открыть"else if(state.loading)"Проверяем…"else"Выбрать ярлык"
                     val icon: @Composable ()->Unit = {

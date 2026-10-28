@@ -1,10 +1,12 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
+import ru.jeland.os.localization.LocalizedText as Text
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.animation.core.animateFloatAsState
@@ -57,12 +59,12 @@ val LocalFramelessDashboard=staticCompositionLocalOf {false}
     Text(text,modifier,color=if(muted) Jeland.colors.muted else Jeland.colors.text,style=if(small) Jeland.caption else Jeland.body)
 }
 @Composable fun Glyph(icon: ImageVector, description: String?=null, modifier: Modifier=Modifier, active: Boolean=false) {
-    Icon(icon,description,modifier.size(27.dp),tint=if(active) Jeland.colors.accent else Jeland.colors.muted)
+    Icon(icon,description,modifier.size(31.dp),tint=if(active) Jeland.colors.accent else Jeland.colors.muted)
 }
 @Composable fun Control(text: String, modifier: Modifier=Modifier, selected: Boolean=false, accent:Color=Jeland.colors.accent, enabled:Boolean=true, onClick: ()->Unit) {
     val c=Jeland.colors
-    Box(modifier.heightIn(min=50.dp).alpha(if(enabled)1f else .4f).clip(Jeland.control).background(if(selected)c.deep.copy(alpha=.34f) else c.raised.copy(alpha=.45f))
-        .border(1.dp,if(selected)accent else c.outline,Jeland.control).semantics {this.selected=selected}.clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=Jeland.space.inset,vertical=Jeland.space.pair),contentAlignment=Alignment.Center) {
+    Box(modifier.heightIn(min=62.dp).alpha(if(enabled)1f else .5f).clip(Jeland.control).background(if(selected)c.deep.copy(alpha=.48f) else c.raised.copy(alpha=.8f))
+        .border(1.4.dp,if(selected)accent else c.outline,Jeland.control).semantics {this.selected=selected}.clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=Jeland.space.inset,vertical=Jeland.space.pair),contentAlignment=Alignment.Center) {
         Text(text,color=if(selected)accent else c.text,fontSize=Jeland.type.control)
     }
 }
@@ -85,9 +87,9 @@ val LocalFramelessDashboard=staticCompositionLocalOf {false}
 @Composable fun RoundControl(icon: ImageVector, description: String, modifier: Modifier=Modifier, active: Boolean=false, accent:Color=Jeland.colors.accent, enabled:Boolean=true, spin:Boolean=false, spinSpeed:Int=0, onClick: ()->Unit) {
     val c=Jeland.colors
     val rotation=fanRotation(spin&&enabled,spinSpeed)
-    Box(modifier.size(52.dp).clip(CircleShape).background(if(active&&enabled)c.deep.copy(alpha=.45f)else c.raised.copy(alpha=.65f))
-        .border(1.dp,if(active&&enabled)accent else c.outline,CircleShape).clickable(enabled=enabled,role=Role.Button,onClick=onClick),contentAlignment=Alignment.Center) {
-        Icon(icon,description,Modifier.size(27.dp).semantics {if(icon==JIcons.Fan)stateDescription=if(spin)"Вращается"else"Остановлен"}.graphicsLayer {rotationZ=rotation},tint=if(!enabled)c.unknown.copy(alpha=.4f)else if(active)accent else c.muted)
+    Box(modifier.size(60.dp).clip(CircleShape).background(if(active&&enabled)c.deep.copy(alpha=.5f)else c.raised.copy(alpha=.9f))
+        .border(1.4.dp,if(active&&enabled)accent else c.outline,CircleShape).clickable(enabled=enabled,role=Role.Button,onClick=onClick),contentAlignment=Alignment.Center) {
+        Icon(icon,description,Modifier.size(32.dp).semantics {if(icon==JIcons.Fan)stateDescription=if(spin)"Вращается"else"Остановлен"}.graphicsLayer {rotationZ=rotation},tint=if(!enabled)c.unknown.copy(alpha=.5f)else if(active)accent else c.text)
     }
 }
 @Composable fun SectionTitle(title: String, subtitle: String?=null) {
