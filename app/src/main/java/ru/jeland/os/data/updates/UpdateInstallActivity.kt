@@ -13,19 +13,37 @@ import ru.jeland.os.JelandApplication
 /** Foreground caller for the OEM installer. No exported entry point or privileged identity. */
 class UpdateInstallActivity:ComponentActivity() {
     private val updates get()=(application as JelandApplication).container.updates
+    private var launched=false
     private val result=registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        updates.nativeInstallReturned(it.resultCode,it.data);finish()
+        if(intent.hasExtra(SESSION))updates.sessionConfirmationReturned(intent.getIntExtra(SESSION,-1))
+        else updates.nativeInstallReturned(it.resultCode,it.data)
+        finish()
     }
     override fun onCreate(savedInstanceState:Bundle?) {
         super.onCreate(savedInstanceState)
-        if(savedInstanceState!=null)return // ActivityResultRegistry restores the pending result.
+        launched=savedInstanceState?.getBoolean("installerLaunched")?:false
+    }
+    override fun onSaveInstanceState(outState:Bundle) {
+        outState.putBoolean("installerLaunched",launched);super.onSaveInstanceState(outState)
+    }
+    override fun onPostResume() {
+        super.onPostResume()
+        if(launched)return // ActivityResultRegistry restores an already launched confirmation.
+        launched=true
         try {
-            val uri=checkNotNull(intent.data){"Не передан проверенный APK"}
-            var next=UpdateInstallerIntents.apk(this,uri)
-            try {result.launch(next)}
-            catch(_:ActivityNotFoundException) {next=Intent(next).setAction(Intent.ACTION_VIEW);result.launch(next)}
+            @Suppress("DEPRECATION")
+            val confirmation=intent.getParcelableExtra<Intent>(CONFIRMATION)
+            var next=confirmation?:UpdateInstallerIntents.apk(this,checkNotNull(intent.data){"Не передан проверенный APK"})
+            try {result.launch(next)} catch(error:ActivityNotFoundException) {
+                if(confirmation!=null)throw error
+                next=Intent(next).setAction(Intent.ACTION_VIEW);result.launch(next)
+            }
             updates.nativeInstallerOpened(next)
         }catch(e:Exception){updates.nativeInstallFailed(e);finish()}
+    }
+    companion object {
+        internal const val CONFIRMATION="ru.jeland.os.updates.CONFIRMATION"
+        internal const val SESSION="ru.jeland.os.updates.SESSION"
     }
 }
 

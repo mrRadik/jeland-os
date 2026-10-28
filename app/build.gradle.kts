@@ -11,8 +11,8 @@ android {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 93
-        versionName = "0.9.38"
+        versionCode = 95
+        versionName = "0.9.40"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }

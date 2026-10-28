@@ -165,11 +165,17 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         downloadJob?.cancel()
         mutable.update {it.copy(message="Загрузка остановлена. Установленная версия не изменена.")}
     }
-    fun install(useSession:Boolean=false) {
+    fun install(useSession:Boolean=true) {
         if(state.value.cleaningApks)return
         if(state.value.downloading||state.value.checking||state.value.installing||downloadJob?.isActive==true||installJob?.isActive==true)return
         val candidate=state.value.available?.takeIf {state.value.downloaded}?:return
         report("UPDATE_INSTALL_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
+        if(!canInstall()) {
+            mutable.update {it.copy(installPermission=false,message="Разрешите установку обновлений для Jeland OS и повторите установку.")}
+            runCatching {app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:${app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
+                .onFailure {installMessage("Экран разрешения недоступен. Разрешите установку через START.cmd → U или комплектный установщик.")}
+            return
+        }
         if(!useSession) {
             installJob=scope.launch {
                 mutable.update {it.copy(installing=true,installFallback=false)}
@@ -190,19 +196,14 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
             }
             return
         }
-        if(!canInstall()) {
-            mutable.update {it.copy(installPermission=false,message="Нет разрешения установки. Разрешите его в Android или через start.cmd → U только для Jeland OS.")}
-            runCatching {app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:${app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
-                .onFailure {report("UPDATE_INSTALL_PERMISSION_FAILED ${it.javaClass.simpleName}");mutable.update {it.copy(message="Экран разрешения недоступен. Подключите компьютер и выполните start.cmd → U для Jeland OS.")}}
-            return
-        }
         confirmation?.let {openConfirmation(it);return}
         installJob=scope.launch {
-            mutable.update {it.copy(installing=true,message="Проверяем APK перед установкой…")}
+            mutable.update {it.copy(installing=true,installFallback=false,message="Проверяем APK перед установкой…")}
             var session=-1
             try {
                 val ready=file(candidate)
                 session=withContext(Dispatchers.IO){validateApk(ready,candidate);installer.prepare(ready)}
+                check(foreground){"Вернитесь в Jeland OS и повторите установку"}
                 installer.abandon(store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1)
                 if(store is DurableSettingsStore)store.putDurable(INSTALL_SESSION,session.toString())
                 else store.put(INSTALL_SESSION,session.toString())
@@ -213,13 +214,13 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 installWatchdog?.cancel();installWatchdog=scope.launch {
                     delay(20_000)
                     if(state.value.installing) {
-                        mutable.update {it.copy(installing=false)}
+                        mutable.update {it.copy(installing=false,installFallback=true)}
                         installMessage("Установщик не ответил. Нажмите «Установить обновление» ещё раз; файл сохранён.")
                         report("UPDATE_INSTALL_TIMEOUT session=$session")
                     }
                 }
             }catch(c:CancellationException){throw c}
-            catch(e:Exception){installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false)}
+            catch(e:Exception){installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false,installFallback=true)}
                 installMessage("Установка не открыта: ${reason(e)}");report("UPDATE_INSTALL_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
         }
     }
@@ -295,6 +296,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
             return
         }
         confirmation=null;store.put(INSTALL_SESSION,"-1")
+        mutable.update {it.copy(installFallback=status!=PackageInstaller.STATUS_SUCCESS)}
         val message=when(status) {
             PackageInstaller.STATUS_SUCCESS->{store.put(PENDING,"");mutable.update {it.copy(downloaded=false)};"Обновление установлено"}
             PackageInstaller.STATUS_FAILURE_ABORTED->"Установка отменена. APK сохранён, можно повторить."
@@ -308,10 +310,31 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         installMessage(message)
     }
     private fun openConfirmation(intent:Intent) {
-        try {app.startActivity(Intent(intent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        try {
+            val id=store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1
+            check(id>=0){"Установочная сессия отсутствует"}
+            app.startActivity(Intent(app,UpdateInstallActivity::class.java)
+                .putExtra(UpdateInstallActivity.CONFIRMATION,Intent(intent))
+                .putExtra(UpdateInstallActivity.SESSION,id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             installMessage("Подтвердите обновление в системном установщике. Данные приложения сохраняются.")
-            report("UPDATE_INSTALL_CONFIRMATION_OPENED")
-        }catch(e:Exception){confirmation=null;installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
+            report("UPDATE_INSTALL_CONFIRMATION_OPENED session=$id")
+        }catch(e:Exception){confirmation=null;mutable.update {it.copy(installing=false,installFallback=true)};installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
+    }
+    internal fun sessionConfirmationReturned(id:Int) {
+        // Android 11 may return RESULT_CANCELED even after acceptance. The session callback,
+        // rather than this Activity result, is authoritative for both success and cancellation.
+        if(id<0||id!=store.string(INSTALL_SESSION,"-1").toIntOrNull())return
+        report("UPDATE_INSTALL_CONFIRMATION_RETURNED session=$id")
+        mutable.update {it.copy(installing=true)}
+        installMessage("Ожидаем результат установки от Android…")
+        installWatchdog?.cancel();installWatchdog=scope.launch {
+            delay(20_000)
+            if(id==store.string(INSTALL_SESSION,"-1").toIntOrNull()&&state.value.installing) {
+                mutable.update {it.copy(installing=false,installFallback=true)}
+                installMessage("Android не подтвердил установку. APK сохранён; доступен запасной способ.")
+                report("UPDATE_INSTALL_CONFIRMATION_TIMEOUT session=$id")
+            }
+        }
     }
     @Suppress("DEPRECATION") private fun validateApk(file:File,c:AppUpdateCandidate) {
         check(file.length()==c.manifest.size){"Размер APK не совпадает"}

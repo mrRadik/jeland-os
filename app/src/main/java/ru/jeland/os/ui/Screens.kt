@@ -62,7 +62,9 @@ import ru.jeland.os.ui.theme.Jeland
         // No side haze in daylight; the pale image only meets the app background at its lower edge.
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0f to c.background.copy(alpha=0f),(if(s.dark).78f else .92f) to c.background.copy(alpha=0f),1f to c.background)))
         DashboardClock(Modifier.align(Alignment.TopStart).padding(start=24.dp,end=24.dp,top=topInset+8.dp))
-        WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(start=18.dp,end=18.dp,top=topInset+14.dp),onWeather)
+        // Weather fits text to its slot; keep that slot local to the top-right corner.
+        WeatherWidget(s.weather,Modifier.align(Alignment.TopEnd).padding(start=18.dp,end=18.dp,top=topInset+14.dp)
+            .size(width=184.dp,height=96.dp),onWeather)
     }
 }
 @Composable fun QuickActions(s:UiState,model:MainViewModel,modifier:Modifier,show:(Popup)->Unit,navigate:(String)->Unit) {

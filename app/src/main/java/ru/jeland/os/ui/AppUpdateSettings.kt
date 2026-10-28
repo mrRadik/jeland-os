@@ -18,7 +18,7 @@ import java.util.Locale
     val state by manager.state.collectAsStateWithLifecycle()
     var confirmMobile by remember {mutableStateOf(false)}
     var confirmInstall by remember {mutableStateOf(false)}
-    var installWithSession by remember {mutableStateOf(false)}
+    var installWithSession by remember {mutableStateOf(true)}
     var confirmCleanup by remember {mutableStateOf(false)}
     val busy=state.checking||state.downloading||state.installing||state.cleaningApks
     val candidate=state.available
@@ -41,8 +41,8 @@ import java.util.Locale
                         Control("Остановить",Modifier.fillMaxWidth().testTag("updates-cancel-download")){manager.cancelDownload()}
                     }
                     state.downloaded->{
-                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){installWithSession=false;confirmInstall=true}
-                        if(state.installFallback)Control("Попробовать другой способ установки",Modifier.fillMaxWidth().testTag("updates-install-fallback"),enabled=!busy){installWithSession=true;confirmInstall=true}
+                        Control(if(state.installing)"Готовим установку…"else"Установить обновление",Modifier.fillMaxWidth().testTag("updates-install"),selected=true,enabled=!busy){installWithSession=true;confirmInstall=true}
+                        if(state.installFallback)Control("Открыть APK обычным способом",Modifier.fillMaxWidth().testTag("updates-install-fallback"),enabled=!busy){installWithSession=false;confirmInstall=true}
                         Control("Скачать заново по Wi-Fi",Modifier.fillMaxWidth().testTag("updates-download-again"),enabled=!busy){manager.download()}
                     }
                     else->{

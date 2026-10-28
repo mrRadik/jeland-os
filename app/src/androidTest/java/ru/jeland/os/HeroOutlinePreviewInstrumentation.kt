@@ -12,6 +12,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Assert.assertTrue
 import ru.jeland.os.core.*
 import ru.jeland.os.ui.*
 import ru.jeland.os.ui.theme.*
@@ -40,6 +41,10 @@ class HeroOutlinePreviewInstrumentation {
                 ui.onAllNodesWithContentDescription("Jeland J7 в горах — ${if(dark)"ночь"else"светлый день"}",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
             }
             ui.onNodeWithTag("hero-day-readability",useUnmergedTree=true).assertDoesNotExist()
+            val hero=ui.onNodeWithTag("hero-preview").fetchSemanticsNode().boundsInRoot
+            val weather=ui.onNodeWithTag("weather-widget").fetchSemanticsNode().boundsInRoot
+            assertTrue("Weather stays in the right half of the hero",weather.left>=hero.center.x)
+            assertTrue("Weather stays above the car",weather.bottom<hero.top+hero.height*.45f)
             val folder=File(ui.activity.getExternalFilesDir(null),"qa-0.9.15").apply {mkdirs()}
             File(folder,"hero-${if(dark)"dark"else"light"}.png").outputStream().use {
                 ui.onNodeWithTag("hero-preview").captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)
