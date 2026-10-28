@@ -29,6 +29,7 @@ data class AppUpdateState(
 /** App-scoped downloads; no APK installation, screen launch or vehicle command happens automatically. */
 class AppUpdateManager(context:Context,private val store:SettingsStore,private val report:(String)->Unit={}) {
     private val app=context.applicationContext
+    val installAssist=UpdateInstallAssist(app,store,report)
     private val cm=app.getSystemService(ConnectivityManager::class.java)
     private val source=GitHubUpdateSource()
     private val scope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
@@ -67,6 +68,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         override fun onCapabilitiesChanged(n:Network,c:NetworkCapabilities) {scope.launch {if(foreground){check(false);maybeAutoDownload()}}}
     }
     fun resume() {
+        installAssist.refresh()
         foreground=true;mutable.update {it.copy(installPermission=canInstall())}
         if(!observing)runCatching {cm.registerDefaultNetworkCallback(network);observing=true}
         if(timer?.isActive!=true)timer=scope.launch {while(isActive){check(false);maybeAutoDownload();delay(60_000)}}
@@ -169,12 +171,18 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         if(state.value.cleaningApks)return
         if(state.value.downloading||state.value.checking||state.value.installing||downloadJob?.isActive==true||installJob?.isActive==true)return
         val candidate=state.value.available?.takeIf {state.value.downloaded}?:return
+        installAssist.cancel()
         report("UPDATE_INSTALL_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
         if(!canInstall()) {
             mutable.update {it.copy(installPermission=false,message="Разрешите установку обновлений для Jeland OS и повторите установку.")}
             runCatching {app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:${app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
                 .onFailure {installMessage("Экран разрешения недоступен. Разрешите установку через START.cmd → U или комплектный установщик.")}
             return
+        }
+        installAssist.refresh()
+        if(installAssist.state.value.enabled&&!installAssist.state.value.available) {
+            installMessage("Включите «Jeland OS — помощь при установке» в специальных возможностях Android и повторите установку.")
+            installAssist.openPermission();return
         }
         if(!useSession) {
             installJob=scope.launch {
@@ -188,6 +196,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                     installer.abandon(store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1)
                     store.put(INSTALL_SESSION,"-1");store.put(INSTALL_METHOD,"package_intent")
                     val uri=FileProvider.getUriForFile(app,app.packageName+".updates",ready)
+                    installAssist.arm()
                     app.startActivity(Intent(app,UpdateInstallActivity::class.java).setData(uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                     report("UPDATE_INSTALL_NATIVE_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
                     installMessage("Открываем системное подтверждение установки…")
@@ -209,18 +218,20 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 else store.put(INSTALL_SESSION,session.toString())
                 store.put(INSTALL_METHOD,"session")
                 installMessage("Ожидаем системный установщик…")
+                installAssist.arm()
                 installer.commit(session)
                 report("UPDATE_INSTALL_COMMIT session=$session version=${candidate.manifest.versionCode}")
                 installWatchdog?.cancel();installWatchdog=scope.launch {
                     delay(20_000)
                     if(state.value.installing) {
                         mutable.update {it.copy(installing=false,installFallback=true)}
+                        installAssist.cancel()
                         installMessage("Установщик не ответил. Нажмите «Установить обновление» ещё раз; файл сохранён.")
                         report("UPDATE_INSTALL_TIMEOUT session=$session")
                     }
                 }
             }catch(c:CancellationException){throw c}
-            catch(e:Exception){installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false,installFallback=true)}
+            catch(e:Exception){installAssist.cancel();installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false,installFallback=true)}
                 installMessage("Установка не открыта: ${reason(e)}");report("UPDATE_INSTALL_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
         }
     }
@@ -231,11 +242,13 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         installMessage("Подтвердите установку в системном окне. Данные приложения сохраняются.")
     }
     internal fun nativeInstallFailed(e:Exception) {
+        installAssist.cancel()
         mutable.update {it.copy(installing=false,installFallback=true,installPermission=canInstall())}
         installMessage("Не удалось открыть установку: ${reason(e)}. APK сохранён; можно попробовать другой способ.")
         report("UPDATE_INSTALL_NATIVE_FAILED ${e.javaClass.simpleName}: ${e.message.orEmpty().take(200)}")
     }
     internal fun nativeInstallReturned(result:Int,data:Intent?) {
+        installAssist.cancel()
         val legacy=data?.getIntExtra("android.intent.extra.INSTALL_RESULT",Int.MIN_VALUE)
         store.put(INSTALL_RESULT,"activity=$result legacy=$legacy")
         report("UPDATE_INSTALL_NATIVE_RESULT activity=$result legacy=$legacy permission=${canInstall()}")
@@ -267,6 +280,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 OwnUpdateApkCache.clear(app.filesDir)
             }
             confirmation=null;installWatchdog?.cancel();store.put(INSTALL_SESSION,"-1")
+            installAssist.cancel()
             val ready=state.value.available?.let {file(it).isFile}==true
             if(!ready)store.put(PENDING,"")
             store.put(LAST_AUTO_DOWNLOAD,System.currentTimeMillis().toString())
@@ -290,12 +304,13 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         mutable.update {it.copy(installing=false)}
         if(status==PackageInstaller.STATUS_PENDING_USER_ACTION) {
             @Suppress("DEPRECATION") val next=intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
-            if(next==null){installMessage("Установщик не передал окно подтверждения. Повторите установку.");return}
+            if(next==null){installAssist.cancel();installMessage("Установщик не передал окно подтверждения. Повторите установку.");return}
             confirmation=next
-            if(foreground)openConfirmation(next)else installMessage("Установщик готов. Нажмите «Установить обновление», чтобы открыть подтверждение.")
+            if(foreground)openConfirmation(next)else {installAssist.cancel();installMessage("Установщик готов. Нажмите «Установить обновление», чтобы открыть подтверждение.")}
             return
         }
         confirmation=null;store.put(INSTALL_SESSION,"-1")
+        installAssist.cancel()
         mutable.update {it.copy(installFallback=status!=PackageInstaller.STATUS_SUCCESS)}
         val message=when(status) {
             PackageInstaller.STATUS_SUCCESS->{store.put(PENDING,"");mutable.update {it.copy(downloaded=false)};"Обновление установлено"}
@@ -313,12 +328,13 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         try {
             val id=store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1
             check(id>=0){"Установочная сессия отсутствует"}
+            installAssist.arm()
             app.startActivity(Intent(app,UpdateInstallActivity::class.java)
                 .putExtra(UpdateInstallActivity.CONFIRMATION,Intent(intent))
                 .putExtra(UpdateInstallActivity.SESSION,id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             installMessage("Подтвердите обновление в системном установщике. Данные приложения сохраняются.")
             report("UPDATE_INSTALL_CONFIRMATION_OPENED session=$id")
-        }catch(e:Exception){confirmation=null;mutable.update {it.copy(installing=false,installFallback=true)};installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
+        }catch(e:Exception){installAssist.cancel();confirmation=null;mutable.update {it.copy(installing=false,installFallback=true)};installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
     }
     internal fun sessionConfirmationReturned(id:Int) {
         // Android 11 may return RESULT_CANCELED even after acceptance. The session callback,
@@ -331,6 +347,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
             delay(20_000)
             if(id==store.string(INSTALL_SESSION,"-1").toIntOrNull()&&state.value.installing) {
                 mutable.update {it.copy(installing=false,installFallback=true)}
+                installAssist.cancel()
                 installMessage("Android не подтвердил установку. APK сохранён; доступен запасной способ.")
                 report("UPDATE_INSTALL_CONFIRMATION_TIMEOUT session=$id")
             }

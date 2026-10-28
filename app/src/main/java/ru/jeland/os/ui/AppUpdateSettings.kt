@@ -3,6 +3,8 @@ package ru.jeland.os.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,6 +18,7 @@ import java.util.Locale
 
 @Composable fun AppUpdateSettings(manager:AppUpdateManager) {
     val state by manager.state.collectAsStateWithLifecycle()
+    val assist by manager.installAssist.state.collectAsStateWithLifecycle()
     var confirmMobile by remember {mutableStateOf(false)}
     var confirmInstall by remember {mutableStateOf(false)}
     var installWithSession by remember {mutableStateOf(true)}
@@ -30,6 +33,18 @@ import java.util.Locale
             SettingsToggle("Автоматически скачивать по Wi-Fi","Только сеть без ограничения трафика. Установка — после вашего подтверждения",state.autoDownloadWifi,
                 Modifier.testTag("updates-auto-download")){manager.autoDownload(!state.autoDownloadWifi)}
             Label(state.message,Modifier.testTag("updates-status"),small=true)
+            SettingsToggle("Если не нажимается «Установить»",
+                "Помощь через специальные возможности Android. Одно нажатие только для обновления Jeland OS после вашего подтверждения.",
+                assist.enabled,Modifier.testTag("updates-install-assist")){
+                    manager.installAssist.enabled(!assist.enabled)
+                    if(!assist.enabled&&!assist.available)manager.installAssist.openPermission()
+                }
+            if(assist.enabled)Box(Modifier.fillMaxWidth().heightIn(min=58.dp),contentAlignment=Alignment.CenterStart) {
+                if(!assist.available)Control("Включить помощь при установке в Android",Modifier.fillMaxWidth()
+                    .testTag("updates-install-assist-permission")){manager.installAssist.openPermission()}
+                else Label("Помощь при установке подключена",small=true,muted=true)
+            }
+            if(assist.message.isNotBlank())Label(assist.message,small=true)
             state.lastChecked?.let {at->Label("Последняя успешная проверка: "+DateTimeFormatter.ofPattern("d MMM, HH:mm",Locale.forLanguageTag("ru"))
                 .withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(at)),small=true,muted=true)}
             Control(if(state.checking)"Проверяем…"else"Проверить обновления",Modifier.fillMaxWidth().testTag("updates-check"),enabled=!busy){manager.check()}
