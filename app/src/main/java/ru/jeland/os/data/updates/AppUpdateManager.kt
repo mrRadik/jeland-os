@@ -181,7 +181,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         }
         installAssist.refresh()
         if(installAssist.state.value.enabled&&!installAssist.state.value.available) {
-            installMessage("Включите «Jeland OS — помощь при установке» в специальных возможностях Android и повторите установку.")
+            installMessage("Подключите службу через компьютер: install.cmd из комплекта помощи при установке. После этого повторите обновление.")
             installAssist.openPermission();return
         }
         if(!useSession) {

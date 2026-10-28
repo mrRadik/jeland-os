@@ -40,7 +40,7 @@ import java.util.Locale
                     if(!assist.enabled&&!assist.available)manager.installAssist.openPermission()
                 }
             if(assist.enabled)Box(Modifier.fillMaxWidth().heightIn(min=58.dp),contentAlignment=Alignment.CenterStart) {
-                if(!assist.available)Control("Включить помощь при установке в Android",Modifier.fillMaxWidth()
+                if(!assist.available)Control("Как подключить через компьютер",Modifier.fillMaxWidth()
                     .testTag("updates-install-assist-permission")){manager.installAssist.openPermission()}
                 else Label("Помощь при установке подключена",small=true,muted=true)
             }

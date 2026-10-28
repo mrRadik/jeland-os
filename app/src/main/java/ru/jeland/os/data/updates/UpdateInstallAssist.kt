@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
-import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
@@ -29,13 +28,11 @@ class UpdateInstallAssist(context:Context,private val store:SettingsStore,privat
         val available=runCatching {app.getSystemService(AccessibilityManager::class.java)
             .getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
             .any {ComponentName.unflattenFromString(it.id)==component}}.getOrDefault(false)
-        mutable.value=mutable.value.copy(enabled=store.string(KEY,"false")=="true",available=available)
+        // Granting this service from the PC is also an explicit opt-in. A saved Off choice wins.
+        mutable.value=mutable.value.copy(enabled=store.string(KEY,"").toBooleanStrictOrNull()?:available,available=available)
     }
     fun enabled(value:Boolean) {store.put(KEY,value.toString());if(!value)cancel();refresh()}
-    fun openPermission() {
-        runCatching {app.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}
-            .onFailure {mutable.value=mutable.value.copy(message="Откройте Специальные возможности Android и включите «Jeland OS — помощь при установке».")}
-    }
+    fun openPermission() {mutable.value=mutable.value.copy(message="Подключите компьютер к ГУ по USB и запустите install.cmd из комплекта помощи при установке. Меню Android не требуется.")}
     /** Called only after APK size, SHA-256, identity and signing checks pass. */
     fun arm() {
         cancel();refresh()
