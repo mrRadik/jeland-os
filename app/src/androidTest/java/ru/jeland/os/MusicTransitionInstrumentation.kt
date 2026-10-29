@@ -17,7 +17,7 @@ class MusicTransitionInstrumentation {
 
     @Test fun pageInsetsAnimateWhileHeaderSidebarAndClimateStayInPlace() {
         val app=(ui.activity.application as JelandApplication).container
-        ui.runOnIdle {app.car.useVehicle(false);app.navigation.provider.voice.setEnabled(false)}
+        ui.runOnIdle {app.car.useVehicle(false);app.navigation.voice.setEnabled(false)}
         for(theme in listOf(ThemeMode.DARK,ThemeMode.LIGHT)) {
             ui.mainClock.autoAdvance=true
             ui.runOnIdle {app.theme.setMode(theme)}

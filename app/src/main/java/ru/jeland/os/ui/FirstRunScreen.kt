@@ -96,7 +96,7 @@ import ru.jeland.os.ui.theme.Jeland
     if(voiceLicense)Dialog(onDismissRequest={voiceLicense=false},properties=DialogProperties(usePlatformDefaultWidth=false)) {
         Panel(Modifier.fillMaxWidth(.9f).fillMaxHeight(.85f)){Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
             Control("Закрыть",Modifier.fillMaxWidth()){voiceLicense=false}
-            NavigationVoiceLicensePanel(model.dependencies.navigation.provider.voice){voiceLicense=false}
+            NavigationVoiceLicensePanel(model.dependencies.navigation.voice){voiceLicense=false}
         }}
     }
     LaunchedEffect(page){scroll.scrollTo(0)}
@@ -123,7 +123,7 @@ import ru.jeland.os.ui.theme.Jeland
                     4->{
                         SectionTitle("Навигация","Скачайте карты нужного региона. Настройки доступны и позже на вкладке навигации.")
                         NavigationMapSettings(model.dependencies.navigation)
-                        NavigationVoicePanel(model.dependencies.navigation.provider.voice){voiceLicense=true}
+                        NavigationVoicePanel(model.dependencies.navigation.voice){voiceLicense=true}
                     }
                     else->{
                         SectionTitle("Можно ехать","Jeland OS подключается к автомобилю автоматически")

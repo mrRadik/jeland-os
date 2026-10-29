@@ -10,7 +10,10 @@ bash ./gradlew --no-daemon --console=plain --stacktrace --continue \
   testDebugUnitTest lintDebug assembleDebug compileDebugAndroidTestKotlin
 ```
 
-Нужны JDK 21, Android SDK Platform 36 и Build Tools 35.0.0.
+Нужны JDK 21, Python 3.11+, Android SDK Platform 36 и Build Tools 35.0.0.
+Перед локальной сборкой выполните `git submodule update --init third_party/comaps`.
+CI загружает этот подмодуль автоматически. Подготовка движка и карт описана
+в [инструкции CoMaps](COMAPS.md).
 Отчёты JUnit и Lint доступны в Actions в `android-check-reports` в течение 7 дней.
 Отдельная проверка **Windows installer checks** проверяет синтаксис PowerShell
 и сценарии установщика в Windows с подменённым ADB, без подключения к устройству.

@@ -198,7 +198,6 @@ import ru.jeland.os.ui.theme.Jeland
     }
 }
 @Composable fun NavigationWidget(s:NavigationState,modifier:Modifier,onClick:()->Unit) {
-    s.external?.let {InstalledNavigationWidget(it,modifier,onClick);return}
     val c=Jeland.colors
     Box(modifier.fillMaxHeight().clip(Jeland.card).border(1.dp,c.outline,Jeland.card).clickable(onClick=onClick).testTag("navigation-widget")) {
         MockMap(s,Modifier.fillMaxSize())

@@ -5,3 +5,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "JelandOS"
 include(":app")
+include(":comaps-sdk")
