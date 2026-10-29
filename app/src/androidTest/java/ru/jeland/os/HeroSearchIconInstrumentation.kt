@@ -58,25 +58,6 @@ class HeroSearchIconInstrumentation {
         }
         assertEquals(2,clicked)
     }
-    @Test fun actualOrganizationIndexAndSearchRowsIncludeHouseAddressInBothThemes()=runBlocking<Unit> {
-        val app=(ui.activity.application as JelandApplication).container
-        val results=app.navigation.maps.search("Магнит Косметик Каслинская 34")
-        val target=results.first {it.locality=="Челябинск"&&it.address=="Каслинская улица 34"}
-        val other=app.navigation.maps.search("Магнит Челябинск").first {it.address.isNotBlank()&&it.address!=target.address}
-        assertEquals(55.187484,target.point.latitude,.000001)
-        assertEquals(61.392918,target.point.longitude,.000001)
-        var selected:ru.jeland.os.navigation.NavigationPlace?=null
-        for(dark in listOf(false,true)) {
-            ui.activityRule.scenario.onActivity {it.setContent {JelandTheme(dark) {
-                NavigationSearchPanel(TextFieldValue("Магнит"),{},listOf(target,other),false,null,{selected=it},Modifier.fillMaxSize().background(Jeland.colors.background))
-            }}}
-            ui.onNodeWithTag("navigation-result-locality-0",useUnmergedTree=true).assertTextEquals("Челябинск · Каслинская улица 34")
-            ui.onNodeWithTag("navigation-result-locality-1",useUnmergedTree=true).assertTextEquals(other.searchSubtitle)
-            capture("search-${if(dark)"dark"else"light"}")
-            ui.onNodeWithTag("navigation-result-0").performClick()
-            assertEquals(target,selected)
-        }
-    }
     @Test fun manifestLoadsNewAdaptiveIconAndRendersSmallSizes() {
         val icon=ui.activity.packageManager.getApplicationIcon(ui.activity.packageName)
         assertTrue(icon is AdaptiveIconDrawable)

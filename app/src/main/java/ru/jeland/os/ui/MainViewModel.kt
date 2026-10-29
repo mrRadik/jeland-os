@@ -77,9 +77,6 @@ class MainViewModel(val dependencies: AppContainer) : ViewModel() {
         if(dependencies.car.link.value.demo){message.value="Штатные камеры доступны на ГУ в режиме автомобиля.";return}
         dependencies.cameras.open {message.value=it}
     }
-    fun openNavigator() {dependencies.navigation.openNavigator()?.let {message.value=it}}
-    fun openNavigationPlace(id:String) {dependencies.navigation.openPlace(id)?.let {message.value=it}}
-    fun navigationAccess() {if(!dependencies.navigation.openNotificationAccess())message.value="Настройки доступа к уведомлениям недоступны."}
     fun openWeather() {if(!dependencies.nativeApps.openWeather())message.value="Штатная погода недоступна."}
     fun notify(text:String) {message.value=text}
     fun clearMessage() {message.value=null}

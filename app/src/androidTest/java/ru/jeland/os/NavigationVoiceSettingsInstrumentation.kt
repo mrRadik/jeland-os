@@ -13,16 +13,15 @@ class NavigationVoiceSettingsInstrumentation {
     @get:Rule val ui=createAndroidComposeRule<MainActivity>()
     private val app get()=(ui.activity.application as JelandApplication).container
     @Test fun speakerSelectionAndLicenseInBothThemes() {
-        ui.runOnIdle {app.car.useVehicle(false);app.navigation.stop();app.navigation.provider.voice.setEnabled(false)}
-        ui.waitUntil(15000){!app.navigation.preparing.value}
+        ui.runOnIdle {app.car.useVehicle(false);app.navigation.stop();app.navigation.voice.setEnabled(false)}
         ui.onNodeWithTag("nav-navigation").performClick()
         ui.onNodeWithTag("navigation-options").performClick()
         for(theme in listOf(ThemeMode.DARK,ThemeMode.LIGHT)) {
             ui.runOnIdle {app.theme.setMode(theme)}
             ui.onNodeWithTag("navigation-voice-1").performScrollTo().performClick()
-            ui.runOnIdle {assertEquals(NavigationSpeaker.FEMALE,app.navigation.provider.voice.speaker.value)}
+            ui.runOnIdle {assertEquals(NavigationSpeaker.FEMALE,app.navigation.voice.speaker.value)}
             ui.onNodeWithTag("navigation-voice-7").performClick()
-            ui.runOnIdle {assertEquals(NavigationSpeaker.MALE,app.navigation.provider.voice.speaker.value)}
+            ui.runOnIdle {assertEquals(NavigationSpeaker.MALE,app.navigation.voice.speaker.value)}
             ui.onNodeWithTag("navigation-voice-speed").assertIsDisplayed()
             ui.onNodeWithTag("climate-bar").assertIsDisplayed()
             val folder=File(ui.activity.getExternalFilesDir(null),"qa-${BuildConfig.VERSION_NAME.substringBefore('-')}").apply {mkdirs()}
@@ -33,8 +32,8 @@ class NavigationVoiceSettingsInstrumentation {
         ui.onNodeWithTag("navigation-voice-license").performScrollTo().performClick()
         ui.onNodeWithTag("navigation-voice-license-accept").assertIsDisplayed()
         ui.onNodeWithText("LICENSE.txt",substring=true).assertExists()
-        ui.onNodeWithTag("navigation-sheet-close").performClick()
+        ui.onNodeWithContentDescription("Закрыть настройки карты").performClick()
         // Inspecting terms alone does not synthesize or change the selected voice.
-        ui.runOnIdle {assertFalse(app.navigation.provider.voice.playing.value)}
+        ui.runOnIdle {assertFalse(app.navigation.voice.playing.value)}
     }
 }

@@ -846,3 +846,23 @@ Android запретил действие. Проверьте разрешени
 {0} км	{0} km
 {0} МБ	{0} MB
 {0} ГБ	{0} GB
+Источник карт	Map source
+Автомобиль остаётся в центре, карта поворачивается по ходу движения	Keep the vehicle centered and rotate the map in the direction of travel
+Карты CoMaps · OpenStreetMap	CoMaps maps · OpenStreetMap
+Карта загружена	Map downloaded
+Найти регион	Find a region
+Назад к списку регионов	Back to regions
+Разрешить мобильную сеть	Allow mobile data
+Скачанные карты работают без интернета	Downloaded maps work offline
+Скачать недостающие карты	Download missing maps
+Скачать карты для маршрута	Download maps for the route
+Не удалось скачать. Проверьте подключение	Download failed. Check your connection
+Сначала завершите маршрут	End the route first
+Ожидаем точное местоположение GPS	Waiting for an accurate GPS location
+Не удалось запустить карту CoMaps	Could not start the CoMaps map
+Устройство не поддерживает отрисовку карты	This device does not support map rendering
+Для маршрута скачайте недостающие регионы	Download the missing regions for this route
+Не удалось построить маршрут. Проверьте точки и загруженные карты.	Could not calculate the route. Check the route points and downloaded maps.
+Разрешите мобильную сеть для скачивания карты	Allow mobile data to download this map
+Недостаточно места для карты	Not enough space for this map
+Нажмите, чтобы выбрать адрес	Tap to choose an address

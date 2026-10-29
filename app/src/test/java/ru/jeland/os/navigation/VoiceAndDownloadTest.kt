@@ -65,9 +65,4 @@ class VoiceAndDownloadTest {
         val p=VoiceAnnouncementPolicy();p.next(1,1,100,"Поверните налево","left",true,false)
         p.reset();assertNotNull(p.next(1,1,100,"Поверните налево","left",true,false))
     }
-    @Test fun downloadUrlRequiresHttpsAndNoEmbeddedCredentials() {
-        for(url in listOf("http://example.org/a.zip","file:///a.zip","https://user:secret@example.org/a.zip","https://example.org/a.zip#x","https:///a.zip"))
-            assertTrue(url,runCatching {validatedMapUrl(url)}.isFailure)
-        assertEquals("https://example.org/a.zip",validatedMapUrl(" https://example.org/a.zip "))
-    }
 }

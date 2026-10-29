@@ -1,7 +1,6 @@
 package ru.jeland.os.navigation
 
 import kotlin.math.*
-import ru.jeland.os.core.NavigationState
 import ru.jeland.os.core.validCoordinates
 
 private const val METERS_PER_DEGREE=111320.0
@@ -41,35 +40,3 @@ internal class NavigationCourseTracker {
         return course
     }
 }
-
-/** Presentation fallback only: forward along the route, never bearing towards the next turn.
- * Remaining distance disambiguates overlapping/out-and-back legs; distant off-route fixes are rejected.
- */
-internal fun routeForwardCourse(geometry:List<Pair<Double,Double>>,position:GeoPoint?,remainingMeters:Double?=null):Double? {
-    if(geometry.size<2)return null
-    val points=geometry.map {GeoPoint(it.first,it.second)}
-    if(points.any {!validCoordinates(it.latitude,it.longitude)})return null
-    if(position==null)return points.zipWithNext().firstNotNullOfOrNull {(a,b)->courseBetween(a,b)}
-    if(!validCoordinates(position.latitude,position.longitude))return null
-    val scale=cos(Math.toRadians(position.latitude)).coerceAtLeast(.01)
-    fun xy(p:GeoPoint)=Pair(longitudeDelta(p.longitude-position.longitude)*METERS_PER_DEGREE*scale,(p.latitude-position.latitude)*METERS_PER_DEGREE)
-    val lengths=DoubleArray(points.size)
-    for(i in 1..points.lastIndex)lengths[i]=lengths[i-1]+distance(points[i-1],points[i])
-    var best=Double.POSITIVE_INFINITY;var bestProgress=Double.POSITIVE_INFINITY;var chosen=-1
-    for(i in 0 until points.lastIndex) {
-        val (ax,ay)=xy(points[i]);val (bx,by)=xy(points[i+1]);val dx=bx-ax;val dy=by-ay
-        val square=dx*dx+dy*dy;if(square<.25)continue
-        val t=(-(ax*dx+ay*dy)/square).coerceIn(0.0,1.0)
-        val separation=hypot(ax+t*dx,ay+t*dy)
-        val progress=remainingMeters?.takeIf {it.isFinite()&&it>=0}?.let {abs(lengths.last()-(lengths[i]+t*(lengths[i+1]-lengths[i]))-it)}?:0.0
-        if(separation<best-1.0||(abs(separation-best)<=1.0&&progress<bestProgress)) {
-            best=separation;bestProgress=progress;chosen=i
-        }
-    }
-    if(chosen<0||best>80.0)return null
-    return courseBetween(points[chosen],points[chosen+1])
-}
-
-internal fun navigationCourse(state:NavigationState,position:GeoPoint?,gpsCourse:Double?):Double? =
-    gpsCourse?.takeIf {it.isFinite()}?.let {navigationBearing(it)}?:
-    if(state.active)routeForwardCourse(state.geometry,position,state.kilometers.takeIf {it>0}?.times(1000))else null

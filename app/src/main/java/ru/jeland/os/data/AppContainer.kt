@@ -19,7 +19,6 @@ class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data
     val car=routing.session
     val startup=SystemStartup(context,store,car::recordIntegration,wakeControl={WakeStartupService.sync(context,it)})
     val assistantAvatar=OemAssistantAvatar(context,car::recordIntegration)
-    init {ru.jeland.os.navhost.NavHostConnection.report=car::recordIntegration}
     val vehicle: VehicleRepository=routing.vehicle
     val climate: ClimateRepository=routing.climate
     val seats: SeatRepository=routing.seats

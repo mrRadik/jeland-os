@@ -22,8 +22,10 @@ android {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 100
+        versionCode = 101
         versionName = "1.0.0"
+        // Native ARM64 on the HU, native x86_64 in BlueStacks (no ARM GL bridge).
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
@@ -37,18 +39,19 @@ android {
     }
     sourceSets["androidTest"].assets.srcDir("schemas")
     // Preserve the previous model on disk, but no longer ship it in the application.
-    androidResources { ignoreAssetsPattern = "supertonic-3-int8" }
+    androidResources {
+        ignoreAssetsPattern = "supertonic-3-int8"
+        // CoMaps uses random access into assets in the APK.
+        noCompress += listOf("txt","bin","html","png","json","mwm","ttf","sdf","ui","config","csv","spv","obj")
+    }
     compileOptions { isCoreLibraryDesugaringEnabled = true; sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}") }
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 kapt {arguments {arg("room.schemaLocation","$projectDir/schemas")}}
 dependencies {
+    implementation(project(":comaps-sdk"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-    // Explicit OpenGL ES backend for Android 11 head units; do not rely on Vulkan defaults.
-    implementation("org.maplibre.gl:android-sdk-opengl:13.7.1")
-    implementation("io.github.rallista:valhalla-mobile:0.6.4")
-    implementation("com.stadiamaps.ferrostar:core:0.58.0")
     kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
     implementation("androidx.room:room-runtime:2.7.2")
     implementation("androidx.room:room-ktx:2.7.2")

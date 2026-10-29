@@ -44,13 +44,7 @@ interface WeatherRepository { val state: StateFlow<WeatherState>; fun useCity(ci
 interface NavigationRepository {
     val state: StateFlow<NavigationState>
     fun toggleRoute(); fun setDestination(value: String); fun zoom(delta: Float); fun nextManeuver()
-    fun refresh() {}
-    fun selectProvider(value:NavigationProvider) {}
-    fun openNavigator():String?="Навигатор не подключён."
-    fun openPlace(id:String):String?="Место не задано."
-    fun savePlace(id:String,title:String,coordinates:String):String?="Место не сохранено."
-    fun removePlace(id:String) {}
-    fun openNotificationAccess():Boolean=false
+
 }
 interface ThemeRepository { val mode: StateFlow<ThemeMode>; fun setMode(value: ThemeMode) }
 interface DayNightProvider { val isNight: StateFlow<Boolean> }
