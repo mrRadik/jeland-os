@@ -17,6 +17,7 @@ class AndroidGpsSource(context:Context):AutoCloseable {
     private val flow=MutableSharedFlow<Location>(replay=1,extraBufferCapacity=32)
     @Volatile private var last:Location?=null
     private var listening=false
+    private var demo=false
     private val courseTracker=NavigationCourseTracker()
     val position=kotlinx.coroutines.flow.MutableStateFlow<GeoPoint?>(null)
     val bearing=kotlinx.coroutines.flow.MutableStateFlow<Double?>(null)
@@ -30,6 +31,7 @@ class AndroidGpsSource(context:Context):AutoCloseable {
         status.value="${if(mocked)"ТЕСТОВЫЙ GPS-провайдер"else"GNSS"} · точность ±${location.accuracy.toInt()} м"
     }
     fun start():Boolean {
+        if(demo)return true
         if(app.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){status.value="Разрешите доступ к GPS";return false}
         if(listening)return true
         return try {
@@ -43,16 +45,30 @@ class AndroidGpsSource(context:Context):AutoCloseable {
         val location=last?:return null
         val age=(android.os.SystemClock.elapsedRealtimeNanos()-location.elapsedRealtimeNanos)/1_000_000
         @Suppress("DEPRECATION") val mocked=location.isFromMockProvider
-        return if(!mocked&&location.provider==LocationManager.GPS_PROVIDER&&age in 0..30000&&location.hasAccuracy()&&location.accuracy<=100)
+        val demoFix=ru.jeland.os.BuildConfig.DEMO_FEATURES&&demo&&location.provider=="jeland-demo"
+        return if((demoFix||!mocked&&location.provider==LocationManager.GPS_PROVIDER)&&age in 0..30000&&location.hasAccuracy()&&location.accuracy<=100)
             GeoPoint(location.latitude,location.longitude)else null
     }
     fun voiceMotion():NavigationVoiceMotion {
         val fix=last?:return NavigationVoiceMotion()
         val age=(android.os.SystemClock.elapsedRealtimeNanos()-fix.elapsedRealtimeNanos)/1_000_000
-        if(fix.provider!=LocationManager.GPS_PROVIDER||age !in 0..3000)return NavigationVoiceMotion()
+        if((fix.provider!=LocationManager.GPS_PROVIDER&&!(ru.jeland.os.BuildConfig.DEMO_FEATURES&&demo))||age !in 0..3000)return NavigationVoiceMotion()
         return NavigationVoiceMotion(fix.speed.toDouble().takeIf {fix.hasSpeed()&&it.isFinite()&&it in 0.0..70.0},age)
     }
     fun locationUpdates(intervalMillis:Long)=flow.asSharedFlow()
+    internal fun demoLocation(point:GeoPoint,heading:Double,speedMps:Float) {
+        check(ru.jeland.os.BuildConfig.DEMO_FEATURES)
+        if(!demo){pause();demo=true}
+        listener.onLocationChanged(Location("jeland-demo").apply {
+            latitude=point.latitude;longitude=point.longitude;accuracy=3f;bearing=heading.toFloat();speed=speedMps
+            time=System.currentTimeMillis();elapsedRealtimeNanos=android.os.SystemClock.elapsedRealtimeNanos()
+        })
+        status.value="DEMO · имитация движения"
+    }
+    internal fun endDemo() {
+        if(!demo)return
+        demo=false;last=null;position.value=null;bearing.value=null;courseTracker.reset()
+    }
     fun pause(){manager.removeUpdates(listener);listening=false}
     override fun close(){pause()}
 }

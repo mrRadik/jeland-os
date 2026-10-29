@@ -68,7 +68,7 @@ data class MediaState(val index: Int = 0, val playing: Boolean = false, val posi
     val track: Track get() = if(live)liveTrack?:Track("Музыка","",0) else demoTracks[index.coerceIn(demoTracks.indices)]
 }
 data class NavigationState(
-    val demo:Boolean=true, val preview:Boolean=false, val calculating:Boolean=false, val instruction:String="", val status:String="",
+    val demo:Boolean=true, val preview:Boolean=false, val calculating:Boolean=false, val instruction:String="", val status:String="",val arrived:Boolean=false,
     val geometry:List<Pair<Double,Double>> = emptyList(),
     val active: Boolean = true, val destination: String = "На работу", val maneuver: Maneuver = Maneuver.RIGHT,
     val distanceToManeuver: Int = 800, val street: String = "ул. Ленина", val minutes: Int = 12,

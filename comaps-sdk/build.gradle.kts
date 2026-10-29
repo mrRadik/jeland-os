@@ -10,6 +10,7 @@ val prepareCoMaps by tasks.registering(Exec::class) {
     commandLine("python", "tools/prepare-comaps.py", "--output", prepared.get().asFile.absolutePath)
     inputs.file(rootProject.file("tools/prepare-comaps.py"))
     inputs.dir(upstream)
+    inputs.dir(rootProject.file("third_party/comaps/android/app/src/main/res"))
     inputs.property("sourceCommit", providers.exec {
         commandLine("git", "-C", rootProject.file("third_party/comaps").absolutePath, "rev-parse", "HEAD")
     }.standardOutput.asText)

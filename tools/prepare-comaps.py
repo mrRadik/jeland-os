@@ -13,6 +13,7 @@ from pathlib import Path, PurePosixPath
 import subprocess
 import urllib.request
 import zipfile
+import xml.etree.ElementTree as ET
 
 VERSION = "v2026.10.05-19"
 SHA256 = "7eea2f49dd79e583e14cd9ebac3b98e754b3e351dad2522530e40cedf9b5987a"
@@ -63,6 +64,31 @@ def prepare(output: Path):
             target = output / "res" / path.relative_to(source / "android/sdk/src/main/res")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(resource_content(path))
+    # Native search/POI code looks up additional labels dynamically. They live
+    # in the upstream app, rather than SDK resources (e.g. hotel stars). Keep
+    # those labels too; missing ones can crash upstream's debug Toast path on
+    # a native worker thread. Main Jeland resources still override library names.
+    ET.register_namespace("xliff", "urn:oasis:names:tc:xliff:document:1.2")
+    for values in (source / "android/app/src/main/res").glob("values*"):
+        if not values.is_dir():
+            continue
+        destination = output / "res" / values.name
+        existing = set()
+        for xml in destination.glob("*.xml"):
+            if xml.name == "comaps-native-strings.xml":
+                continue
+            for entry in ET.fromstring(xml.read_bytes()):
+                existing.add((entry.tag, entry.get("name")))
+        supplemental = ET.Element("resources")
+        for xml in values.glob("*.xml"):
+            for entry in ET.fromstring(resource_content(xml)):
+                key = (entry.tag, entry.get("name"))
+                if entry.tag in ("string", "plurals", "string-array") and key not in existing:
+                    supplemental.append(entry)
+                    existing.add(key)
+        if len(supplemental):
+            destination.mkdir(parents=True, exist_ok=True)
+            ET.ElementTree(supplemental).write(destination / "comaps-native-strings.xml", encoding="utf-8", xml_declaration=True)
     count = 0
     with zipfile.ZipFile(cache) as archive:
         for item in archive.infolist():

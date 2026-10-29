@@ -15,6 +15,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
@@ -32,6 +35,7 @@ import app.organicmaps.sdk.downloader.CountryItem
 import ru.jeland.os.localization.LocalizedIcon as Icon
 import ru.jeland.os.localization.LocalizedText as Text
 import ru.jeland.os.navigation.*
+import ru.jeland.os.BuildConfig
 import ru.jeland.os.ui.*
 import ru.jeland.os.ui.theme.*
 
@@ -39,12 +43,13 @@ import ru.jeland.os.ui.theme.*
 // transfer ownership before attaching the next surface, including the home map.
 private var currentSurface:JelandMapView?=null
 
-@Composable private fun CoMapsSurface(repository:CoMapsRepository,dark:Boolean,modifier:Modifier=Modifier) {
+@Composable private fun CoMapsSurface(repository:CoMapsRepository,dark:Boolean,modifier:Modifier=Modifier,topOverlay:Int=0,bottomOverlay:Int=0,guidance:Boolean=false) {
     val ready by repository.ready.collectAsStateWithLifecycle()
     val error by repository.error.collectAsStateWithLifecycle()
     val lifecycle=LocalLifecycleOwner.current
     val context=LocalContext.current
     var view by remember {mutableStateOf<JelandMapView?>(null)}
+    var size by remember {mutableStateOf(IntSize.Zero)}
     LaunchedEffect(repository){repository.initialize()}
     LaunchedEffect(ready,dark){if(ready)repository.theme(dark)}
     DisposableEffect(lifecycle,ready) {
@@ -68,7 +73,11 @@ private var currentSurface:JelandMapView?=null
             mapView.map().setCallbackUnsupported {repository.error.value="Устройство не поддерживает отрисовку карты"}
             mapView.map().onStart();mapView.map().onResume();currentSurface=mapView;view=mapView
         }
-    },modifier=modifier.testTag("comaps-map"),onRelease={old->
+    },modifier=modifier.testTag("comaps-map").onSizeChanged {size=it},update={mapView->
+        if(currentSurface===mapView)coMapsViewport(size.width,size.height,topOverlay,bottomOverlay,guidance)?.let {
+            mapView.setViewport(it.top,it.right,it.bottom,it.followOffset)
+        }
+    },onRelease={old->
         if(currentSurface===old){repository.surfacePaused();old.map().onPause();old.map().onStop();old.map().onSurfaceDestroyed(false);currentSurface=null}
         view=null
     })else Box(modifier.background(Jeland.colors.map),contentAlignment=Alignment.Center) {
@@ -90,37 +99,56 @@ private var currentSurface:JelandMapView?=null
     var query by rememberSaveable(stateSaver=TextFieldValue.Saver){mutableStateOf(TextFieldValue())}
     var favorite by remember {mutableStateOf<NavigationPlace?>(null)}
     val c=Jeland.colors
+    val guidance=state.active&&!state.preview
+    var topOverlay by remember {mutableIntStateOf(0)}
+    var bottomOverlay by remember {mutableIntStateOf(0)}
+    val gap=with(LocalDensity.current){8.dp.roundToPx()}
     val permission=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){repository.resume();if(following)repository.follow()}
     LaunchedEffect(query.text,ready){repository.search(query.text)}
     BackHandler(sheet!=null){sheet=null}
     BoxWithConstraints(Modifier.fillMaxSize().testTag("comaps-navigation-screen")) {
-        CoMapsSurface(repository,dark,Modifier.fillMaxSize())
+        CoMapsSurface(repository,dark,Modifier.fillMaxSize(),topOverlay+gap,bottomOverlay+gap,guidance)
         val width=(maxWidth-28.dp).coerceAtMost(620.dp)
-        Column(Modifier.align(Alignment.TopStart).padding(14.dp).width(width),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-            Panel(Modifier.fillMaxWidth().clickable {sheet="search"}.testTag("navigation-search-open")) {
+        val maneuverWidth=if(guidance)(maxWidth*.72f).coerceAtMost(390.dp)else width
+        Column(Modifier.align(Alignment.TopStart).onSizeChanged {topOverlay=it.height}.padding(14.dp).width(maneuverWidth),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            if(!guidance)Panel(Modifier.fillMaxWidth().clickable {sheet="search"}.testTag("navigation-search-open")) {
                 Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                     Icon(JIcons.Search,null,Modifier.size(28.dp),tint=c.accent)
                     Text("Куда поедем?",Modifier.weight(1f),color=c.text,fontSize=Jeland.type.body)
                     Text("CoMaps",color=c.muted,fontSize=Jeland.type.footnote)
                 }
             }
-            if(state.active&&!state.preview)Panel(Modifier.fillMaxWidth()) {
+            if(guidance)Panel(Modifier.fillMaxWidth().testTag("navigation-maneuver")) {
                 Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)) {
-                    Icon(navigationManeuverIcon(state),null,Modifier.size(48.dp),tint=c.accent)
-                    Column {Text(distanceLabel(state.distanceToManeuver.toDouble()),color=c.accent,fontSize=Jeland.type.heading);Text(state.instruction,color=c.text,fontSize=Jeland.type.body)}
+                    Icon(navigationManeuverIcon(state),null,Modifier.size(54.dp),tint=c.accent)
+                    Column(Modifier.weight(1f)) {
+                        Text(distanceLabel(state.distanceToManeuver.toDouble()),color=c.accent,fontSize=Jeland.type.heading)
+                        Text(state.instruction.substringBefore(" · "),color=c.text,fontSize=Jeland.type.body,maxLines=2,overflow=TextOverflow.Ellipsis)
+                        if(state.street.isNotBlank())Text(state.street,color=c.muted,fontSize=Jeland.type.footnote,maxLines=1,overflow=TextOverflow.Ellipsis)
+                    }
                 }
             }
         }
         Column(Modifier.align(Alignment.CenterEnd).padding(14.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            if(guidance)RoundControl(JIcons.Search,"Поиск места",Modifier.testTag("navigation-search-open")){sheet="search"}
             RoundControl(JIcons.Add,"Приблизить карту",Modifier.testTag("navigation-zoom-in"),enabled=ready){repository.zoom(1)}
             RoundControl(JIcons.Remove,"Отдалить карту",Modifier.testTag("navigation-zoom-out"),enabled=ready){repository.zoom(-1)}
             RoundControl(JIcons.Navigation,"Следовать за автомобилем",Modifier.testTag("navigation-recenter"),active=following,enabled=ready){repository.follow();permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))}
             RoundControl(JIcons.Settings,"Настройки карты",Modifier.testTag("navigation-options")){sheet="options"}
         }
-        Column(Modifier.align(Alignment.BottomStart).padding(14.dp).width(width),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        val summaryWidth=if(guidance||state.arrived)(maxWidth*.65f).coerceAtMost(360.dp)else width
+        Column(Modifier.align(Alignment.BottomStart).onSizeChanged {bottomOverlay=it.height}.padding(14.dp).width(summaryWidth),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             if(message.isNotBlank())Panel(Modifier.fillMaxWidth()) {Label(message,Modifier.padding(14.dp),small=true)}
             if(missing.isNotEmpty())Control("Скачать недостающие карты",Modifier.fillMaxWidth()){sheet="maps"}
-            if(state.active||selected!=null)Panel(Modifier.fillMaxWidth()) {
+            if(guidance||state.arrived)Panel(Modifier.fillMaxWidth().testTag("navigation-trip-summary")) {
+                Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(if(state.arrived)"Вы прибыли"else"Прибытие ${state.arrivalTime}",color=c.text,fontSize=Jeland.type.title,maxLines=1)
+                        Text(if(state.arrived)state.destination else"${state.minutes} мин · ${distanceLabel(state.kilometers*1000)}",color=c.muted,fontSize=Jeland.type.footnote,maxLines=1,overflow=TextOverflow.Ellipsis)
+                    }
+                    RoundControl(JIcons.Close,if(state.arrived)"Закрыть маршрут"else"Завершить маршрут"){if(state.arrived)repository.clearSelection()else repository.stop()}
+                }
+            }else if(state.active||selected!=null)Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                         Column(Modifier.weight(1f)) {
@@ -160,6 +188,10 @@ private var currentSurface:JelandMapView?=null
                         SettingsToggle("Следовать за автомобилем","Автомобиль остаётся в центре, карта поворачивается по ходу движения",following){repository.setFollowing(!following)}
                         Control("Скачать карты",Modifier.fillMaxWidth()){sheet="maps"}
                         Control("Разрешить GPS",Modifier.fillMaxWidth()){permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))}
+                        if(BuildConfig.DEMO_FEATURES)Control(if(state.demo&&state.active)"Остановить демо-поездку"else"Демо-поездка",Modifier.fillMaxWidth().testTag("navigation-demo-drive")) {
+                            if(state.demo&&state.active)repository.stop()else repository.startDemoTrip()
+                            sheet=null
+                        }
                         NavigationVoicePanel(repository.voice){sheet="voice"}
                     }
                 }
@@ -172,13 +204,14 @@ private var currentSurface:JelandMapView?=null
 @Composable fun CoMapsWidget(host:OfflineNavigationRepository,dark:Boolean,modifier:Modifier,framed:Boolean,onClick:()->Unit) {
     val state by host.comaps.state.collectAsStateWithLifecycle()
     val c=Jeland.colors
+    var bottomOverlay by remember {mutableIntStateOf(0)}
     val content:@Composable ()->Unit={
         Box(Modifier.fillMaxSize()) {
-            CoMapsSurface(host.comaps,dark,Modifier.fillMaxSize())
+            CoMapsSurface(host.comaps,dark,Modifier.fillMaxSize(),bottomOverlay=bottomOverlay,guidance=state.active&&!state.preview)
             Box(Modifier.matchParentSize().clickable(onClick=onClick))
             Text("© OpenStreetMap · CoMaps",color=c.muted,fontSize=Jeland.type.micro,
                 modifier=Modifier.align(Alignment.TopEnd).background(c.panel.copy(alpha=.8f)).padding(4.dp))
-            Row(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(c.panel.copy(alpha=.92f)).clickable(onClick=onClick).padding(14.dp),
+            Row(Modifier.align(Alignment.BottomStart).fillMaxWidth().onSizeChanged {bottomOverlay=it.height}.background(c.panel.copy(alpha=.92f)).clickable(onClick=onClick).padding(14.dp),
                 horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
                 Icon(if(state.active)navigationManeuverIcon(state)else JIcons.Navigation,null,Modifier.size(38.dp),tint=c.accent)
                 Column(Modifier.weight(1f)) {

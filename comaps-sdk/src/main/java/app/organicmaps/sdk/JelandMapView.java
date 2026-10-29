@@ -18,24 +18,47 @@ import app.organicmaps.sdk.location.LocationHelper;
 public final class JelandMapView extends TextureView implements TextureView.SurfaceTextureListener {
   private final Map map = new Map(DisplayType.Device);
   private Surface surface;
+  private Rect viewport;
+  private Rect appliedViewport;
+  private int followOffset;
+  private int appliedOffset = -1;
   public JelandMapView(Context context, LocationHelper location, MapRenderingListener listener) {
     super(context);
     map.setLocationHelper(location);
     map.setMapRenderingListener(listener);
+    map.onCreate(false);
     setSurfaceTextureListener(this);
     setOpaque(true);
   }
   public Map map() { return map; }
+  public void setViewport(int top, int right, int bottom, int offset) {
+    viewport = new Rect(0, top, right, bottom);
+    followOffset = offset;
+    applyViewport();
+  }
+  private void applyViewport() {
+    if (surface == null || viewport == null || !Map.isEngineCreated()) return;
+    if (viewport.equals(appliedViewport) && followOffset == appliedOffset) return;
+    Framework.nativeSetVisibleRect(viewport.left, viewport.top, viewport.right, viewport.bottom);
+    map.updateMyPositionRoutingOffset(followOffset);
+    map.updateBottomWidgetsOffset(getContext(), 0, Math.max(0, getHeight() - viewport.bottom));
+    appliedViewport = new Rect(viewport);
+    appliedOffset = followOffset;
+  }
   @Override public void onSurfaceTextureAvailable(@NonNull SurfaceTexture texture, int width, int height) {
     surface = new Surface(texture);
+    appliedViewport = null;
     Rect frame = new Rect(0, 0, width, height);
     map.onSurfaceCreated(getContext(), surface, frame, getResources().getDisplayMetrics().densityDpi);
     // TextureView does not emit an initial size-changed callback. CoMaps needs
     // this second step when reattaching its existing engine to a new viewport.
     map.onSurfaceChanged(getContext(), surface, frame, true);
+    applyViewport();
   }
   @Override public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture texture, int width, int height) {
     map.onSurfaceChanged(getContext(), surface, new Rect(0, 0, width, height), false);
+    appliedViewport = null;
+    applyViewport();
   }
   @Override public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture texture) {
     map.onSurfaceDestroyed(false);
