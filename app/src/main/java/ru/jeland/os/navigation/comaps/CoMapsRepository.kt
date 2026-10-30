@@ -64,6 +64,7 @@ class CoMapsRepository(context:Context,private val gps:AndroidGpsSource,val voic
     private var centeredForFollow=false
     private var followNeedsZoom=true
     private val journey=CoMapsGuidanceSession()
+    private val routeUpdate=CoMapsRouteUpdate()
     private var routeRequested=false
     private var routeTransition=false
     private var routeBuildJob:Job?=null
@@ -98,22 +99,29 @@ class CoMapsRepository(context:Context,private val gps:AndroidGpsSource,val voic
     }
     private val routing=object:RoutingController.Container {
         override fun showRoutePlan(show:Boolean,completion:Runnable?){completion?.run()}
-        override fun onStartRouteBuilding(){state.value=state.value.copy(calculating=!journey.started);message.value=if(journey.started)"Перестраиваем маршрут…"else"Строим маршрут…"}
+        override fun onStartRouteBuilding(){state.value=state.value.copy(calculating=!journey.started,geometry=emptyList());message.value=if(journey.started)"Перестраиваем маршрут…"else"Строим маршрут…"}
         override fun onBuiltRoute() {
             if(!routeRequested)return
-            missingMaps.value=emptyList();message.value="";updateGuidance()
+            missingMaps.value=emptyList();message.value=""
             // NEED_MORE_MAPS also emits onBuiltRoute before the error callback.
             val session=routeSession
             routeBuildJob?.cancel()
             routeBuildJob=scope.launch {
-                delay(100)
-                if(!routeRequested||session!=routeSession||missingMaps.value.isNotEmpty()||state.value.geometry.size<2)return@launch
-                if(allowFollow&&!journey.started)startGuidance()
-                else when(journey.built(state.value.geometry.hashCode(),allowFollow)) {
-                    NavigationJourneyEvent.REBUILT->{maneuverIdentity.reset();voice.journey(NavigationJourneyEvent.REBUILT)}
-                    else->Unit
+                repeat(20) {
+                    delay(100)
+                    if(!routeRequested||session!=routeSession||missingMaps.value.isNotEmpty())return@launch
+                    val nativeState=Framework.nativeGetRouteFollowingInfo()?.routingSessionState?.name
+                    if(nativeState!=null&&CoMapsRouteUpdate.ready(nativeState)&&RoutingController.get().routeGeometry.pointCount>1) {
+                        updateGuidance()
+                        if(allowFollow&&!journey.started)startGuidance()
+                        else when(journey.built(state.value.geometry.hashCode(),allowFollow)) {
+                            NavigationJourneyEvent.REBUILT->{maneuverIdentity.reset();voice.journey(NavigationJourneyEvent.REBUILT)}
+                            else->Unit
+                        }
+                        if(!allowFollow)routeTransition=false
+                        return@launch
+                    }
                 }
-                if(!allowFollow)routeTransition=false
             }
         }
         override fun onCommonBuildError(code:Int,maps:Array<String>) {
@@ -123,6 +131,7 @@ class CoMapsRepository(context:Context,private val gps:AndroidGpsSource,val voic
         }
         override fun onNavigationCancelled(){state.value=state.value.copy(active=false,calculating=false)}
         override fun onPlanningCancelled(){state.value=state.value.copy(active=false,calculating=false)}
+        override fun updateBuildProgress(progress:Int,router:Router){if(ready.value&&routeRequested)updateGuidance()}
         override fun refreshNavigationController(){if(ready.value&&routeRequested)updateGuidance()}
     }
     fun initialize() {
@@ -266,7 +275,7 @@ class CoMapsRepository(context:Context,private val gps:AndroidGpsSource,val voic
         val target=selected.value?:return
         val origin=from?:gps.routeOrigin()
         if(origin==null){message.value="Ожидаем точное местоположение GPS";resume();return}
-        routeBuildJob?.cancel();journey.reset();routeRequested=true;routeTransition=true;startAttempts=0
+        routeBuildJob?.cancel();journey.reset();routeUpdate.reset();routeRequested=true;routeTransition=true;startAttempts=0
         searchJob?.cancel();timestamp++;SearchEngine.INSTANCE.cancel()
         Framework.nativeDeactivatePopup();Framework.nativeDeactivateMapSelectionCircle(false)
         allowFollow=from==null;routeSession++;maneuverIdentity.reset()
@@ -311,33 +320,40 @@ class CoMapsRepository(context:Context,private val gps:AndroidGpsSource,val voic
         if(!routeRequested)return
         val controller=RoutingController.get()
         val info=Framework.nativeGetRouteFollowingInfo()?:return
-        if(journey.update(info.routingSessionState.name)==NavigationJourneyEvent.ARRIVED){finishArrival();return}
+        val nativeState=info.routingSessionState.name
+        if(journey.update(nativeState,location!=null)==NavigationJourneyEvent.ARRIVED){finishArrival();return}
+        if(routeUpdate.clearDrawing(nativeState)) {
+            // This API removes only drape subroutes. It retains the routing
+            // session, destination and camera; the next native InsertRoute adds
+            // the replacement drawing. Never close/restart guidance here.
+            Framework.nativeRemoveRoute()
+        }
+        if(CoMapsRouteUpdate.isBuilding(nativeState)) {
+            state.value=state.value.copy(geometry=emptyList())
+            return
+        }
+        if(!CoMapsRouteUpdate.ready(nativeState))return
         val geometry=controller.routeGeometry.mJunctions.map {it.mLon to it.mLat}
         val direction=info.carDirection.name
         val distance=coMapsMeters(info.distToTurn.mDistance,info.distToTurn.mUnits.ordinal).toInt()
         val street=info.nextStreet.orEmpty()
         val step=maneuverIdentity.update(direction,street,distance)
         val modifier=when {direction.contains("U_TURN")->"UTURN";direction.contains("LEFT")->"LEFT";direction.contains("RIGHT")->"RIGHT";else->"STRAIGHT"}
-        val instruction=when {
-            direction=="REACHED_YOUR_DESTINATION"->"Место назначения"
-            direction.contains("ROUND_ABOUT")->"Круговое движение"
-            modifier=="UTURN"->"Развернитесь"
-            modifier=="LEFT"->"Поверните налево"
-            modifier=="RIGHT"->"Поверните направо"
-            else->"Продолжайте движение прямо"
-        }+if(street.isNotBlank()&&direction!="REACHED_YOUR_DESTINATION")" · $street"else""
-        state.value=state.value.copy(calculating=false,active=true,geometry=geometry.ifEmpty {state.value.geometry},instruction=instruction,
+        val roundabout=direction.contains("ROUND_ABOUT")
+        val instruction=coMapsTurnInstruction(direction,info.exitNum)+if(street.isNotBlank()&&direction!="REACHED_YOUR_DESTINATION")" · $street"else""
+        state.value=state.value.copy(calculating=false,active=true,geometry=geometry,instruction=instruction,
+            roundaboutExit=info.exitNum.takeIf {roundabout&&it>0},
             maneuver=when(modifier){"UTURN","LEFT"->Maneuver.LEFT;"RIGHT"->Maneuver.RIGHT;else->Maneuver.STRAIGHT},
             street=street,distanceToManeuver=distance,minutes=(info.totalTimeInSeconds/60).coerceAtLeast(1),kilometers=coMapsMeters(info.distToTarget.mDistance,info.distToTarget.mUnits.ordinal)/1000,
             arrivalTime=LocalTime.now().plusSeconds(info.totalTimeInSeconds.toLong()).format(DateTimeFormatter.ofPattern("HH:mm")))
-        if(location!=null&&allowFollow) {
+        if(location!=null&&allowFollow&&journey.started&&nativeState=="OnRoute") {
             val motion=gps.voiceMotion()
-            voice.announce(routeSession,step,distance,instruction,"TURN",modifier,false,motion.speedMps,motion.fixAgeMillis,if(direction=="REACHED_YOUR_DESTINATION")""else street)
+            voice.announce(routeSession,step,distance,instruction,if(roundabout)"ROUNDABOUT"else"TURN",modifier,false,motion.speedMps,motion.fixAgeMillis,if(direction=="REACHED_YOUR_DESTINATION")""else street)
         }
     }
     private fun finishArrival() {
         endDemo()
-        routeRequested=false;allowFollow=false;routeTransition=false;routeBuildJob?.cancel()
+        routeRequested=false;allowFollow=false;routeTransition=false;routeBuildJob?.cancel();routeUpdate.reset()
         RoutingController.get().cancel()
         state.value=state.value.copy(active=false,calculating=false,arrived=true,instruction="Вы прибыли",distanceToManeuver=0,minutes=0,kilometers=0.0)
         message.value="";voice.journey(NavigationJourneyEvent.ARRIVED)
@@ -346,7 +362,7 @@ class CoMapsRepository(context:Context,private val gps:AndroidGpsSource,val voic
         if(!ready.value)return
         endDemo()
         val event=journey.stop()
-        routeRequested=false;routeTransition=false;routeBuildJob?.cancel();followJob?.cancel();routeSession++
+        routeRequested=false;routeTransition=false;routeBuildJob?.cancel();followJob?.cancel();routeSession++;routeUpdate.reset()
         allowFollow=false;RoutingController.get().cancel();voice.stop()
         state.value=NavigationState(demo=false,active=false,destination="",geometry=emptyList(),instruction="");missingMaps.value=emptyList()
         message.value=""

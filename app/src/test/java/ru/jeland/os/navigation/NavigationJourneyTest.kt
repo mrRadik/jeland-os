@@ -6,8 +6,48 @@ import ru.jeland.os.navigation.comaps.CoMapsGuidanceSession
 import ru.jeland.os.navigation.comaps.coMapsViewport
 import ru.jeland.os.navigation.comaps.CoMapsDemoRoute
 import ru.jeland.os.navigation.comaps.CoMapsManeuverIdentity
+import ru.jeland.os.navigation.comaps.CoMapsRouteUpdate
+import ru.jeland.os.navigation.comaps.coMapsTurnInstruction
 
 class NavigationJourneyTest {
+    @Test fun transientNativeStatesAndIntermediateGeometryDoNotRepeatTheRebuildAnnouncement() {
+        val session=CoMapsGuidanceSession();session.built(1,true)
+        session.update("RouteNeedsRebuild",true)
+        session.update("RouteRebuilding",true)
+        assertEquals(NavigationJourneyEvent.REBUILT,session.built(2,true))
+        session.update("RouteRebuilding",true)
+        assertNull(session.built(3,true))
+        repeat(10){session.update("OnRoute")} // callbacks are not GPS confirmation
+        assertNull(session.built(3,true))
+        repeat(3){session.update("OnRoute",true)}
+        session.update("RouteNeedsRebuild",true)
+        assertEquals("A later real deviation must still be announced",NavigationJourneyEvent.REBUILT,session.built(4,true))
+    }
+    @Test fun drawingIsClearedOnceDuringRebuildAndNeverAfterTheReplacementWasInserted() {
+        val update=CoMapsRouteUpdate()
+        assertFalse(update.clearDrawing("OnRoute"))
+        assertTrue(update.clearDrawing("RouteNeedsRebuild"))
+        assertFalse(update.clearDrawing("RouteRebuilding"))
+        assertFalse(update.clearDrawing("RouteRebuilding"))
+        assertFalse(CoMapsRouteUpdate.ready("RouteRebuilding"))
+        assertTrue(CoMapsRouteUpdate.ready("OnRoute"))
+        assertFalse(update.clearDrawing("OnRoute"))
+        assertFalse(update.clearDrawing("OnRoute"))
+        assertTrue(update.clearDrawing("RouteNeedsRebuild"))
+        update.reset()
+        assertTrue(update.clearDrawing("RouteBuilding"))
+    }
+    @Test fun roundaboutExitComesFromTheRouterAndIsSpokenAsAnOrdinal() {
+        val enter=coMapsTurnInstruction("ENTER_ROUND_ABOUT",3)
+        assertEquals("На круговом движении выберите съезд № 3",enter)
+        assertEquals("Через сто пятьдесят метров на круговом движении выберите третий съезд",
+            navigationSpeechText(voiceAnnouncement(150,enter,"roundabout").text))
+        assertEquals("Съезжайте с кругового движения, первый съезд",
+            navigationSpeechText(coMapsTurnInstruction("LEAVE_ROUND_ABOUT",1)))
+        assertFalse(coMapsTurnInstruction("ENTER_ROUND_ABOUT",0).contains("№"))
+        assertFalse(coMapsTurnInstruction("LEAVE_ROUND_ABOUT",0).contains("№"))
+        assertEquals("Поверните направо",coMapsTurnInstruction("TURN_RIGHT",5))
+    }
     @Test fun correctedStreetLabelIsNotANewManeuverButTheNextCloseTurnIs() {
         val identity=CoMapsManeuverIdentity()
         assertEquals(1,identity.update("TURN_RIGHT","улица Мира",500))

@@ -121,8 +121,8 @@ import ru.jeland.os.ui.theme.Jeland
         if(Jeland.style==DashboardStyle.MINIMAL) {
             Panel(modifier.fillMaxHeight().testTag("music-widget")) {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
-                    if(maxWidth<320.dp)Column(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=10.dp),
-                        verticalArrangement=Arrangement.spacedBy(12.dp,Alignment.CenterVertically),horizontalAlignment=Alignment.CenterHorizontally) {
+                    if(maxWidth<320.dp)Column(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=6.dp),
+                        verticalArrangement=Arrangement.spacedBy(6.dp,Alignment.CenterVertically),horizontalAlignment=Alignment.CenterHorizontally) {
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                             AlbumArtwork(s,Modifier.size(64.dp),square=true)
                             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
@@ -130,6 +130,7 @@ import ru.jeland.os.ui.theme.Jeland
                                 MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
                             }
                         }
+                        MinimalMusicProgress(s,Modifier.fillMaxWidth())
                         MusicTransport(s,r,Modifier.fillMaxWidth(),compact=true,borderless=true)
                         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                             Icon(if(s.source.contains("Bluetooth",true))JIcons.Bluetooth else JIcons.MusicNote,null,Modifier.size(18.dp),tint=Jeland.colors.accent)
@@ -140,6 +141,7 @@ import ru.jeland.os.ui.theme.Jeland
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
                             MusicMarqueeText(musicDisplayTitle(s),Jeland.colors.text,Jeland.type.clockSmall,Modifier.testTag("media-title"))
                             MusicMarqueeText(s.track.artist,Jeland.colors.muted,Jeland.type.caption,Modifier.testTag("media-artist"))
+                            MinimalMusicProgress(s,Modifier.fillMaxWidth())
                             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                                 MusicTransport(s,r,Modifier.weight(1f),compact=true,borderless=true)
                                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
