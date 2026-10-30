@@ -8,6 +8,7 @@ import app.organicmaps.sdk.downloader.CountryItem
 import app.organicmaps.sdk.Framework
 import app.organicmaps.sdk.location.LocationState
 import app.organicmaps.sdk.downloader.MapManager
+import app.organicmaps.sdk.routing.RoutingController
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
@@ -184,6 +185,60 @@ class CoMapsIntegrationInstrumentation {
             capture("guidance-compact-and-following")
         }finally {
             ui.runOnIdle {engine.stop(false);app.navigation.voice.setEnabled(wasEnabled);app.navigation.gps.start()}
+        }
+    }
+
+    @Test fun nativeDeviationReplacesTheRouteWithoutClosingGuidance() {
+        assumeTrue(shell("getprop init.svc.bstsvcmgrtest")=="running")
+        assumeTrue(BuildConfig.DEMO_FEATURES)
+        val app=(ui.activity.application as JelandApplication).container
+        val engine=app.navigation.comaps
+        val gps=app.navigation.gps
+        val voiceEnabled=app.navigation.voice.enabled.value
+        ui.runOnIdle {app.firstRun.finish();app.navigation.voice.setEnabled(false)}
+        ui.onNodeWithTag("nav-navigation").performClick()
+        ui.waitUntil(30_000){engine.ready.value}
+        ui.runOnIdle {
+            engine.openFolder("Countries")
+            if(MapManager.nativeGetStatus("Andorra")!=CountryItem.STATUS_DONE)engine.download("Andorra",true)
+        }
+        ui.waitUntil(180_000){engine.regions.value.any {it.id=="Andorra"&&it.status==CountryItem.STATUS_DONE}}
+        fun fix(point:GeoPoint) {
+            ui.runOnIdle {
+                val location=android.location.Location(engine.locationHelper.savedLocation?.provider?:"gps").apply {
+                    latitude=point.latitude;longitude=point.longitude;accuracy=3f;bearing=45f;speed=8f
+                    time=System.currentTimeMillis();elapsedRealtimeNanos=android.os.SystemClock.elapsedRealtimeNanos()
+                }
+                engine.locationHelper.onLocationChanged(location)
+                engine.updateGuidance(location)
+            }
+        }
+        try {
+            ui.runOnIdle {
+                engine.stop(false)
+                gps.demoLocation(GeoPoint(42.5078,1.5220),45.0,8f)
+            }
+            fix(GeoPoint(42.5078,1.5220))
+            ui.runOnIdle {engine.select(NavigationPlace("Encamp",GeoPoint(42.5367,1.5824)));engine.build()}
+            ui.waitUntil(30_000){engine.state.value.active&&engine.state.value.geometry.size>1}
+            val before=engine.state.value.geometry
+            repeat(4){fix(CoMapsDemoRoute(before).sample(20.0+it*8)!!.first);Thread.sleep(600)}
+            var rebuilt=emptyList<Pair<Double,Double>>()
+            for(i in 0..24) {
+                fix(GeoPoint(42.5055,1.5160-i*.00002));Thread.sleep(600)
+                val geometry=engine.state.value.geometry
+                if(geometry.size>1&&geometry!=before){rebuilt=geometry;break}
+            }
+            assertTrue("Native reroute did not replace the geometry",rebuilt.size>1)
+            repeat(4){fix(CoMapsDemoRoute(rebuilt).sample(20.0+it*8)!!.first);Thread.sleep(600)}
+            ui.runOnIdle {
+                assertTrue(Framework.nativeIsRoutingActive())
+                assertNotEquals("RouteNoFollowing",Framework.nativeGetRouteFollowingInfo()?.routingSessionState?.name)
+                assertEquals(RoutingController.get().routeGeometry.mJunctions.map {it.mLon to it.mLat},engine.state.value.geometry)
+            }
+            capture("native-route-after-deviation")
+        }finally {
+            ui.runOnIdle {engine.stop(false);gps.endDemo();gps.start();app.navigation.voice.setEnabled(voiceEnabled)}
         }
     }
 }

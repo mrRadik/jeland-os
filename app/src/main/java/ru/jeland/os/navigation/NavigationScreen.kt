@@ -2,7 +2,16 @@ package ru.jeland.os.navigation
 
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ru.jeland.os.localization.LocalizedIcon as Icon
+import ru.jeland.os.localization.LocalizedText as Text
 import ru.jeland.os.core.Maneuver
 import ru.jeland.os.navigation.comaps.CoMapsScreen
 import ru.jeland.os.navigation.comaps.CoMapsWidget
@@ -26,4 +35,14 @@ import ru.jeland.os.ui.theme.JIcons
     state.maneuver==Maneuver.LEFT->JIcons.TurnLeft
     state.maneuver==Maneuver.RIGHT->JIcons.TurnRight
     else->JIcons.Straight
+}
+
+@Composable internal fun NavigationManeuverSymbol(state:ru.jeland.os.core.NavigationState,modifier:Modifier=Modifier) {
+    BoxWithConstraints(modifier,contentAlignment=Alignment.Center) {
+        Icon(navigationManeuverIcon(state),null,Modifier.fillMaxSize(),tint=Jeland.colors.accent)
+        state.roundaboutExit?.let {exit->
+            Text("$exit",Modifier.background(Jeland.colors.background,CircleShape).padding(horizontal=4.dp,vertical=1.dp)
+                .testTag("navigation-roundabout-exit"),color=Jeland.colors.accent,fontSize=(maxWidth.value*.32f).sp)
+        }
+    }
 }
