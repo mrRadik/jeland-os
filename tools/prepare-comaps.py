@@ -6,6 +6,7 @@ Only the listed assets/libs are extracted; no upstream classes.dex/application c
 """
 import argparse
 import base64
+import copy
 import hashlib
 import json
 import os
@@ -19,6 +20,23 @@ VERSION = "v2026.10.05-19"
 SHA256 = "7eea2f49dd79e583e14cd9ebac3b98e754b3e351dad2522530e40cedf9b5987a"
 URL = "https://codeberg.org/comaps/comaps/releases/download/" + VERSION + "/CoMaps-26100519-main-release.apk"
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def complete_hebrew_plurals(resources: ET.Element, qualifier: str):
+    # Upstream uses newer CLDR Hebrew rules (one/two/other). Android Lint
+    # still requires the older `many` category, used by some Android versions.
+    # Those quantities already fall back to `other`; make that fallback explicit
+    # in generated resources without changing the pinned upstream checkout.
+    if qualifier.split("-")[1:2] not in (["iw"], ["he"], ["b+he"]):
+        return
+    for plural in resources.findall("plurals"):
+        if plural.find("item[@quantity='many']") is not None:
+            continue
+        other = plural.find("item[@quantity='other']")
+        if other is not None:
+            many = copy.deepcopy(other)
+            many.set("quantity", "many")
+            plural.append(many)
 
 
 def prepare(output: Path):
@@ -87,6 +105,7 @@ def prepare(output: Path):
                     supplemental.append(entry)
                     existing.add(key)
         if len(supplemental):
+            complete_hebrew_plurals(supplemental, values.name)
             destination.mkdir(parents=True, exist_ok=True)
             ET.ElementTree(supplemental).write(destination / "comaps-native-strings.xml", encoding="utf-8", xml_declaration=True)
     count = 0
