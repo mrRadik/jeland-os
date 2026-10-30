@@ -22,12 +22,13 @@ URL = "https://codeberg.org/comaps/comaps/releases/download/" + VERSION + "/CoMa
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def complete_hebrew_plurals(resources: ET.Element, qualifier: str):
-    # Upstream uses newer CLDR Hebrew rules (one/two/other). Android Lint
-    # still requires the older `many` category, used by some Android versions.
-    # Those quantities already fall back to `other`; make that fallback explicit
-    # in generated resources without changing the pinned upstream checkout.
-    if qualifier.split("-")[1:2] not in (["iw"], ["he"], ["b+he"]):
+def complete_android_plurals(resources: ET.Element, qualifier: str):
+    # Upstream omits some `many` categories, including fractional quantities
+    # in Czech/Slovak/Lithuanian. Android Lint's locale rules require them.
+    # Keep the current `other` fallback explicit in generated resources,
+    # preserving both formatting and the pinned upstream checkout.
+    language = qualifier.split("-")[1] if "-" in qualifier else ""
+    if language not in {"iw", "he", "cs", "sk", "lt"}:
         return
     for plural in resources.findall("plurals"):
         if plural.find("item[@quantity='many']") is not None:
@@ -105,7 +106,7 @@ def prepare(output: Path):
                     supplemental.append(entry)
                     existing.add(key)
         if len(supplemental):
-            complete_hebrew_plurals(supplemental, values.name)
+            complete_android_plurals(supplemental, values.name)
             destination.mkdir(parents=True, exist_ok=True)
             ET.ElementTree(supplemental).write(destination / "comaps-native-strings.xml", encoding="utf-8", xml_declaration=True)
     count = 0
