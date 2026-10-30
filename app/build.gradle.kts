@@ -22,18 +22,26 @@ android {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 101
-        versionName = "1.0.0"
+        versionCode = 102
+        versionName = "1.0.1"
         // Native ARM64 on the HU, native x86_64 in BlueStacks (no ARM GL bridge).
-        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        ndk { abiFilters += if(providers.gradleProperty("localDemoAbi").orNull=="x86_64")listOf("x86_64")else listOf("arm64-v8a", "x86_64") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
     testBuildType=providers.gradleProperty("testBuildType").getOrElse("debug")
     buildTypes {
-        getByName("debug") { buildConfigField("boolean", "DEMO_FEATURES", "true") }
+        getByName("debug") {
+            buildConfigField("boolean", "DEMO_FEATURES", "true")
+            buildConfigField("boolean", "LOCAL_DEMO", providers.gradleProperty("localDemo").getOrElse("false"))
+            // Explicit local build can replace our release in the emulator without losing its maps.
+            if(providers.gradleProperty("localDemo").getOrElse("false")=="true"&&releaseProperties.isNotEmpty()) {
+                signingConfig=signingConfigs.getByName("production")
+            }
+        }
         getByName("release") {
             buildConfigField("boolean", "DEMO_FEATURES", "false")
+            buildConfigField("boolean", "LOCAL_DEMO", "false")
             if(releaseProperties.isNotEmpty())signingConfig=signingConfigs.getByName("production")
         }
     }

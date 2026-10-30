@@ -17,6 +17,7 @@ class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data
     val firstRun=FirstRunSettings(store)
     private val routing=VehicleRouting(context,store)
     val car=routing.session
+    init {if(ru.jeland.os.BuildConfig.LOCAL_DEMO)car.useVehicle(false)}
     val startup=SystemStartup(context,store,car::recordIntegration,wakeControl={WakeStartupService.sync(context,it)})
     val assistantAvatar=OemAssistantAvatar(context,car::recordIntegration)
     val vehicle: VehicleRepository=routing.vehicle

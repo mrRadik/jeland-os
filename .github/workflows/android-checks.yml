@@ -65,6 +65,9 @@ jobs:
           packages: 'platforms;android-36 build-tools;35.0.0'
           log-accepted-android-sdk-licenses: false
 
+      - name: Check CoMaps resource preparation
+        run: python3 -m unittest discover -s tools -p test_prepare_comaps.py
+
       - name: Build, run unit tests and Android Lint
         run: >-
           bash ./gradlew --no-daemon --console=plain --stacktrace --continue
@@ -104,3 +107,4 @@ jobs:
             app/build/reports/tests/testDebugUnitTest/
             app/build/test-results/testDebugUnitTest/
             app/build/reports/lint-results-debug.*
+            comaps-sdk/build/reports/lint-results-debug.*

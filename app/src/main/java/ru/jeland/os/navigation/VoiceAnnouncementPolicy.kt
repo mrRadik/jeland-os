@@ -1,6 +1,12 @@
 package ru.jeland.os.navigation
 
-data class VoiceAnnouncement(val text:String,val distanceMeters:Int?=null)
+data class VoiceAnnouncement(val text:String,val distanceMeters:Int?=null,val includesStreet:Boolean=false)
+
+private fun spokenManeuver(instruction:String,street:String,include:Boolean):String {
+    if(street.isBlank())return instruction
+    val action=instruction.substringBefore(" · ").trim()
+    return if(include)"$action, ${street.trim()}"else action
+}
 
 /** Same ten-metre precision as the map, with full units for speech. */
 fun voiceAnnouncement(meters:Int,instruction:String,kind:String):VoiceAnnouncement {
@@ -24,7 +30,8 @@ class VoiceAnnouncementPolicy {
     private var lastAt:Long?=null
     private var motorway=false
     private var previousProjected:Double?=null
-    fun reset(){step="";route=null;lastStage=-1;lastAt=null;motorway=false;previousProjected=null}
+    private var streetAnnounced=false
+    fun reset(){step="";route=null;lastStage=-1;lastAt=null;motorway=false;previousProjected=null;streetAnnounced=false}
     private fun speed(value:Double?)=value?.takeIf {it.isFinite()&&it in 0.0..70.0}?:0.0
     private fun prepare()=if(motorway)1000 else 500
     private fun approach()=if(motorway)300 else 150
@@ -39,11 +46,11 @@ class VoiceAnnouncementPolicy {
     }
     fun next(session:Int,stepId:Int,meters:Int,instruction:String,kind:String,enabled:Boolean,preview:Boolean,
         speedMps:Double?=null,nowMillis:Long=System.nanoTime()/1_000_000,startupMillis:Long=250,fixAgeMillis:Long=0,
-        recordPlayback:Boolean=true):VoiceAnnouncement? {
+        recordPlayback:Boolean=true,street:String=""):VoiceAnnouncement? {
         if(!enabled||preview||meters<0||instruction.isBlank())return null
         if(route!=session){reset();route=session}
         val key="$session/$stepId"
-        if(key!=step){step=key;lastStage=-1;motorway=speed(speedMps)>=22.2;previousProjected=null}
+        if(key!=step){step=key;lastStage=-1;motorway=speed(speedMps)>=22.2;previousProjected=null;streetAnnounced=false}
         if(lastStage<0)motorway=speed(speedMps)>=22.2
         val projected=(meters-leadMeters(speedMps,startupMillis,fixAgeMillis)).coerceAtLeast(0.0)
         val previous=previousProjected;previousProjected=projected
@@ -55,15 +62,18 @@ class VoiceAnnouncementPolicy {
         // Late first attachment must not say "500 m" when only 300 m really remain.
         val spoken=if(candidate in 0..1&&lastStage<0&&projected<nominal-35&&(previous==null||previous<=nominal))
             projected.toInt().coerceAtLeast(30) else nominal
-        lastStage=candidate;if(recordPlayback)lastAt=nowMillis
-        return voiceAnnouncement(spoken,instruction,kind)
+        val includeStreet=street.isNotBlank()&&!streetAnnounced
+        lastStage=candidate
+        if(recordPlayback){lastAt=nowMillis;if(includeStreet)streetAnnounced=true}
+        return voiceAnnouncement(spoken,spokenManeuver(instruction,street,includeStreet),kind).copy(includesStreet=includeStreet)
     }
-    fun playbackStarted(nowMillis:Long){lastAt=nowMillis}
+    fun playbackStarted(nowMillis:Long,includesStreet:Boolean=false){lastAt=nowMillis;if(includesStreet)streetAnnounced=true}
     /** Uses exactly the same text as normal threshold playback, enabling a real cache hit. */
-    fun upcoming(meters:Int,instruction:String,kind:String,speedMps:Double?=null,startupMillis:Long=250,fixAgeMillis:Long=0):VoiceAnnouncement? {
+    fun upcoming(meters:Int,instruction:String,kind:String,speedMps:Double?=null,startupMillis:Long=250,fixAgeMillis:Long=0,street:String=""):VoiceAnnouncement? {
         if(instruction.isBlank()||kind=="arrive"||meters<0||lastStage>=2)return null
         val projected=(meters-leadMeters(speedMps,startupMillis,fixAgeMillis)).coerceAtLeast(0.0)
         val next=maxOf(lastStage+1,due(projected,speedMps))
-        return voiceAnnouncement(when(next){0->prepare();1->approach();else->0},instruction,kind)
+        val includeStreet=street.isNotBlank()&&!streetAnnounced
+        return voiceAnnouncement(when(next){0->prepare();1->approach();else->0},spokenManeuver(instruction,street,includeStreet),kind).copy(includesStreet=includeStreet)
     }
 }

@@ -20,7 +20,7 @@ import ru.jeland.os.ui.theme.JIcons
     focusedLabelColor=Jeland.colors.accent,unfocusedLabelColor=Jeland.colors.muted)
 
 @Composable internal fun navigationManeuverIcon(state:ru.jeland.os.core.NavigationState)=when {
-    state.instruction.startsWith("Вы прибыли")->JIcons.Destination
+    state.instruction.startsWith("Вы прибыли")||state.instruction=="Место назначения"->JIcons.Destination
     state.instruction.contains("разверн",ignoreCase=true)->JIcons.UTurn
     state.instruction.contains("кругов",ignoreCase=true)||state.instruction.contains("кольц",ignoreCase=true)->JIcons.Roundabout
     state.maneuver==Maneuver.LEFT->JIcons.TurnLeft

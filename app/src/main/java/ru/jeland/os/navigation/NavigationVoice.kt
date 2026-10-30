@@ -44,6 +44,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
     private var guidanceKey=""
     private var prefetched=""
     private var warming=false
+    private var eventInFlight=false
     private var startupEstimateMillis=250.0
     private fun onMain(block:()->Unit){if(Looper.myLooper()==Looper.getMainLooper())block()else handler.post(block)}
     fun setEnabled(value:Boolean){enabled.value=value;prefs.edit().putBoolean("navigation-voice",value).apply();if(!value)stop()else prepare()}
@@ -65,7 +66,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
         }
     }}
     fun announce(session:Int,step:Int,meters:Int,instruction:String,type:String?,modifier:String?,preview:Boolean,
-        speedMps:Double?=null,fixAgeMillis:Long=0) {
+        speedMps:Double?=null,fixAgeMillis:Long=0,street:String="") {
         val kind=when {
             type.orEmpty().contains("ARRIVE")->"arrive"
             type.orEmpty().contains("ROUNDABOUT")||type.orEmpty().contains("ROTARY")||instruction.contains("кругов",true)->"roundabout"
@@ -76,19 +77,24 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
         }
         val token=generation.get()
         onMain {
-            if(closed.get()||token!=generation.get()||!licenseAccepted.value||!enabled.value||preview)return@onMain
+            if(closed.get()||token!=generation.get()||!licenseAccepted.value||!enabled.value||preview||eventInFlight)return@onMain
             val key="$session/$step"
             if(key!=guidanceKey){generation.incrementAndGet();stopAudio();guidanceKey=key;prefetched=""}
             policy.next(session,step,meters,instruction,kind,true,false,speedMps,SystemClock.elapsedRealtime(),
-                startupEstimateMillis.toLong(),fixAgeMillis,recordPlayback=false)?.let {
+                startupEstimateMillis.toLong(),fixAgeMillis,recordPlayback=false,street=street)?.let {
                 android.util.Log.i("JelandNavigation","VOICE_CUE session=$session step=$step remainingM=$meters spokenM=${it.distanceMeters} speedMps=$speedMps fixAgeMs=$fixAgeMillis leadM=${policy.leadMeters(speedMps,startupEstimateMillis.toLong(),fixAgeMillis)}")
-                speak(it.text,true)
+                speak(it.text,true,includesStreet=it.includesStreet)
             }
-            policy.upcoming(meters,instruction,kind,speedMps,startupEstimateMillis.toLong(),fixAgeMillis)?.let {prefetch(it.text)}
+            policy.upcoming(meters,instruction,kind,speedMps,startupEstimateMillis.toLong(),fixAgeMillis,street)?.let {prefetch(it.text)}
         }
     }
+    fun journey(event:NavigationJourneyEvent){onMain {
+        if(closed.get()||!enabled.value||!licenseAccepted.value)return@onMain
+        policy.reset();guidanceKey="";prefetched=""
+        speak(event.speech,event=true)
+    }}
     fun test(){onMain {if(!closed.get())speak(voiceAnnouncement(150,"Поверните направо на улицу Ленина","right").text)}}
-    private fun speak(value:String,timed:Boolean=false) {
+    private fun speak(value:String,timed:Boolean=false,includesStreet:Boolean=false,event:Boolean=false) {
         val token=generation.incrementAndGet()
         stopAudio()
         if(!licenseAccepted.value){status.value="Подтвердите условия RuVoice в настройках голоса";return}
@@ -97,7 +103,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
         if(text.isBlank()||text.length>500){status.value="Некорректная голосовая подсказка";return}
         val chosen=speaker.value;val rate=speed.value
         val requestedAt=SystemClock.elapsedRealtime()
-        generating.value=true;status.value="Подготовка голоса · ${chosen.title.lowercase()}"
+        generating.value=true;eventInFlight=event;status.value="Подготовка голоса · ${chosen.title.lowercase()}"
         worker.execute {
             // Do not play an old distance after a slow service initialization or route change.
             fun obsolete()=closed.get()||token!=generation.get()||(timed&&SystemClock.elapsedRealtime()-requestedAt>3000)
@@ -114,7 +120,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
                 onMain {if(!obsolete()){
                     generating.value=false;lastSynthesisMillis.value=SystemClock.elapsedRealtime()-requestedAt
                     lastAudioMillis.value=(wave.size-44L)*1000/(java.nio.ByteBuffer.wrap(wave).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt(24)*2)
-                    playWave(wave,text,chosen,token,requestedAt,timed,::obsolete)
+                    playWave(wave,text,chosen,token,requestedAt,timed,includesStreet,::obsolete)
                 }}
             }catch(e:Exception){onMain {if(!obsolete()){
                 generating.value=false;status.value=e.message?.takeIf {it.contains("RuVoice")||it.contains("Установите")}?:"Не удалось подготовить голос RuVoice"
@@ -124,7 +130,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
                 generating.value=false;status.value="Голос не поддерживается на этом устройстве"
                 android.util.Log.e("JelandNavigation","RuVoice unavailable",e)
             }}}
-            finally {onMain {if(token==generation.get()&&!playing.value)generating.value=false}}
+            finally {onMain {if(token==generation.get()&&!playing.value){generating.value=false;if(player==null)eventInFlight=false}}}
         }
     }
     /** Only the next threshold, once per step/configuration; never queue a whole route. */
@@ -144,12 +150,12 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
             }catch(e:Exception){if(!obsolete())android.util.Log.w("JelandNavigation","RuVoice prefetch: ${e.message}")}
         }
     }
-    private fun playWave(wave:ByteArray,text:String,chosen:NavigationSpeaker,token:Long,requestedAt:Long,timed:Boolean,obsolete:()->Boolean) {
+    private fun playWave(wave:ByteArray,text:String,chosen:NavigationSpeaker,token:Long,requestedAt:Long,timed:Boolean,includesStreet:Boolean,obsolete:()->Boolean) {
         val request=AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(attributes)
             .setOnAudioFocusChangeListener({change->onMain {
                 if(token==generation.get()&&(change==AudioManager.AUDIOFOCUS_LOSS||change==AudioManager.AUDIOFOCUS_LOSS_TRANSIENT))stop()
             }},handler).build()
-        if(audio.requestAudioFocus(request)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED){status.value="Голос: аудиоканал занят";return}
+        if(audio.requestAudioFocus(request)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED){eventInFlight=false;status.value="Голос: аудиоканал занят";return}
         focus=request
         try {
             player=MediaPlayer().apply {
@@ -168,7 +174,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
                 setOnPreparedListener {if(player===it&&!obsolete()){
                     val startup=(SystemClock.elapsedRealtime()-requestedAt).coerceIn(0,1500)
                     startupEstimateMillis=startupEstimateMillis*.7+startup*.3
-                    if(timed)policy.playbackStarted(SystemClock.elapsedRealtime())
+                    if(timed)policy.playbackStarted(SystemClock.elapsedRealtime(),includesStreet)
                     it.start();lastSpoken.value=text;lastSpeaker.value=chosen.sid;playing.value=true
                     status.value="RuVoice · ${chosen.voiceName.removeSuffix("-ru")} · без сети"
                     android.util.Log.i("JelandNavigation","VOICE_RUVOICE voice=${chosen.voiceName} readyMs=${lastSynthesisMillis.value} audioMs=${lastAudioMillis.value}")
@@ -179,7 +185,7 @@ class NavigationVoice internal constructor(context:Context,private val factory:(
             }
         }catch(e:Exception){stopAudio();status.value="Голос недоступен";android.util.Log.e("JelandNavigation","Voice playback failed",e)}
     }
-    private fun stopAudio(){player?.release();player=null;playing.value=false;generating.value=false;focus?.let {audio.abandonAudioFocusRequest(it)};focus=null}
+    private fun stopAudio(){player?.release();player=null;playing.value=false;generating.value=false;eventInFlight=false;focus?.let {audio.abandonAudioFocusRequest(it)};focus=null}
     fun stop(){generation.incrementAndGet();onMain {policy.reset();guidanceKey="";prefetched="";stopAudio();status.value=readyStatus()}}
     override fun close(){
         if(!closed.compareAndSet(false,true))return
