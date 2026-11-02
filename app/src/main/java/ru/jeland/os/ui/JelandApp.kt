@@ -90,6 +90,10 @@ private val destinations=listOf(
     val c=Jeland.colors
     val home=route=="home"
     val classicHome=home&&state.preferences.style==DashboardStyle.CLASSIC
+    // Fading a native TextureView asks some GL drivers to use unsupported blending.
+    val homeHasNativeMap=state.preferences.style!=DashboardStyle.FREE||
+        state.preferences.freeLayout.widgets.any {it.kind==DashboardWidgetKind.NAVIGATION}
+    fun nativeMapPage(destination:String?)=destination=="navigation"||(destination=="home"&&homeHasNativeMap)
     // Keep the chrome in one coordinate space. Previously moving the header between
     // Column and overlay instantly resized both outgoing and incoming destinations.
     val pageMotion=if(route=="navigation")snap<androidx.compose.ui.unit.Dp>()else tween(320,easing=FastOutSlowInEasing)
@@ -105,12 +109,12 @@ private val destinations=listOf(
                 JelandSidebar(if(popup==Popup.APPS)"apps"else if(route.startsWith("automation-edit/"))"automations"else route,navigate,underHeader=true)
                 NavHost(nav,"home",Modifier.weight(1f).fillMaxHeight().padding(top=pageTop,start=pageStart,end=pageEnd,bottom=10.dp).testTag("screen-content-frame"),
                     enterTransition={
-                        if(initialState.destination.route=="navigation"||targetState.destination.route=="navigation")EnterTransition.None
+                        if(nativeMapPage(initialState.destination.route)||nativeMapPage(targetState.destination.route))EnterTransition.None
                         else if(setOf(initialState.destination.route,targetState.destination.route)==setOf("home","music"))fadeIn(tween(320,delayMillis=40,easing=FastOutSlowInEasing))
                         else fadeIn(tween(Jeland.animation.quick))
                     },
                     exitTransition={
-                        if(initialState.destination.route=="navigation"||targetState.destination.route=="navigation")ExitTransition.None
+                        if(nativeMapPage(initialState.destination.route)||nativeMapPage(targetState.destination.route))ExitTransition.None
                         else if(setOf(initialState.destination.route,targetState.destination.route)==setOf("home","music"))fadeOut(tween(180,easing=FastOutSlowInEasing))
                         else fadeOut(tween(Jeland.animation.quick))
                     }) {

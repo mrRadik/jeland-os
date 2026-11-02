@@ -52,7 +52,7 @@ private val MinimalLight=JelandColors(
     deep=Color(0xFF427B91),warm=Color(0xFF85561F),success=Color(0xFF28775F),scrim=Color(0x77102E46),
     unknown=Color(0xFF65777C),critical=Color(0xFFB4333F))
 fun jelandPalette(dark:Boolean,style:DashboardStyle=DashboardStyle.CLASSIC):JelandColors=
-    if(style==DashboardStyle.MINIMAL)if(dark)MinimalDark else MinimalLight else if(dark)Dark else Light
+    if(style!=DashboardStyle.CLASSIC)if(dark)MinimalDark else MinimalLight else if(dark)Dark else Light
 val LocalJelandColors = staticCompositionLocalOf { Dark }
 val LocalDashboardStyle=staticCompositionLocalOf {DashboardStyle.CLASSIC}
 object Jeland {

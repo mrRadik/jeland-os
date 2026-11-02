@@ -35,6 +35,7 @@ import ru.jeland.os.ui.theme.*
             }
         }
     }
+    if(state.preferences.style==DashboardStyle.FREE)Label("Добавляйте, перемещайте и меняйте размер виджетов кнопкой «Изменить» на главной.",small=true,muted=true)
     Label("Цветовая тема")
     Row(Modifier.fillMaxWidth().selectableGroup(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         ThemeMode.entries.forEach {theme->
@@ -84,6 +85,15 @@ import ru.jeland.os.ui.theme.*
                 miniatureMap(Rect(size.width*.16f,size.height*.37f,size.width*.54f,size.height*.54f),c,dark)
                 panel(.15f,.57f,.825f,.20f)
                 for(i in 0..3) {panel(.16f+i*.205f,.79f,.19f,.07f);panel(.16f+i*.205f,.88f,.19f,.055f)}
+            }else if(style==DashboardStyle.FREE) {
+                FreeDashboardLayout.default().widgets.forEach {widget->
+                    val x=.15f+.83f*widget.x/12f
+                    val y=.04f+.86f*widget.y/21f
+                    val w=.83f*widget.footprint.columns/12f
+                    val h=.86f*widget.footprint.rows/21f
+                    panel(x+.004f,y+.004f,w-.008f,h-.008f,c.raised.copy(alpha=.7f))
+                    if(widget.kind==DashboardWidgetKind.NAVIGATION)miniatureMap(Rect(size.width*(x+.006f),size.height*(y+.006f),size.width*(x+w-.006f),size.height*(y+h-.006f)),c,dark)
+                }
             }else {
                 miniatureMap(Rect(size.width*.16f,size.height*.06f,size.width*.72f,size.height*.31f),c,dark)
                 panel(.77f,.15f,.20f,.12f)
@@ -96,7 +106,9 @@ import ru.jeland.os.ui.theme.*
         if(style==DashboardStyle.CLASSIC) {
             Image(painterResource(heroBackgroundResource(dark)),null,Modifier.offset(maxWidth*.14f,0.dp).size(maxWidth*.86f,maxHeight*.34f),contentScale=ContentScale.Crop)
             VehicleArtwork(Modifier.offset(maxWidth*.34f,maxHeight*.60f).size(maxWidth*.46f,maxHeight*.14f))
-        }else Image(painterResource(R.drawable.vehicle_top),null,
+        }else if(style==DashboardStyle.FREE)Image(painterResource(R.drawable.vehicle_top),null,
+            Modifier.offset(maxWidth*(.15f+.83f*3/12),maxHeight*(.04f+.86f*7/21)).size(maxWidth*(.83f*6/12),maxHeight*(.86f*9/21)),contentScale=ContentScale.Fit)
+        else Image(painterResource(R.drawable.vehicle_top),null,
             Modifier.offset(maxWidth*.39f,maxHeight*.34f).size(maxWidth*.35f,maxHeight*.42f),contentScale=ContentScale.Fit)
     }
 }

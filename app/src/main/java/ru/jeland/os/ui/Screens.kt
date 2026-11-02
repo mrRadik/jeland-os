@@ -32,6 +32,7 @@ import ru.jeland.os.ui.theme.JIcons
 import ru.jeland.os.ui.theme.Jeland
 
 @Composable fun HomeScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit,navigate:(String)->Unit) {
+    if(s.preferences.style==DashboardStyle.FREE){FreeHomeScreen(s,model,show,navigate);return}
     if(s.preferences.style==DashboardStyle.MINIMAL){MinimalHomeScreen(s,model,show,navigate);return}
     BoxWithConstraints(Modifier.fillMaxSize()) {
         // Proportions follow the approved portrait reference, without oversized empty card slots.
@@ -71,26 +72,35 @@ import ru.jeland.os.ui.theme.Jeland
             .size(width=184.dp,height=96.dp),onWeather)
     }
 }
-@Composable fun QuickActions(s:UiState,model:MainViewModel,modifier:Modifier,show:(Popup)->Unit,navigate:(String)->Unit) {
-    Row(modifier,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        QuickTile("Подогрев\nруля",s.vehicle.steeringSummary,JIcons.Steering,Modifier.weight(1f).testTag("quick-steering"),s.vehicle.steeringHeat,onClick=model.dependencies.vehicle::toggleSteeringHeat)
-        QuickTile("Панорамная\nшторка",s.vehicle.shadeUiSummary,JIcons.Shade,Modifier.weight(1f).testTag("quick-shade"),false){show(Popup.SHADE)}
-        QuickTile("Камеры\n360°","Штатные камеры",JIcons.Cameraswitch,Modifier.weight(1f).testTag("quick-cameras"),false,onClick=model::openCameras)
-        QuickTile("Инженерное\nменю","Диагностика ГУ",JIcons.Settings,Modifier.weight(1f).testTag("quick-engineering"),false,onClick=model::openEngineeringMenu)
+@Composable fun QuickActions(s:UiState,model:MainViewModel,modifier:Modifier,show:(Popup)->Unit,navigate:(String)->Unit,columns:Int=4) {
+    DashboardTileGrid(4,columns,modifier) {index,tile->
+        when(index) {
+            0->QuickTile("Подогрев\nруля",s.vehicle.steeringSummary,JIcons.Steering,tile.testTag("quick-steering"),s.vehicle.steeringHeat,onClick=model.dependencies.vehicle::toggleSteeringHeat)
+            1->QuickTile("Панорамная\nшторка",s.vehicle.shadeUiSummary,JIcons.Shade,tile.testTag("quick-shade"),false){show(Popup.SHADE)}
+            2->QuickTile("Камеры\n360°","Штатные камеры",JIcons.Cameraswitch,tile.testTag("quick-cameras"),false,onClick=model::openCameras)
+            3->QuickTile("Инженерное\nменю","Диагностика ГУ",JIcons.Settings,tile.testTag("quick-engineering"),false,onClick=model::openEngineeringMenu)
+        }
     }
 }
 @Composable private fun QuickTile(title:String,detail:String,icon:ImageVector,modifier:Modifier,active:Boolean,tintOverride:androidx.compose.ui.graphics.Color?=null,onClick:()->Unit) {
     Panel(modifier.fillMaxHeight().clickable(onClick=onClick)) {
-        Row(Modifier.fillMaxSize().padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        BoxWithConstraints(Modifier.fillMaxSize().padding(10.dp)) {
             val tint=tintOverride?:if(active)Jeland.colors.warm else Jeland.colors.accent
+            val iconContent:@Composable ()->Unit={
             Box(Modifier.size(56.dp).clip(Jeland.control)
                 .background(Brush.radialGradient(listOf(tint.copy(alpha=if(active).24f else .13f),Jeland.colors.raised.copy(alpha=.4f))))
                 .border(1.dp,tint.copy(alpha=if(active).55f else .22f),Jeland.control),contentAlignment=Alignment.Center) {
-                Icon(icon,null,Modifier.size(40.dp),tint=tintOverride?:if(active)Jeland.colors.warm else if(Jeland.style==DashboardStyle.MINIMAL)Jeland.colors.accent else Jeland.colors.artText)
+                Icon(icon,null,Modifier.size(40.dp),tint=tintOverride?:if(active)Jeland.colors.warm else if(Jeland.style!=DashboardStyle.CLASSIC)Jeland.colors.accent else Jeland.colors.artText)
             }
-            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
+            }
+            val textContent:@Composable ()->Unit={
               Text(title,color=Jeland.colors.text,fontSize=Jeland.type.caption,lineHeight=Jeland.type.secondary,maxLines=2)
               Text(detail,color=if(active)Jeland.colors.accent else Jeland.colors.muted,fontSize=Jeland.type.micro,maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+            if(Jeland.style==DashboardStyle.FREE&&maxWidth<200.dp&&maxHeight>130.dp)
+                Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(6.dp,Alignment.CenterVertically)) {iconContent();textContent()}
+            else Row(Modifier.fillMaxSize(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                iconContent();Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)){textContent()}
             }
         }
     }
@@ -118,10 +128,10 @@ import ru.jeland.os.ui.theme.Jeland
         return
     }
     if(compact){
-        if(Jeland.style==DashboardStyle.MINIMAL) {
+        if(Jeland.style!=DashboardStyle.CLASSIC) {
             Panel(modifier.fillMaxHeight().testTag("music-widget")) {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
-                    if(maxWidth<320.dp)Column(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=6.dp),
+                    if(maxWidth<420.dp)Column(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=6.dp),
                         verticalArrangement=Arrangement.spacedBy(6.dp,Alignment.CenterVertically),horizontalAlignment=Alignment.CenterHorizontally) {
                         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                             AlbumArtwork(s,Modifier.size(64.dp),square=true)
@@ -290,7 +300,7 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
             SectionTitle("Оформление")
             AppearancePicker(s,model)
         }}
-        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(24.dp)) {
+        if(s.preferences.style!=DashboardStyle.FREE)Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(24.dp)) {
             SectionTitle("Главный экран")
             SettingsToggle("Топливо","Уровень и объём до полного бака",s.preferences.showFuel,Modifier.testTag("setting-fuel")){preferences.change(s.preferences.copy(showFuel=!s.preferences.showFuel))}
             SettingsToggle("Состояние автомобиля","Кузов и давление в шинах",s.preferences.showTires,Modifier.testTag("setting-tires")){preferences.change(s.preferences.copy(showTires=!s.preferences.showTires))}

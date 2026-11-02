@@ -43,6 +43,18 @@ import ru.jeland.os.ui.theme.JIcons
 
 val LocalFramelessDashboard=staticCompositionLocalOf {false}
 
+/** Wrapping layout shared by the existing shortcuts and quick actions. */
+@Composable fun DashboardTileGrid(count:Int,columns:Int,modifier:Modifier=Modifier,content:@Composable (Int,Modifier)->Unit) {
+    val across=columns.coerceIn(1,count.coerceAtLeast(1))
+    Column(modifier,verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        for(start in 0 until count step across)Row(Modifier.fillMaxWidth().weight(1f),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+            repeat(across) {column->
+                if(start+column<count)content(start+column,Modifier.weight(1f).fillMaxHeight())else Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
 @Composable fun Panel(modifier: Modifier=Modifier, content: @Composable ColumnScope.()->Unit) {
     if(LocalFramelessDashboard.current){Column(modifier,content=content);return}
     val c=Jeland.colors
