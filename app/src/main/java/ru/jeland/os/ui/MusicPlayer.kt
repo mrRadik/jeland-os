@@ -189,6 +189,29 @@ import kotlin.math.*
     }
 }
 
+/** Read-only timeline: phone transports report playback position but do not support seeking. */
+@Composable internal fun MinimalMusicProgress(s:MediaState,modifier:Modifier=Modifier) {
+    val duration=s.track.duration
+    val known=duration>0&&(!s.live||s.positionKnown)
+    val progress=if(known)s.position.coerceIn(0,duration).toFloat()/duration else 0f
+    val colors=Jeland.colors
+    val unavailable=ru.jeland.os.localization.localized("Прогресс воспроизведения недоступен")
+    Column(modifier,verticalArrangement=Arrangement.spacedBy(4.dp)) {
+        Canvas(Modifier.fillMaxWidth().height(4.dp).testTag("minimal-music-progress")
+            .then(if(known)Modifier.progressSemantics(progress)else Modifier.semantics {contentDescription=unavailable})) {
+            val radius=CornerRadius(size.height/2)
+            drawRoundRect(colors.outline.copy(alpha=.6f),cornerRadius=radius)
+            if(progress>0f)drawRoundRect(colors.accent,size=Size(size.width*progress,size.height),cornerRadius=radius)
+        }
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+            Text(if(s.live&&!s.positionKnown)"—:—"else timeString(s.position.coerceAtLeast(0)),color=colors.muted,fontSize=Jeland.type.micro,
+                modifier=Modifier.testTag("minimal-music-elapsed"))
+            Text(if(duration>0)timeString(duration)else"—:—",color=colors.muted,fontSize=Jeland.type.micro,
+                modifier=Modifier.testTag("minimal-music-duration"))
+        }
+    }
+}
+
 /** Filled transport glyphs, independent of the thin outline icons used elsewhere. */
 @Composable fun MusicTransport(s:MediaState,r:MediaRepository,modifier:Modifier=Modifier,compact:Boolean=false,borderless:Boolean=false) {
     Row(modifier,horizontalArrangement=Arrangement.spacedBy(if(borderless)8.dp else if(compact)28.dp else 64.dp,Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically) {

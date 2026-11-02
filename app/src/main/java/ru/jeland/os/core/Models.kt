@@ -73,6 +73,7 @@ data class NavigationState(
     val active: Boolean = true, val destination: String = "На работу", val maneuver: Maneuver = Maneuver.RIGHT,
     val distanceToManeuver: Int = 800, val street: String = "ул. Ленина", val minutes: Int = 12,
     val kilometers: Double = 8.4, val zoom: Float = 1f,
+    val roundaboutExit:Int?=null,
     val arrivalTime: String = java.time.LocalTime.now().plusMinutes(12).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),
 )
 data class WeatherState(val temperature: Int? = 8, val city: String = "Челябинск", val condition: String = "Облачно",val demo:Boolean=true,val outsideCelsius:Double?=null) {

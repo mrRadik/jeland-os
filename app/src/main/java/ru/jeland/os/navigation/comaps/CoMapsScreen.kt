@@ -120,7 +120,7 @@ private var currentSurface:JelandMapView?=null
             }
             if(guidance)Panel(Modifier.fillMaxWidth().testTag("navigation-maneuver")) {
                 Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)) {
-                    Icon(navigationManeuverIcon(state),null,Modifier.size(54.dp),tint=c.accent)
+                    NavigationManeuverSymbol(state,Modifier.size(54.dp))
                     Column(Modifier.weight(1f)) {
                         Text(distanceLabel(state.distanceToManeuver.toDouble()),color=c.accent,fontSize=Jeland.type.heading)
                         Text(state.instruction.substringBefore(" · "),color=c.text,fontSize=Jeland.type.body,maxLines=2,overflow=TextOverflow.Ellipsis)
@@ -213,7 +213,8 @@ private var currentSurface:JelandMapView?=null
                 modifier=Modifier.align(Alignment.TopEnd).background(c.panel.copy(alpha=.8f)).padding(4.dp))
             Row(Modifier.align(Alignment.BottomStart).fillMaxWidth().onSizeChanged {bottomOverlay=it.height}.background(c.panel.copy(alpha=.92f)).clickable(onClick=onClick).padding(14.dp),
                 horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
-                Icon(if(state.active)navigationManeuverIcon(state)else JIcons.Navigation,null,Modifier.size(38.dp),tint=c.accent)
+                if(state.active)NavigationManeuverSymbol(state,Modifier.size(38.dp))
+                else Icon(JIcons.Navigation,null,Modifier.size(38.dp),tint=c.accent)
                 Column(Modifier.weight(1f)) {
                     Text(if(state.active)distanceLabel(state.distanceToManeuver.toDouble())else"Куда поедем?",color=c.text,fontSize=Jeland.type.body,maxLines=1)
                     Text(if(state.active)state.instruction else"Нажмите, чтобы выбрать адрес",color=c.muted,fontSize=Jeland.type.footnote,maxLines=1,overflow=TextOverflow.Ellipsis)

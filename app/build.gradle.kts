@@ -22,8 +22,8 @@ android {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 102
-        versionName = "1.0.1"
+        versionCode = 103
+        versionName = "1.0.2"
         // Native ARM64 on the HU, native x86_64 in BlueStacks (no ARM GL bridge).
         ndk { abiFilters += if(providers.gradleProperty("localDemoAbi").orNull=="x86_64")listOf("x86_64")else listOf("arm64-v8a", "x86_64") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

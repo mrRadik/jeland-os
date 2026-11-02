@@ -21,7 +21,13 @@ internal fun navigationSpeechText(text:String):String {
         return listOf(hundreds[value/100],if(rest in 10..19)teens[rest-10]else listOf(tens[rest/10],ones[rest%10]).filter {it.isNotEmpty()}.joinToString(" ")).filter {it.isNotEmpty()}.joinToString(" ")
     }
     val clean=text.replace(Regex("<[^>]*>"),"").replace(Regex("[\\p{Cc}\\p{Cf}]")," ").replace(Regex("\\s+")," ").trim()
-    return Regex("(?iu)^через (\\d{1,4}) (метров|километр)(?=\\s|$)").replace(clean) {match->
+    val exits=Regex("(?iu)съезд №\\s*(\\d{1,2})(?!\\d)").replace(clean) {match->
+        val exit=match.groupValues[1].toInt()
+        val ordinals=listOf("", "первый", "второй", "третий", "четвёртый", "пятый", "шестой", "седьмой", "восьмой", "девятый", "десятый",
+            "одиннадцатый", "двенадцатый", "тринадцатый", "четырнадцатый", "пятнадцатый", "шестнадцатый", "семнадцатый", "восемнадцатый", "девятнадцатый", "двадцатый")
+        when(exit){in 1..20->"${ordinals[exit]} съезд";in 21..99->"съезд номер ${number(exit)}";else->match.value}
+    }
+    return Regex("(?iu)^через (\\d{1,4}) (метров|километр)(?=\\s|$)").replace(exits) {match->
         val value=match.groupValues[1].toInt()
         if(value !in 1..1000)match.value else "Через ${number(value)} ${match.groupValues[2]}"
     }
