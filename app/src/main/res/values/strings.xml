@@ -1,0 +1,5 @@
+<resources>
+    <string name="trip_channel">Запись поездок</string>
+    <string name="trip_recording_notification">Идёт запись поездки</string>
+    <string name="trip_stop_notification">Завершить поездку</string>
+</resources>
