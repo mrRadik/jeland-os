@@ -44,8 +44,11 @@ class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data
     val automations=ru.jeland.os.data.automation.RoomAutomationRepository(automationDatabase)
     val automationTemperature=ru.jeland.os.data.automation.LiveAutomationTemperatureRepository(car.link,automationScope)
     val automationSessions=ru.jeland.os.core.automation.AutomationSessionTracker(automations)
+    val trips=TripJournal(context.applicationContext)
     val automationTrip=ru.jeland.os.data.automation.AndroidAutomationTripMonitor(context,store,car.link,car::recordIntegration,
-        ::startAutomationTrip,{automationJobs.toList().forEach {it.cancel()}})
+        ::startAutomationTrip,{automationJobs.toList().forEach {it.cancel()}},
+        onSpeed=trips::speed,onSpeedUnavailable=trips::signalLost,
+        onTripEnded={if(trips.state.value.recording)TripRecordingService.finish(context)})
     val automationEngine=ru.jeland.os.core.automation.AutomationEngine(automations,automationTemperature,
         LiveAutomationActionExecutor(car::executeAutomation))
     private fun startAutomationTrip(session:AutomationSession) {

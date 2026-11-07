@@ -1,0 +1,5 @@
+<resources>
+    <string name="trip_channel">Trip recording</string>
+    <string name="trip_recording_notification">Recording a trip</string>
+    <string name="trip_stop_notification">End trip</string>
+</resources>

@@ -9,6 +9,7 @@ object JIcons {
     private fun auto(name:String,data:String)=ImageVector.Builder(name,24.dp,24.dp,24f,24f)
         .addPath(PathParser().parsePathString(data).toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.8f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round).build()
     val Home=LucideVectors.House
+    val Trips=auto("Trips","M3,17 A9,9 0,1 1 21,17 M3,17 H21 M12,13 L16,8 M12,13 L12,14")
     val Automations=LucideVectors.Workflow
     val Edit=LucideVectors.Pencil
     val Delete=LucideVectors.Trash

@@ -51,7 +51,7 @@ private data class Destination(val route:String,val title:String,val icon:androi
 private val destinations=listOf(
     Destination("home","Главная",JIcons.Home),Destination("music","Музыка",JIcons.MusicNote),Destination("navigation","Навигация",JIcons.Navigation),
     Destination("car","Автомобиль",JIcons.DirectionsCar),Destination("automations","Автоматизации",JIcons.Automations),
-    Destination("apps","Приложения",JIcons.Apps),Destination("settings","Настройки",JIcons.Settings))
+    Destination("trips","Поездки",JIcons.Trips),Destination("apps","Приложения",JIcons.Apps),Destination("settings","Настройки",JIcons.Settings))
 
 @Composable fun JelandApp(model:MainViewModel) {
     val state by model.state.collectAsStateWithLifecycle()
@@ -122,6 +122,7 @@ private val destinations=listOf(
                     composable("music"){MusicScreen(state,model)}
                     composable("navigation"){NavigationScreen(state,model,mapVisible=popup==null&&message==null&&!vehicleNotices.visible){navigate("settings")}}
                     composable("car"){VehicleScreen(state,model,show)}
+                    composable("trips"){TripsScreen(model.dependencies.trips,state.car.demo)}
                     composable("apps"){AppsScreen(state,model)}
                     composable("automations") {
                         val automationModel:AutomationViewModel=viewModel(factory=remember {AutomationViewModel.Factory(model.dependencies)})
