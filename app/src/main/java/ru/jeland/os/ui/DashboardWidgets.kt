@@ -74,7 +74,7 @@ import ru.jeland.os.ui.theme.*
         else Icon(JIcons.Apps,null,tint=c.muted,modifier=Modifier.fillMaxSize(.55f))
     }
 }
-@Composable fun FavoriteAppsWidget(state:AppsState,model:MainViewModel,modifier:Modifier=Modifier,compact:Boolean=false,onConfigure:()->Unit) {
+@Composable fun FavoriteAppsWidget(state:AppsState,model:MainViewModel,modifier:Modifier=Modifier,compact:Boolean=false,columns:Int=4,onConfigure:()->Unit) {
     val c=Jeland.colors
     val frameless=LocalFramelessDashboard.current
     val headerHeight=if(compact)with(androidx.compose.ui.platform.LocalDensity.current){(Jeland.type.caption*1.2f).toDp()+8.dp}.coerceAtLeast(28.dp)else 38.dp
@@ -83,14 +83,14 @@ import ru.jeland.os.ui.theme.*
             Text("Избранные приложения",color=Jeland.colors.text,fontSize=if(compact)Jeland.type.caption else Jeland.type.body,
                 lineHeight=(if(compact)Jeland.type.caption else Jeland.type.body)*1.2f,maxLines=1,modifier=Modifier.weight(1f))
             Row(Modifier.height(38.dp).clickable(onClick=onConfigure).testTag("configure-favorites"),verticalAlignment=Alignment.CenterVertically) {
-                Text("Настроить",color=Jeland.colors.muted,fontSize=Jeland.type.caption,lineHeight=Jeland.type.caption*1.2f,maxLines=1);Glyph(JIcons.ChevronRight)
+                if(columns==4)Text("Настроить",color=Jeland.colors.muted,fontSize=Jeland.type.caption,lineHeight=Jeland.type.caption*1.2f,maxLines=1)
+                Glyph(JIcons.ChevronRight,"Настроить избранные приложения")
             }
         }
-        Row(Modifier.fillMaxWidth().weight(1f).padding(start=12.dp,end=12.dp,bottom=10.dp),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+        DashboardTileGrid(4,columns,Modifier.fillMaxWidth().weight(1f).padding(start=12.dp,end=12.dp,bottom=10.dp)) {index,tile->
             val actual=state.favoriteApps
-            repeat(4) {index->
                 val app=actual.getOrNull(index)
-                BoxWithConstraints(Modifier.weight(1f).fillMaxHeight().testTag("favorite-home-card-$index")
+                BoxWithConstraints(tile.testTag("favorite-home-card-$index")
                     .clip(Jeland.control)
                     .then(if(frameless)Modifier else Modifier.background(Brush.verticalGradient(listOf(c.raised.copy(alpha=.75f),c.panel)))
                         .border(1.dp,c.outline.copy(alpha=if(app!=null).85f else .5f),Jeland.control))
@@ -129,7 +129,6 @@ import ru.jeland.os.ui.theme.*
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(6.dp)) {title();action()}
                     }
                 }
-            }
         }
     }
 }

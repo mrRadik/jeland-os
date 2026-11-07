@@ -14,16 +14,35 @@ import java.util.concurrent.Executors
 /** Reads motion/power only; a newly durably claimed trip is delivered once to the live coordinator. */
 class AndroidAutomationTripMonitor(context:Context,private val store:SettingsStore,
     private val link:StateFlow<VehicleLinkState>,private val report:(String)->Unit={},
-    private val onTripStarted:(AutomationSession)->Unit={},private val onInvalidated:()->Unit={}) {
+    private val onTripStarted:(AutomationSession)->Unit={},private val onInvalidated:()->Unit={},
+    private val onSpeed:(VehicleSpeedSample,Long,Boolean)->Unit={_,_,_->},
+    private val onSpeedUnavailable:()->Unit={},
+    private val onTripEnded:()->Unit={}) {
     private val app=context.applicationContext
     private val main=Handler(Looper.getMainLooper())
     private val worker=Executors.newSingleThreadExecutor {r->Thread(r,"Automation-trip-read").apply {isDaemon=true}}
     private val gate=AutomationTripGate(store)
     private val engineGate=AutomationEngineStartGate(store)
     @Volatile private var foreground=false
+    @Volatile private var recordingTrip=false
+    private val recordingRetry=object:Runnable {
+        override fun run() {
+            if(!recordingTrip)return
+            if(speedBinder?.isBinderAlive!=true||!binding)checkConnection()
+            main.postDelayed(this,5000)
+        }
+    }
+    private fun automationConnected()=foreground&&!link.value.demo&&link.value.connected
+    private fun wantsSpeed()=!link.value.demo&&(recordingTrip||automationConnected())
+    fun setTripRecording(value:Boolean) {
+        recordingTrip=value
+        main.removeCallbacks(recordingRetry)
+        if(value){checkConnection();main.postDelayed(recordingRetry,5000)}
+        else if(!automationConnected())onSpeedUnavailable()
+    }
     private var binding=false
     private var carState:IVDBus?=null
-    private var speedBinder:IBinder?=null
+    @Volatile private var speedBinder:IBinder?=null
     private var connecting=false
     private var lastLiveSpeedEvent=Long.MIN_VALUE
     private var lastPowerMode:Int?=null
@@ -35,7 +54,11 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         runCatching {gate.boot(runCatching {Settings.Global.getInt(app.contentResolver,Settings.Global.BOOT_COUNT).toString()}.getOrNull())}
             .onFailure {publish("Ошибка сохранения состояния поездки; автоматических действий нет.")}
         CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate).launch {
-            link.map {it.demo to it.connected}.distinctUntilChanged().collect {checkConnection()}
+            link.map {it.demo to it.connected}.distinctUntilChanged().collect {
+                if(link.value.demo&&recordingTrip)onTripEnded()
+                if(!wantsSpeed())onSpeedUnavailable()
+                checkConnection()
+            }
         }
         CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate).launch {
             link.collect {state->
@@ -52,6 +75,7 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         runCatching {engineGate.sample(sample.values?.singleOrNull(),power,sample.receivedMillis,now,enabled)}
             .onSuccess {id->
                 if(wasRunning&&engineGate.cycleId==null){
+                    onTripEnded()
                     gate.vehicleSlept() // Confirmed engine + ignition OFF also ends the movement cycle, even before HU sleep.
                     onInvalidated();publish("Двигатель и зажигание выключены. Ожидаем следующий запуск.")
                 }
@@ -74,33 +98,36 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         checkConnection()
     }
     fun resume(){foreground=true;checkConnection()}
-    fun pause(){foreground=false;onInvalidated();gate.interrupted();engineGate.interrupted();if(enabled)publish("Приложение в фоне. Подтверждённые циклы сохранены, отправка остановлена.")}
+    fun pause(){foreground=false;if(!wantsSpeed())onSpeedUnavailable();onInvalidated();gate.interrupted();engineGate.interrupted();if(enabled)publish("Приложение в фоне. Подтверждённые циклы сохранены, отправка остановлена.")}
     private val speedCallback=object:IVDBusCallback.Stub() {
         override fun onVDBusCallback(value:VDEvent?){speedEvent(value,false)}
         override fun onVDBusNotify(value:VDEvent?){speedEvent(value,false)}
     }
     private fun speedEvent(event:VDEvent?,initial:Boolean) {
-        if(!foreground||link.value.demo||!link.value.connected)return
+        if(event?.id!=519||!wantsSpeed())return
         val received=SystemClock.elapsedRealtime()
-        val sourceTime=event?.timeMillis?:0L
+        val wallTime=System.currentTimeMillis()
+        val sourceTime=event.timeMillis
+        val age=wallTime-sourceTime
         val speed=runCatching {
-            if(event?.id!=519)return@runCatching null
             val bundle=event.payload?:return@runCatching null
             if(bundle.getBoolean("IS_NULL",false))return@runCatching null
             val raw=bundle.getDoubleArray("DoubleVector")?.singleOrNull()?:return@runCatching null
             val eventTime=event.timeMillis
             if(received-lastSpeedLogAt>=1000){lastSpeedLogAt=received;report("AUTOMATION_SPEED eventTime=$eventTime received=$received initial=$initial value=$raw")}
-            if(eventTime<=0||System.currentTimeMillis()-eventTime !in 0..3000)return@runCatching null
-            // Initial/cached GET can establish stop, never prove motion.
-            raw
+            if(eventTime<=0||age !in 0..3000)return@runCatching null
+            raw.takeIf {it.isFinite()&&kotlin.math.abs(it)<=100}
         }.getOrNull()
         main.post {
-            if(!foreground||link.value.demo||!link.value.connected)return@post
+            if(!wantsSpeed())return@post
             if(!initial&&speed!=null) {
                 if(sourceTime<=lastLiveSpeedEvent)return@post
                 lastLiveSpeedEvent=sourceTime
             }
-            if(!enabled)return@post
+            if(speed!=null&&received>=age&&(!initial||sourceTime>=lastLiveSpeedEvent)) {
+                onSpeed(VehicleSpeedSample(speed,received-age),sourceTime,!initial)
+            } else if(speed==null&&!initial)onSpeedUnavailable()
+            if(!automationConnected()||!enabled)return@post
             // A cached/polled moving value cannot prove a new trip, nor erase live confirmation.
             if(initial&&speed!=null&&kotlin.math.abs(speed)>.2)return@post
             if(speed==null){gate.interrupted();publish("Нет корректного свежего значения скорости; действий нет.");return@post}
@@ -124,11 +151,12 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         override fun onVDBusCallback(value:VDEvent?){powerEvent(value)}
         override fun onVDBusNotify(value:VDEvent?){powerEvent(value)}
     }
-    private fun powerEvent(event:VDEvent?) {
+    private fun powerEvent(event:VDEvent?,initial:Boolean=false) {
         val mode=runCatching {if(event?.id==196609)event.payload?.getInt("status",-1)else null}.getOrNull()
         main.post {
             val previous=lastPowerMode
             if(mode!=null&&mode>=0)lastPowerMode=mode
+            if(!initial&&mode in listOf(26,40))onTripEnded()
             if(mode in listOf(26,40)&&previous !in listOf(26,40)) {
                 onInvalidated()
                 runCatching {gate.vehicleSlept();engineGate.vehicleSlept()}.onSuccess {publish("Штатная система подтвердила сон ГУ. Ждём следующего запуска.")}
@@ -142,13 +170,22 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
             val current=carState
             worker.execute {runCatching {
                 current?.subscribe(intArrayOf(196609),android.os.Process.myPid(),app.packageName,powerCallback)
-                powerEvent(current?.get(VDEvent(196609,Bundle())))
+                powerEvent(current?.get(VDEvent(196609,Bundle())),initial=true)
             }.onFailure {main.post {if(enabled)publish("Состояние сна ГУ недоступно. Завершение поездки автоматически не угадываем.")}}}
         }
         override fun onServiceDisconnected(name:ComponentName){carState=null}
+        override fun onBindingDied(name:ComponentName) {
+            carState=null
+            if(binding)runCatching {app.unbindService(this)}
+            binding=false
+        }
     }
     private fun checkConnection() {
-        if(!foreground||link.value.demo||!link.value.connected){onInvalidated();gate.interrupted();publish("Нужен активный режим ГУ и связь с автомобилем. Открытие приложения ничего не запускает.");return}
+        if(!automationConnected()){
+            onInvalidated();gate.interrupted()
+            publish("Нужен активный режим ГУ и связь с автомобилем. Открытие приложения ничего не запускает.")
+        }
+        if(!wantsSpeed())return
         if(!binding)runCatching {
             binding=app.bindService(Intent("action.desaysv.ivi.vds.carstate.SERVICE").setComponent(ComponentName(
                 "com.desaysv.ivi.vds.carstate","com.desaysv.ivi.vds.carstate.service.CarStateService")),powerConnection,Context.BIND_AUTO_CREATE)
@@ -166,7 +203,7 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
                 speedEvent(bus.get(VDEvent(519,Bundle())),true)
             }
             main.post {connecting=false
-                if(result.isFailure){gate.interrupted();report("AUTOMATION_TRIP_SOURCE_UNAVAILABLE ${result.exceptionOrNull()?.javaClass?.simpleName}");publish("Штатная скорость недоступна. Начало поездки не подтверждено.")}
+                if(result.isFailure){onSpeedUnavailable();gate.interrupted();report("AUTOMATION_TRIP_SOURCE_UNAVAILABLE ${result.exceptionOrNull()?.javaClass?.simpleName}");publish("Штатная скорость недоступна. Начало поездки не подтверждено.")}
                 else publish(if(gate.tripId!=null)"Эта поездка уже отмечена; повторного старта нет."else"Подключён штатный канал скорости. Ждём остановки и устойчивого движения.")
             }
         }
