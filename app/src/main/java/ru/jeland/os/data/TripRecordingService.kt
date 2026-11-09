@@ -40,9 +40,8 @@ class TripRecordingService : Service() {
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
-            started = true
-            journal.start()
-            dependencies.automationTrip.setTripRecording(true)
+            started = journal.start(automatic = intent?.action == AUTO_START)
+            if (started) dependencies.automationTrip.setTripRecording(true) else stopSelf()
         } catch (error: Exception) {
             dependencies.car.recordIntegration("TRIP_RECORDER_START_FAILED ${error.javaClass.simpleName}")
             journal.failedToStart()
@@ -90,10 +89,13 @@ class TripRecordingService : Service() {
         private const val CHANNEL = "jeland_trip_recording"
         private const val NOTIFICATION_ID = 2702
         private const val STOP = "ru.jeland.os.trips.STOP"
+        private const val AUTO_START = "ru.jeland.os.trips.AUTO_START"
 
-        fun start(context: Context) {
+        fun start(context: Context, automatic: Boolean = false) {
             try {
-                ContextCompat.startForegroundService(context, Intent(context, TripRecordingService::class.java))
+                val intent = Intent(context, TripRecordingService::class.java)
+                if (automatic) intent.action = AUTO_START
+                ContextCompat.startForegroundService(context, intent)
             } catch (error: Exception) {
                 val dependencies = (context.applicationContext as JelandApplication).container
                 dependencies.trips.failedToStart()

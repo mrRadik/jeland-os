@@ -122,7 +122,7 @@ private val destinations=listOf(
                     composable("music"){MusicScreen(state,model)}
                     composable("navigation"){NavigationScreen(state,model,mapVisible=popup==null&&message==null&&!vehicleNotices.visible){navigate("settings")}}
                     composable("car"){VehicleScreen(state,model,show)}
-                    composable("trips"){TripsScreen(model.dependencies.trips,state.car.demo)}
+                    composable("trips"){TripsScreen(model.dependencies.trips,state.car.demo,model.dependencies::setTripAutoStart)}
                     composable("apps"){AppsScreen(state,model)}
                     composable("automations") {
                         val automationModel:AutomationViewModel=viewModel(factory=remember {AutomationViewModel.Factory(model.dependencies)})

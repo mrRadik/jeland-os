@@ -47,8 +47,19 @@ class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data
     val trips=TripJournal(context.applicationContext)
     val automationTrip=ru.jeland.os.data.automation.AndroidAutomationTripMonitor(context,store,car.link,car::recordIntegration,
         ::startAutomationTrip,{automationJobs.toList().forEach {it.cancel()}},
-        onSpeed=trips::speed,onSpeedUnavailable=trips::signalLost,
-        onTripEnded={if(trips.state.value.recording)TripRecordingService.finish(context)})
+        onSpeed={sample, wall, live ->
+            if(trips.speed(sample, wall, live))TripRecordingService.start(context, automatic=true)
+        },onSpeedUnavailable=trips::signalLost,
+        onTripEnded={if(trips.state.value.recording)TripRecordingService.finish(context)},
+        initialTripAutoStart=trips.state.value.autoStart,
+        onEngineSample={engine, ignition, at ->
+            if(trips.engine(engine, ignition, at)&&trips.state.value.recording)TripRecordingService.finish(context)
+        },onEngineUnavailable=trips::engineUnavailable,onVehicleSleeping=trips::vehicleSlept)
+
+    fun setTripAutoStart(value:Boolean) {
+        trips.setAutoStart(value)
+        automationTrip.setTripAutoStart(value)
+    }
     val automationEngine=ru.jeland.os.core.automation.AutomationEngine(automations,automationTemperature,
         LiveAutomationActionExecutor(car::executeAutomation))
     private fun startAutomationTrip(session:AutomationSession) {
