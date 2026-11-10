@@ -59,7 +59,7 @@
             <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
         </receiver>
         <service android:name=".data.TripRecordingService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started local trip recording from the built-in vehicle speed bus" />
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Opt-in local trip recording from the built-in vehicle speed bus" />
         </service>
         <service android:name=".data.WakeStartupService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-enabled head-unit wake observer to reopen Jeland OS once after sleep; no wake lock or vehicle control" />

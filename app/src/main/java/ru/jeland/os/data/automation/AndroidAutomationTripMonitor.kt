@@ -17,7 +17,11 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
     private val onTripStarted:(AutomationSession)->Unit={},private val onInvalidated:()->Unit={},
     private val onSpeed:(VehicleSpeedSample,Long,Boolean)->Unit={_,_,_->},
     private val onSpeedUnavailable:()->Unit={},
-    private val onTripEnded:()->Unit={}) {
+    private val onTripEnded:()->Unit={},
+    initialTripAutoStart:Boolean=false,
+    private val onEngineSample:(Int?,Int?,Long)->Unit={_,_,_->},
+    private val onEngineUnavailable:()->Unit={},
+    private val onVehicleSleeping:()->Unit={}) {
     private val app=context.applicationContext
     private val main=Handler(Looper.getMainLooper())
     private val worker=Executors.newSingleThreadExecutor {r->Thread(r,"Automation-trip-read").apply {isDaemon=true}}
@@ -25,20 +29,56 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
     private val engineGate=AutomationEngineStartGate(store)
     @Volatile private var foreground=false
     @Volatile private var recordingTrip=false
-    private val recordingRetry=object:Runnable {
+    private var tripAutoStart=initialTripAutoStart
+    private var lastNativeSpeedAt=Long.MIN_VALUE/2
+    private var lastGaugeSpeedAt=Long.MIN_VALUE/2
+    private var usingGaugeSpeed=false
+    private val gaugeSpeed=CarInfoTripSpeed(app,main,worker,report) {sample,wall->
+        if(wantsGauge()&&sample.atMillis-lastNativeSpeedAt>TripMeter.MAX_TRIP_GAP_MS){
+            if(!usingGaugeSpeed){
+                usingGaugeSpeed=true
+                onSpeedUnavailable()
+                report("TRIP_CARINFO_SPEED using=119")
+            }
+            lastGaugeSpeedAt=sample.atMillis
+            onSpeed(sample,wall,true)
+        }
+    }
+    private val speedRetry=object:Runnable {
         override fun run() {
-            if(!recordingTrip)return
+            if(!wantsGauge())return
+            gaugeSpeed.start()
             if(speedBinder?.isBinderAlive!=true||!binding)checkConnection()
             main.postDelayed(this,5000)
         }
     }
     private fun automationConnected()=foreground&&!link.value.demo&&link.value.connected
     private fun wantsSpeed()=!link.value.demo&&(recordingTrip||automationConnected())
+    private fun wantsGauge()=!link.value.demo&&(recordingTrip||tripAutoStart&&automationConnected())
+
+    private fun updateSpeedWatch() {
+        main.removeCallbacks(speedRetry)
+        if(wantsGauge()){
+            gaugeSpeed.start()
+            main.postDelayed(speedRetry,5000)
+        }else{
+            gaugeSpeed.stop()
+            if(usingGaugeSpeed||!wantsSpeed())onSpeedUnavailable()
+            usingGaugeSpeed=false
+            lastGaugeSpeedAt=Long.MIN_VALUE/2
+        }
+    }
+
     fun setTripRecording(value:Boolean) {
         recordingTrip=value
-        main.removeCallbacks(recordingRetry)
-        if(value){checkConnection();main.postDelayed(recordingRetry,5000)}
-        else if(!automationConnected())onSpeedUnavailable()
+        updateSpeedWatch()
+        if(value)checkConnection()
+    }
+
+    fun setTripAutoStart(value:Boolean) {
+        tripAutoStart=value
+        updateSpeedWatch()
+        if(value)checkConnection()
     }
     private var binding=false
     private var carState:IVDBus?=null
@@ -56,13 +96,13 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate).launch {
             link.map {it.demo to it.connected}.distinctUntilChanged().collect {
                 if(link.value.demo&&recordingTrip)onTripEnded()
-                if(!wantsSpeed())onSpeedUnavailable()
+                updateSpeedWatch()
                 checkConnection()
             }
         }
         CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate).launch {
             link.collect {state->
-                if(!foreground||state.demo||!state.connected){engineGate.interrupted();return@collect}
+                if(!foreground||state.demo||!state.connected){engineGate.interrupted();onEngineUnavailable();return@collect}
                 observeEngine(state)
             }
         }
@@ -71,6 +111,7 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         val now=SystemClock.elapsedRealtime()
         val sample=state.raw[VdsKey(VerifiedVehicleProtocol.INFO,74)]?:return
         val power=state.raw[VdsKey(VerifiedVehicleProtocol.INFO,13)]?.takeIf {now-it.receivedMillis in 0..15_000}?.values?.singleOrNull()
+        onEngineSample(sample.values?.singleOrNull(),power,sample.receivedMillis)
         val wasRunning=engineGate.cycleId!=null
         runCatching {engineGate.sample(sample.values?.singleOrNull(),power,sample.receivedMillis,now,enabled)}
             .onSuccess {id->
@@ -97,8 +138,8 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         else publish("Автоматический запуск включён. Ожидаем событие, выбранное в сценарии.")
         checkConnection()
     }
-    fun resume(){foreground=true;checkConnection()}
-    fun pause(){foreground=false;if(!wantsSpeed())onSpeedUnavailable();onInvalidated();gate.interrupted();engineGate.interrupted();if(enabled)publish("Приложение в фоне. Подтверждённые циклы сохранены, отправка остановлена.")}
+    fun resume(){foreground=true;updateSpeedWatch();checkConnection()}
+    fun pause(){foreground=false;onEngineUnavailable();updateSpeedWatch();onInvalidated();gate.interrupted();engineGate.interrupted();if(enabled)publish("Приложение в фоне. Подтверждённые циклы сохранены, отправка остановлена.")}
     private val speedCallback=object:IVDBusCallback.Stub() {
         override fun onVDBusCallback(value:VDEvent?){speedEvent(value,false)}
         override fun onVDBusNotify(value:VDEvent?){speedEvent(value,false)}
@@ -108,31 +149,38 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
         val received=SystemClock.elapsedRealtime()
         val wallTime=System.currentTimeMillis()
         val sourceTime=event.timeMillis
-        val age=wallTime-sourceTime
-        val speed=runCatching {
+        val sample=runCatching {
             val bundle=event.payload?:return@runCatching null
             if(bundle.getBoolean("IS_NULL",false))return@runCatching null
             val raw=bundle.getDoubleArray("DoubleVector")?.singleOrNull()?:return@runCatching null
-            val eventTime=event.timeMillis
-            if(received-lastSpeedLogAt>=1000){lastSpeedLogAt=received;report("AUTOMATION_SPEED eventTime=$eventTime received=$received initial=$initial value=$raw")}
-            if(eventTime<=0||age !in 0..3000)return@runCatching null
-            raw.takeIf {it.isFinite()&&kotlin.math.abs(it)<=100}
+            val decoded=VehicleSpeedSample.fromVds(raw,sourceTime,received,wallTime)
+            if(received-lastSpeedLogAt>=1000){
+                lastSpeedLogAt=received
+                report("AUTOMATION_SPEED eventTime=$sourceTime received=$received initial=$initial value=$raw accepted=${decoded!=null}")
+            }
+            decoded
         }.getOrNull()
         main.post {
             if(!wantsSpeed())return@post
-            if(!initial&&speed!=null) {
-                if(sourceTime<=lastLiveSpeedEvent)return@post
-                lastLiveSpeedEvent=sourceTime
-            }
-            if(speed!=null&&received>=age&&(!initial||sourceTime>=lastLiveSpeedEvent)) {
-                onSpeed(VehicleSpeedSample(speed,received-age),sourceTime,!initial)
-            } else if(speed==null&&!initial)onSpeedUnavailable()
+            if(sample!=null){
+                if(sample.atMillis<=lastLiveSpeedEvent)return@post
+                if(!initial){
+                    lastLiveSpeedEvent=sample.atMillis
+                    lastNativeSpeedAt=sample.atMillis
+                    if(usingGaugeSpeed){
+                        usingGaugeSpeed=false
+                        onSpeedUnavailable()
+                    }
+                }
+                val sampleWallTime=wallTime-(received-sample.atMillis)
+                if(!usingGaugeSpeed)onSpeed(sample,sampleWallTime,!initial)
+            }else if(!initial&&!recentGaugeSpeed())onSpeedUnavailable()
             if(!automationConnected()||!enabled)return@post
             // A cached/polled moving value cannot prove a new trip, nor erase live confirmation.
-            if(initial&&speed!=null&&kotlin.math.abs(speed)>.2)return@post
-            if(speed==null){gate.interrupted();publish("Нет корректного свежего значения скорости; действий нет.");return@post}
+            if(initial&&sample!=null&&kotlin.math.abs(sample.metresPerSecond)>.2)return@post
+            if(sample==null){gate.interrupted();publish("Нет корректного свежего значения скорости; действий нет.");return@post}
             val previous=gate.phase
-            val result=runCatching {gate.speed(speed,received,SystemClock.elapsedRealtime())}
+            val result=runCatching {gate.speed(sample.metresPerSecond,sample.atMillis,SystemClock.elapsedRealtime())}
             if(result.isFailure){gate.interrupted();publish("Ошибка сохранения начала поездки. Сценарии не запускаются.");return@post}
             val id=result.getOrNull()
             if(id!=null){
@@ -147,6 +195,8 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
             })
         }
     }
+    private fun recentGaugeSpeed()=wantsGauge()&&
+        SystemClock.elapsedRealtime()-lastGaugeSpeedAt<=TripMeter.MAX_TRIP_GAP_MS
     private val powerCallback=object:IVDBusCallback.Stub() {
         override fun onVDBusCallback(value:VDEvent?){powerEvent(value)}
         override fun onVDBusNotify(value:VDEvent?){powerEvent(value)}
@@ -158,6 +208,7 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
             if(mode!=null&&mode>=0)lastPowerMode=mode
             if(!initial&&mode in listOf(26,40))onTripEnded()
             if(mode in listOf(26,40)&&previous !in listOf(26,40)) {
+                onVehicleSleeping()
                 onInvalidated()
                 runCatching {gate.vehicleSlept();engineGate.vehicleSlept()}.onSuccess {publish("Штатная система подтвердила сон ГУ. Ждём следующего запуска.")}
                     .onFailure {publish("Завершение поездки не сохранено; повторный запуск не разрешаем.")}
@@ -203,7 +254,7 @@ class AndroidAutomationTripMonitor(context:Context,private val store:SettingsSto
                 speedEvent(bus.get(VDEvent(519,Bundle())),true)
             }
             main.post {connecting=false
-                if(result.isFailure){onSpeedUnavailable();gate.interrupted();report("AUTOMATION_TRIP_SOURCE_UNAVAILABLE ${result.exceptionOrNull()?.javaClass?.simpleName}");publish("Штатная скорость недоступна. Начало поездки не подтверждено.")}
+                if(result.isFailure){if(!recentGaugeSpeed())onSpeedUnavailable();gate.interrupted();report("AUTOMATION_TRIP_SOURCE_UNAVAILABLE ${result.exceptionOrNull()?.javaClass?.simpleName}");publish("Штатная скорость недоступна. Начало поездки не подтверждено.")}
                 else publish(if(gate.tripId!=null)"Эта поездка уже отмечена; повторного старта нет."else"Подключён штатный канал скорости. Ждём остановки и устойчивого движения.")
             }
         }
