@@ -23,6 +23,7 @@ data class VehicleLinkState(
     val busy: Boolean = false, val detail: String = "DEMO · без подключения к авто",
     val lastCommand: String? = null, val raw: Map<VdsKey, RawVehicleSample> = emptyMap(),
     val userMessage: String? = null,
+    val clusterTelemetry: QnxClusterTelemetry = QnxClusterTelemetry(),
 )
 data class VdsWrite(val key: VdsKey, val value: Int, val feedback: VdsKey = key, val expected: Int? = null)
 val VehicleState.shadeSummary: String get()=if(!live)shade.title else when(shadeRaw?.singleOrNull()) {
@@ -50,9 +51,10 @@ object VerifiedVehicleProtocol {
     val openings = mapOf(15 to VehicleOpening.FRONT_LEFT,16 to VehicleOpening.FRONT_RIGHT,
         17 to VehicleOpening.REAR_LEFT,18 to VehicleOpening.REAR_RIGHT,19 to VehicleOpening.TRUNK)
     val subscriptions = mapOf(
+        ClusterDriveMode.MODULE to listOf(ClusterDriveMode.COMMAND), // Read-only stock drive-mode signal.
         HVAC to listOf(18,1,3,4,8,12,6,10,13,24,80,65,9,19),
         CAR to listOf(93,94,95,96,160,139,141,10),
-        INFO to (listOf(15,16,17,18,19,68,140,62,79,74,13)+BatteryDecoder.commands),
+        INFO to (listOf(15,16,17,18,19,68,71,72,140,62,79,74,13,119,26,1,23,32,33)+BatteryDecoder.commands),
     )
     fun seat(cmd: Int, level: Int): VdsWrite {
         require(cmd in listOf(93,94,95,96,139,141) && level in 0..3)

@@ -7,7 +7,7 @@ data class AppUpdateManifest(
     val schema:Int,val applicationId:String,val versionCode:Long,val versionName:String,
     val minSdk:Int,val apkName:String,val size:Long,val sha256:String,
 )
-data class AppUpdateCandidate(val manifest:AppUpdateManifest,val apk:UpdateAsset,val releaseTag:String)
+data class AppUpdateCandidate(val manifest:AppUpdateManifest,val apk:UpdateAsset,val releaseTag:String,val releaseNotes:String="")
 data class UpdateApkIdentity(val applicationId:String,val versionCode:Long,val versionName:String?,val minSdk:Int,val signers:Set<String>)
 
 /** A phone hotspot is Wi-Fi even when Android marks it as metered. */
@@ -39,13 +39,13 @@ object AppUpdatePolicy {
             u.path.startsWith("/$REPOSITORY/releases/download/")&&u.path.substringAfterLast('/')==filename&&
             u.path.split('/').none {it=="."||it==".."}&&u.path.substringAfter("/releases/download/").count {it=='/'}==1
     }.getOrDefault(false)
-    fun candidate(m:AppUpdateManifest,assets:List<UpdateAsset>,tag:String,manifestUrl:String):AppUpdateCandidate {
+    fun candidate(m:AppUpdateManifest,assets:List<UpdateAsset>,tag:String,manifestUrl:String,notes:String=""):AppUpdateCandidate {
         validate(m)
         require(tag.isNotBlank()&&tag.length<=200&&releaseUrl(manifestUrl,MANIFEST)){"Некорректный релиз"}
         val apk=assets.singleOrNull {it.name==m.apkName}?:error("В релизе нет единственного APK из описания")
         require(apk.size==m.size&&releaseUrl(apk.url,m.apkName)){"APK не соответствует описанию"}
         require(URI(apk.url).rawPath.substringBeforeLast('/')==URI(manifestUrl).rawPath.substringBeforeLast('/')){"Файлы из разных релизов"}
-        return AppUpdateCandidate(m,apk,tag)
+        return AppUpdateCandidate(m,apk,tag,notes.replace("\u0000","").take(12000))
     }
     fun requireInstallable(m:AppUpdateManifest,installed:UpdateApkIdentity,apk:UpdateApkIdentity,sdk:Int) {
         validate(m)

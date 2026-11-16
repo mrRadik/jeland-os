@@ -28,6 +28,7 @@ data class AppUpdateState(
 
 /** App-scoped downloads; no APK installation, screen launch or vehicle command happens automatically. */
 class AppUpdateManager(context:Context,private val store:SettingsStore,private val report:(String)->Unit={}) {
+    private val news=UpdateNewsTracker(store)
     private val app=context.applicationContext
     val installAssist=UpdateInstallAssist(app,store,report)
     private val cm=app.getSystemService(ConnectivityManager::class.java)
@@ -95,7 +96,8 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 val candidate=withContext(Dispatchers.IO){source.latest()}
                 check(candidate.manifest.minSdk<=Build.VERSION.SDK_INT){"Новая версия требует Android API ${candidate.manifest.minSdk}; на ГУ API ${Build.VERSION.SDK_INT}"}
                 val available=candidate.takeIf {it.manifest.versionCode>BuildConfig.VERSION_CODE}
-                val ready=available!=null&&state.value.available==available&&state.value.downloaded&&file(available).length()==available.manifest.size
+                val ready=available!=null&&state.value.available?.let {it.manifest==available.manifest&&it.apk==available.apk&&it.releaseTag==available.releaseTag}==true&&state.value.downloaded&&file(available).length()==available.manifest.size
+                if(ready)store.put(PENDING,GitHubUpdateCodec.pending(checkNotNull(available)))
                 store.put(LAST_SUCCESS,now.toString())
                 mutable.update {it.copy(available=available,downloaded=ready,lastChecked=now,
                     message=if(available==null)"Установлена актуальная версия"else if(ready)"Обновление готово к установке"else"Доступна версия ${candidate.manifest.versionName}")}
@@ -151,6 +153,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                     val ready=file(candidate);check(ready.parentFile!!.mkdirs()||ready.parentFile!!.isDirectory)
                     if(ready.exists())check(ready.delete()){ "Не удалось заменить старый файл обновления" }
                     check(staging.renameTo(ready)){"Не удалось сохранить проверенный APK"}
+                    news.cancel()
                     store.put(PENDING,GitHubUpdateCodec.pending(candidate))
                     store.put(INSTALL_MESSAGE,"")
                     // Only obsolete updater-owned APKs; never logs, installed apps or user-selected files.
@@ -196,6 +199,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                     installer.abandon(store.string(INSTALL_SESSION,"-1").toIntOrNull()?:-1)
                     store.put(INSTALL_SESSION,"-1");store.put(INSTALL_METHOD,"package_intent")
                     val uri=FileProvider.getUriForFile(app,app.packageName+".updates",ready)
+                    news.arm(BuildConfig.VERSION_CODE.toLong(),UpdateNews(candidate.manifest.versionCode,candidate.manifest.versionName,candidate.releaseNotes))
                     installAssist.arm()
                     app.startActivity(Intent(app,UpdateInstallActivity::class.java).setData(uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                     report("UPDATE_INSTALL_NATIVE_REQUEST version=${candidate.manifest.versionCode} permission=${canInstall()}")
@@ -219,6 +223,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 store.put(INSTALL_METHOD,"session")
                 installMessage("Ожидаем системный установщик…")
                 installAssist.arm()
+                news.arm(BuildConfig.VERSION_CODE.toLong(),UpdateNews(candidate.manifest.versionCode,candidate.manifest.versionName,candidate.releaseNotes))
                 installer.commit(session)
                 report("UPDATE_INSTALL_COMMIT session=$session version=${candidate.manifest.versionCode}")
                 installWatchdog?.cancel();installWatchdog=scope.launch {
@@ -231,7 +236,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                     }
                 }
             }catch(c:CancellationException){throw c}
-            catch(e:Exception){installAssist.cancel();installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false,installFallback=true)}
+            catch(e:Exception){news.cancel();installAssist.cancel();installer.abandon(session);store.put(INSTALL_SESSION,"-1");mutable.update {it.copy(installing=false,installFallback=true)}
                 installMessage("Установка не открыта: ${reason(e)}");report("UPDATE_INSTALL_FAILED ${e.javaClass.simpleName}: ${reason(e)}")}
         }
     }
@@ -242,7 +247,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         installMessage("Подтвердите установку в системном окне. Данные приложения сохраняются.")
     }
     internal fun nativeInstallFailed(e:Exception) {
-        installAssist.cancel()
+        news.cancel();installAssist.cancel()
         mutable.update {it.copy(installing=false,installFallback=true,installPermission=canInstall())}
         installMessage("Не удалось открыть установку: ${reason(e)}. APK сохранён; можно попробовать другой способ.")
         report("UPDATE_INSTALL_NATIVE_FAILED ${e.javaClass.simpleName}: ${e.message.orEmpty().take(200)}")
@@ -257,6 +262,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
         val installed=expected!=null&&actual>=expected
         mutable.update {it.copy(installing=false,installFallback=!installed,installPermission=canInstall(),downloaded=it.downloaded&&!installed)}
         if(installed){InstalledUpdateCleanup.run(app);store.put(PENDING,"");installMessage("Обновление установлено");return}
+        news.cancel()
         val message=when {
             !canInstall()->"Установка не разрешена. Разрешите её в Android или выполните start.cmd → U. APK сохранён."
             result==Activity.RESULT_CANCELED->"Системный установщик закрылся без установки. APK сохранён; можно попробовать другой способ."
@@ -279,6 +285,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 if(session!=null)app.packageManager.packageInstaller.abandonSession(id)
                 OwnUpdateApkCache.clear(app.filesDir)
             }
+            news.cancel()
             confirmation=null;installWatchdog?.cancel();store.put(INSTALL_SESSION,"-1")
             installAssist.cancel()
             val ready=state.value.available?.let {file(it).isFile}==true
@@ -309,6 +316,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
             if(foreground)openConfirmation(next)else {installAssist.cancel();installMessage("Установщик готов. Нажмите «Установить обновление», чтобы открыть подтверждение.")}
             return
         }
+        if(status!=PackageInstaller.STATUS_SUCCESS)news.cancel()
         confirmation=null;store.put(INSTALL_SESSION,"-1")
         installAssist.cancel()
         mutable.update {it.copy(installFallback=status!=PackageInstaller.STATUS_SUCCESS)}
@@ -334,7 +342,7 @@ class AppUpdateManager(context:Context,private val store:SettingsStore,private v
                 .putExtra(UpdateInstallActivity.SESSION,id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             installMessage("Подтвердите обновление в системном установщике. Данные приложения сохраняются.")
             report("UPDATE_INSTALL_CONFIRMATION_OPENED session=$id")
-        }catch(e:Exception){installAssist.cancel();confirmation=null;mutable.update {it.copy(installing=false,installFallback=true)};installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
+        }catch(e:Exception){news.cancel();installAssist.cancel();confirmation=null;mutable.update {it.copy(installing=false,installFallback=true)};installMessage("Не удалось открыть установщик: ${reason(e)}");report("UPDATE_INSTALL_CONFIRMATION_FAILED ${e.javaClass.simpleName}")}
     }
     internal fun sessionConfirmationReturned(id:Int) {
         // Android 11 may return RESULT_CANCELED even after acceptance. The session callback,

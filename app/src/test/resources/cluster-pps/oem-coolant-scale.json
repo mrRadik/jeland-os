@@ -1,0 +1,29 @@
+{
+  "source_binary_sha256": "be5033c9ecb0212076940382b60b0ae34b48df5c852e05f7694c510bc9e7fe6c",
+  "source_kzb_sha256": "67191300129aedf60c8a9ffc2cb839d6cede48c34de12a54190e66a660eb994f",
+  "native_analog_accessor": "getGaugeAnalogData(index=2) at 0x173810; a000 LE uint16 offset 8",
+  "native_update": "RcMClusterCoolantTempUpdate at 0x18e1d8; division constant 1000.0 at 0x18e560; update float field at 0x18e380",
+  "meaning": "OEM scale position, not degrees Celsius",
+  "rendering": "Preserve fractional endpoint inside final segment; no whole-block ceiling",
+  "bindings": [
+    {
+      "resource": "/Prefabs/prefabe_ignon_topbottom_bottom",
+      "native_field": "DrivingInfo.LiquidCoolantTempFloat",
+      "property": "commonFloat",
+      "binding_address": "0x49cd3e",
+      "binding_sha256": "b60dec97cb9d3a1e29cd9be3e128b459b025c717d1c780e5736ddd9e9c6fb0f7"
+    },
+    {
+      "resource": "/Prefabs/prefabe_ignon_topbottom_bottom_theme2",
+      "native_field": "DrivingInfo.LiquidCoolantTempFloat",
+      "property": "commonFloat",
+      "binding_address": "0x49f929",
+      "binding_sha256": "b60dec97cb9d3a1e29cd9be3e128b459b025c717d1c780e5736ddd9e9c6fb0f7"
+    },
+    {
+      "resource": "/Material Types/Theme2BottomProgress",
+      "mask": "step(progress, vTexCoord.y)",
+      "sha256": "54ae27c027709a27c8dd66f5ad6faa354ad457cd45a02c43ce2c7a45a9fc56c3"
+    }
+  ]
+}

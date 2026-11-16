@@ -3,6 +3,7 @@ package ru.jeland.os.data
 import android.content.Context
 import ru.jeland.os.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asStateFlow
 import ru.jeland.os.core.automation.*
 
 class AndroidSettingsStore(context: Context) : DurableSettingsStore {
@@ -37,6 +38,7 @@ class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data
     val apps=AndroidAppsRepository(context,store)
     val connectivity:ConnectivityRepository=AndroidConnectivityRepository(context,car::recordIntegration)
     val preferences:InterfaceRepository=PersistentInterfaceRepository(store)
+    val updateNews=ru.jeland.os.data.updates.UpdateNewsRepository(store,ru.jeland.os.BuildConfig.VERSION_CODE.toLong(),car::recordIntegration)
     val updates=ru.jeland.os.data.updates.AppUpdateManager(context,store,car::recordIntegration)
     private val automationScope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private val automationJobs=mutableSetOf<Job>()
@@ -55,6 +57,25 @@ class AppContainer(context: Context,automationDatabaseOverride:ru.jeland.os.data
         onEngineSample={engine, ignition, at ->
             if(trips.engine(engine, ignition, at)&&trips.state.value.recording)TripRecordingService.finish(context)
         },onEngineUnavailable=trips::engineUnavailable,onVehicleSleeping=trips::vehicleSlept)
+
+    val clusterProjection=ru.jeland.os.data.cluster.ClusterProjection(context.applicationContext,preferences,car::recordIntegration)
+    init {clusterProjection.start()}
+    private val dashboardOwners=mutableSetOf<Any>()
+    private val dashboardVisibility=kotlinx.coroutines.flow.MutableStateFlow(false)
+    val dashboardVisible=dashboardVisibility.asStateFlow()
+    private var mediaClock:Job?=null
+    fun acquireDashboard(owner:Any):Boolean {
+        if(!dashboardOwners.add(owner))return false
+        dashboardVisibility.value=true
+        if(dashboardOwners.size!=1)return false
+        mediaClock=automationScope.launch {while(true){delay(1000);media.tick()}}
+        return true
+    }
+    fun releaseDashboard(owner:Any):Boolean {
+        if(!dashboardOwners.remove(owner)||dashboardOwners.isNotEmpty())return false
+        dashboardVisibility.value=false;mediaClock?.cancel();mediaClock=null
+        return true
+    }
 
     fun setTripAutoStart(value:Boolean) {
         trips.setAutoStart(value)

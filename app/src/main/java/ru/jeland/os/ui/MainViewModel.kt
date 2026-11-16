@@ -53,12 +53,11 @@ class MainViewModel(val dependencies: AppContainer) : ViewModel() {
         dependencies.navigation.state.onEach(dependencies.cluster::publish).launchIn(viewModelScope)
         // Detailed SET/GET/readback stays in diagnostics, not in an overlay over the dashboard.
         dependencies.car.link.map {it.userMessage}.distinctUntilChanged().onEach {if(it!=null)message.value=it}.launchIn(viewModelScope)
-        viewModelScope.launch { foreground.collectLatest { visible->if(visible)while(true) { delay(1000); dependencies.media.tick() } } }
-        combine(foreground,dependencies.car.link){visible,link->visible&&!link.demo}.distinctUntilChanged()
+        combine(dependencies.dashboardVisible,dependencies.car.link){visible,link->visible&&!link.demo}.distinctUntilChanged()
             .onEach {if(it)dependencies.assistantAvatar.start()else dependencies.assistantAvatar.stop()}.launchIn(viewModelScope)
     }
-    fun resume() {dependencies.startup.refresh();dependencies.updates.resume();if(foreground.value)return;foreground.value=true;dependencies.dayNight.start();dependencies.car.resume();dependencies.automationTrip.resume();dependencies.media.start();dependencies.connectivity.start();dependencies.navigation.resume();refreshApps()}
-    fun pause() {foreground.value=false;dependencies.updates.pause();dependencies.automationTrip.pause();dependencies.cameras.cancel();dependencies.assistantAvatar.stop();dependencies.dayNight.stop();dependencies.media.stop();dependencies.car.pause();dependencies.connectivity.stop();dependencies.navigation.pause()}
+    fun resume() {dependencies.startup.refresh();dependencies.updates.resume();if(foreground.value)return;foreground.value=true;if(!dependencies.acquireDashboard(this))return;dependencies.dayNight.start();dependencies.car.resume();dependencies.automationTrip.resume();dependencies.media.start();dependencies.connectivity.start();dependencies.navigation.resume();refreshApps()}
+    fun pause() {foreground.value=false;if(!dependencies.releaseDashboard(this))return;dependencies.updates.pause();dependencies.automationTrip.pause();dependencies.cameras.cancel();dependencies.assistantAvatar.stop();dependencies.dayNight.stop();dependencies.media.stop();dependencies.car.pause();dependencies.connectivity.stop();dependencies.navigation.pause()}
     fun refreshApps() {viewModelScope.launch {dependencies.apps.refresh()}}
     fun launchApp(id:String) {dependencies.apps.launch(id)?.let {message.value=it}}
     fun openVehicleSettings() {if(!dependencies.nativeApps.openSettings())message.value="Штатные настройки недоступны."}
@@ -105,7 +104,7 @@ class MainViewModel(val dependencies: AppContainer) : ViewModel() {
             finally {clearingLogs.value=false}
         }
     }
-    override fun onCleared() {dependencies.automationTrip.pause();dependencies.cameras.cancel();dependencies.assistantAvatar.stop();dependencies.media.stop();dependencies.car.pause();dependencies.connectivity.stop();super.onCleared()}
+    override fun onCleared() {pause();super.onCleared()}
     class Factory(private val container: AppContainer) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST") override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(MainViewModel::class.java)); return MainViewModel(container) as T

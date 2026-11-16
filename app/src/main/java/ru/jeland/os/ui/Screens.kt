@@ -287,19 +287,23 @@ private fun vehicleOptionDetail(option:VehicleOption)=when(option) {
     VehicleOption.ASSIST_DEMO->"Не включает и не отключает штатные ассистенты"
     VehicleOption.WELCOME_SOUND->"Только сохранение выбора, без звукового потока"
 }
-@Composable fun SettingsScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit,onDemoVehicle:()->Unit={}) {
+@Composable fun SettingsScreen(s:UiState,model:MainViewModel,show:(Popup)->Unit,onClusterPreview:()->Unit={},onDemoVehicle:()->Unit={}) {
     val preferences=model.dependencies.preferences
     val startup by model.startup.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("settings-scroll").padding(bottom=Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.roomy)) {
         SectionTitle("Настройки","Сделайте Jeland OS удобным для себя")
         LanguageSettings(model)
         SystemStartupSettings(startup,model::setSystemStartup,model::openStartupPermission)
+        Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)) {
+            ru.jeland.os.navigation.StrelkaRoadAlertsSettings(model.dependencies.navigation.roadAlerts)
+        }}
         AppUpdateSettings(model.dependencies.updates)
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(22.dp)){PermissionSettings(model)}}
         Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(Jeland.space.large),verticalArrangement=Arrangement.spacedBy(Jeland.space.regular)) {
             SectionTitle("Оформление")
             AppearancePicker(s,model)
         }}
+        ru.jeland.os.ui.cluster.ClusterDesignSettings(s,model,onClusterPreview)
         if(s.preferences.style!=DashboardStyle.FREE)Panel(Modifier.fillMaxWidth()) {Column(Modifier.padding(24.dp)) {
             SectionTitle("Главный экран")
             SettingsToggle("Топливо","Уровень и объём до полного бака",s.preferences.showFuel,Modifier.testTag("setting-fuel")){preferences.change(s.preferences.copy(showFuel=!s.preferences.showFuel))}

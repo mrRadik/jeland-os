@@ -51,12 +51,13 @@ class DesayCarSession(context: Context, private val settings: SettingsStore) {
     val vehicle=vehicleFlow.asStateFlow()
     private val journal=File(context.getExternalFilesDir(null)?:context.filesDir,"JelandOS_vehicle_${System.currentTimeMillis()}.log")
     private var qnxTyres:QnxTyreTemperatureReader?=null
+    private var clusterReader:ru.jeland.os.data.cluster.QnxClusterTelemetryReader?=null
     private val tyreDiagnosticsFlow=MutableStateFlow(TyreTemperatureDiagnostics())
     val tyreDiagnostics=tyreDiagnosticsFlow.asStateFlow()
     private val freshness=object: Runnable {
         override fun run() {if(foreground && vehicleMode){publish();main.postDelayed(this,1000)}}
     }
-    init {report("SESSION_BEGIN app=${ru.jeland.os.BuildConfig.VERSION_NAME} SDK=${Build.VERSION.SDK_INT} mode=${if(vehicleMode)"VEHICLE"else"DEMO"}")}
+    init {report("SESSION_BEGIN app=${ru.jeland.os.BuildConfig.VERSION_NAME} code=${ru.jeland.os.BuildConfig.VERSION_CODE} SDK=${Build.VERSION.SDK_INT} mode=${if(vehicleMode)"VEHICLE"else"DEMO"}")}
     private fun now()=SystemClock.elapsedRealtime()
     fun recordIntegration(text:String){report("INTEGRATION ${text.take(2000)}")}
     @Synchronized private fun report(text: String) {
@@ -149,6 +150,19 @@ class DesayCarSession(context: Context, private val settings: SettingsStore) {
                 writes=foreground&&vehicleMode
                 linkFlow.update {it.copy(connected=true,writesEnabled=writes,detail="ГУ подключено · управление доступно")}
                 report("CONNECTED ${name.flattenToShortString()} SDK=${Build.VERSION.SDK_INT}")
+                clusterReader?.close()
+                clusterReader=ru.jeland.os.data.cluster.QnxClusterTelemetryReader(::report) {sample->
+                    synchronized(stateLock) {
+                        if(token==epoch&&foreground&&vehicleMode)linkFlow.update {link->
+                            link.copy(clusterTelemetry=sample.copy(
+                                gauge=sample.gauge?:link.clusterTelemetry.gauge,
+                                warnings=sample.warnings?:link.clusterTelemetry.warnings,
+                                computer=sample.computer?:link.clusterTelemetry.computer,
+                                auxiliary=sample.auxiliary?:link.clusterTelemetry.auxiliary,
+                                tripComputer=sample.tripComputer?:link.clusterTelemetry.tripComputer))
+                        }
+                    }
+                }.also {it.start()}
                 qnxTyres?.close()
                 qnxTyres=QnxTyreTemperatureReader(::report,sample={frame->
                     synchronized(stateLock){if(token==epoch&&foreground&&vehicleMode){reducer.acceptTyreTemperature(frame,now());publish()}}
@@ -176,6 +190,7 @@ class DesayCarSession(context: Context, private val settings: SettingsStore) {
     private fun failed(reason: String) {stop();linkFlow.update {it.copy(demo=!vehicleMode,detail=reason)};report(reason)}
     private fun stop() {
         climatePanelDismissal.cancel()
+        clusterReader?.close();clusterReader=null
         climatePanelReceiver?.let {runCatching {context.unregisterReceiver(it)}};climatePanelReceiver=null
         qnxTyres?.close();qnxTyres=null
         tyreDiagnosticsFlow.update {it.copy(active=false,phase=TyreReadPhase.STOPPED,tcpConnected=false,retryAtMillis=null)}
@@ -191,7 +206,7 @@ class DesayCarSession(context: Context, private val settings: SettingsStore) {
         }
         if(connection!=null)runCatching {context.unbindService(connection)}
         publish()
-        linkFlow.update {it.copy(connected=false,writesEnabled=false,busy=false,raw=emptyMap(),userMessage=null,detail=if(vehicleMode)"ГУ отключено · нет свежих данных"else"DEMO · без подключения к авто")}
+        linkFlow.update {it.copy(connected=false,writesEnabled=false,busy=false,raw=emptyMap(),clusterTelemetry=QnxClusterTelemetry(),userMessage=null,detail=if(vehicleMode)"ГУ отключено · нет свежих данных"else"DEMO · без подключения к авто")}
     }
     private fun requireScalar(module: Int,cmd: Int,range: IntRange): Int = (projected.value(VdsKey(module,cmd),now())?:reducer.scalar(module,cmd,now()))?.takeIf {it in range}
         ?:error("Нет свежего состояния 0x${module.toString(16)}/$cmd. Обновите показания.")

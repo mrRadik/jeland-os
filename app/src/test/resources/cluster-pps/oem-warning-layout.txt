@@ -1,0 +1,8 @@
+Installed sva.cluster SHA256 be5033c9ecb0212076940382b60b0ae34b48df5c852e05f7694c510bc9e7fe6c.
+RcDataSet(type 5), 0x171de8..0x171e98:
+canonical 0..19=wire 0..19; 20..29=wire 29..38; 30..38=wire 43..51;
+message id canonical39..40=wire20..21 LE, count41=wire22,
+belt metadata42..47=wire23..28, flash48=wire39. wire40/41 feed later ABI fields.
+wire42 and trailing52/53 are not interpreted as indicators.
+This is an internal ABI transform; field-*.txt are the independent captured wire records.
+HMA bits4/5/6 mean OEM high-beam-assist states, not guessed AUTO light-switch enum values.

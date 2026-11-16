@@ -18,6 +18,7 @@ import app.organicmaps.sdk.location.LocationHelper;
 public final class JelandMapView extends TextureView implements TextureView.SurfaceTextureListener {
   private final Map map = new Map(DisplayType.Device);
   private Surface surface;
+  private boolean rendererReleased;
   private Rect viewport;
   private Rect appliedViewport;
   private int followOffset;
@@ -28,7 +29,8 @@ public final class JelandMapView extends TextureView implements TextureView.Surf
     map.setMapRenderingListener(listener);
     map.onCreate(false);
     setSurfaceTextureListener(this);
-    setOpaque(true);
+    // Compose clips the external texture; keep premultiplied-alpha composition.
+    setOpaque(false);
   }
   public Map map() { return map; }
   public void setViewport(int top, int right, int bottom, int offset) {
@@ -46,6 +48,7 @@ public final class JelandMapView extends TextureView implements TextureView.Surf
     appliedOffset = followOffset;
   }
   @Override public void onSurfaceTextureAvailable(@NonNull SurfaceTexture texture, int width, int height) {
+    if (rendererReleased) return;
     surface = new Surface(texture);
     appliedViewport = null;
     Rect frame = new Rect(0, 0, width, height);
@@ -56,14 +59,23 @@ public final class JelandMapView extends TextureView implements TextureView.Surf
     applyViewport();
   }
   @Override public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture texture, int width, int height) {
+    if (rendererReleased) return;
     map.onSurfaceChanged(getContext(), surface, new Rect(0, 0, width, height), false);
     appliedViewport = null;
     applyViewport();
   }
   @Override public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture texture) {
-    map.onSurfaceDestroyed(false);
+    if (!rendererReleased) map.onSurfaceDestroyed(false);
     if (surface != null) { surface.release(); surface = null; }
     return true;
+  }
+  // Called before another display/page receives the single native engine.
+  // A later TextureView destroy callback must not tear down its new owner.
+  public void releaseRenderer() {
+    if (rendererReleased) return;
+    rendererReleased = true;
+    map.onSurfaceDestroyed(false);
+    if (surface != null) { surface.release(); surface = null; }
   }
   @Override public void onSurfaceTextureUpdated(@NonNull SurfaceTexture texture) {}
   @Override public boolean onTouchEvent(MotionEvent event) {

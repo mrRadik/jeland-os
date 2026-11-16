@@ -6,4 +6,11 @@
         <item name="android:colorAccent">#52D9FF</item>
         <item name="android:windowActionModeOverlay">true</item>
     </style>
+    <style name="Theme.JelandOS.ClusterDisplay" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
 </resources>

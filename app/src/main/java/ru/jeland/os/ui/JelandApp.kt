@@ -69,7 +69,10 @@ private val destinations=listOf(
         CompositionLocalProvider(LocalDensity provides Density(original.density*scale,original.fontScale)) {
             ru.jeland.os.localization.AppLocalization(setup.language.tag) {
                 JelandTheme(state.dark,state.preferences.style) {
-                    if(setup.complete)JelandScaffold(state,model)else FirstRunScreen(state,model)
+                    if(setup.complete) {
+                        JelandScaffold(state,model)
+                        WhatsNewHost(model.dependencies.updateNews)
+                    }else FirstRunScreen(state,model)
                 }
             }
         }
@@ -85,7 +88,7 @@ private val destinations=listOf(
         popupName=null
         if(route.startsWith("automation-edit/")&&to!="car")nav.popBackStack("automations",false)
         if(to=="car")model.openVehicleSettings()
-        else nav.navigate(to){popUpTo("home"){saveState=true};launchSingleTop=true;restoreState=true}
+        else nav.navigate(to){popUpTo("home"){saveState=true};launchSingleTop=true;restoreState=to!="settings"}
     }
     val c=Jeland.colors
     val home=route=="home"
@@ -93,7 +96,7 @@ private val destinations=listOf(
     // Fading a native TextureView asks some GL drivers to use unsupported blending.
     val homeHasNativeMap=state.preferences.style!=DashboardStyle.FREE||
         state.preferences.freeLayout.widgets.any {it.kind==DashboardWidgetKind.NAVIGATION}
-    fun nativeMapPage(destination:String?)=destination=="navigation"||(destination=="home"&&homeHasNativeMap)
+    fun nativeMapPage(destination:String?)=destination=="navigation"||destination=="cluster"||(destination=="home"&&homeHasNativeMap)
     // Keep the chrome in one coordinate space. Previously moving the header between
     // Column and overlay instantly resized both outgoing and incoming destinations.
     val pageMotion=if(route=="navigation")snap<androidx.compose.ui.unit.Dp>()else tween(320,easing=FastOutSlowInEasing)
@@ -133,7 +136,10 @@ private val destinations=listOf(
                         val editor:AutomationEditorViewModel=viewModel(factory=remember(id){AutomationEditorViewModel.Factory(id,model.dependencies.automations)})
                         AutomationEditorScreen(editor){nav.popBackStack()}
                     }
-                    composable("settings"){SettingsScreen(state,model,show){
+                    composable("cluster"){ru.jeland.os.ui.cluster.ClusterPreviewScreen(state,model){
+                        if(!nav.popBackStack("settings",false))nav.navigate("settings"){launchSingleTop=true}
+                    }}
+                    composable("settings"){SettingsScreen(state,model,show,onClusterPreview={nav.navigate("cluster"){launchSingleTop=true}}){
                         nav.navigate("car"){popUpTo("home");launchSingleTop=true}
                     }}
                 }

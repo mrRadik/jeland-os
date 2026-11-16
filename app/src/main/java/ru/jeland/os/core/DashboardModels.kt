@@ -51,7 +51,11 @@ data class AppsState(val installed:List<LauncherApp> = emptyList(),val favorites
 }
 enum class DashboardStyle(val title:String) { CLASSIC("Классический"),MINIMAL("Минималистичный"),FREE("Свободный экран") }
 data class InterfacePreferences(val showFuel:Boolean=true,val showTires:Boolean=true,val showFavorites:Boolean=true,val developerPanel:Boolean=false,
-    val style:DashboardStyle=DashboardStyle.CLASSIC,val freeLayout:FreeDashboardLayout=FreeDashboardLayout.default())
+    val style:DashboardStyle=DashboardStyle.CLASSIC,val freeLayout:FreeDashboardLayout=FreeDashboardLayout.default(),
+    val clusterDesign:ClusterDesign=ClusterDesign.ORIGINAL,
+    val clusterAccent:ClusterAccent=ClusterAccent.CYAN,
+    val clusterColorMode:ClusterColorMode=ClusterColorMode.MANUAL,
+    val clusterTripPeriod:ClusterTripPeriod=ClusterTripPeriod.SINCE_START)
 data class ConnectivityState(
     val wifi:Boolean=false,val wifiLevel:Int?=null,val cellular:Boolean=false,val mobileLevel:Int?=null,
     val networkType:String?=null,val available:Boolean=false,val demo:Boolean=false,

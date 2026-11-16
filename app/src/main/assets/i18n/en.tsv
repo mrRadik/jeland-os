@@ -944,3 +944,119 @@ Android запретил действие. Проверьте разрешени
 Время поездок	Trip duration
 {0} км/ч	{0} km/h
 ≈ {0} с	≈ {0} s
+Приборная панель	Instrument cluster
+Дизайн	Design
+Исходные два колодца	Original twin dials
+Два больших колодца и подсказки маршрута	Large twin dials and turn guidance
+Карта CoMaps и компактные приборы	CoMaps and compact dials
+Центральный тахометр и крупная скорость	Central tachometer and prominent speed
+Открыть предпросмотр	Open preview
+Предпросмотр · 1920 × 720	Preview · 1920 × 720
+На весь экран	Full screen
+Закрыть предпросмотр	Close preview
+Недоступные показания обозначены прочерком. Штатная приборка не изменяется.	Unavailable readings are shown as dashes. The stock cluster is unchanged.
+С момента запуска	Since start
+Нет маршрута	No active route
+×1000 об/мин	×1000 rpm
+Скорость	Speed
+Обороты	Engine RPM
+л/100 км	L/100 km
+Штатная приборная панель автомобиля	Stock vehicle instrument cluster
+Цвет подсветки	Accent lighting
+Голубая	Blue
+Зелёная	Green
+Красная	Red
+
+Тормозная система	Brake system
+Низкое давление масла	Low oil pressure
+Перегрев двигателя	Engine overheating
+Открыта дверь	Door open
+Мало топлива	Low fuel
+
+Штатная приборная панель	Factory instrument panel
+Показ на ПП доступен при подключении к головному устройству	Instrument display is available on a compatible head unit
+Приборная панель включена	Instrument panel enabled
+Не удалось открыть приборную панель	Could not open the instrument panel
+
+По режиму автомобиля	Vehicle drive mode
+Выбрать любой цвет	Choose any colour
+Свой цвет	Custom colour
+Режим автомобиля пока не получен. Используется выбранный вручную цвет.	Drive mode is not available yet. Your manual colour is used.
+Текущий режим	Current mode
+Эко	Eco
+Спорт	Sport
+Снег	Snow
+Грязь	Mud
+Песок	Sand
+Бездорожье	Off-road
+Насыщенность и яркость	Saturation and brightness
+Оттенок	Hue
+Цвет приборной панели	Instrument panel colour
+Применить	Apply
+По режиму авто	Vehicle mode
+Показать на приборке	Show on instrument display
+Вернуть штатную	Restore factory panel
+Недоступные показания обозначены прочерком. Выбор дизайна изменяет только предпросмотр.	Unavailable readings are shown as dashes. Choosing a design changes only the preview.
+На приборке	On instrument display
+
+Пакеты приборов	Gauge packets
+Пакеты индикаторов	Indicator packets
+получены	received
+Назад в настройки	Back to settings
+
+Выберите оформление приборной панели	Choose an instrument cluster design
+Показ на приборке включается кнопкой в предпросмотре.	Use the button in the preview to show the design on the instrument cluster.
+
+Что нового	What's new
+Понятно	Got it
+Обновление установлено.	The update is installed.
+Добавлено окно с изменениями после обновления приложения.	See what's new after updating the app.
+Приборная панель настраивается в мастере первого запуска.	Choose your instrument cluster design during first-time setup.
+Компактная верхняя панель приборки плавно раскрывается для уведомлений.	The compact cluster header expands smoothly to display notifications.
+Стандарт	Standard
+Восстанавливаем приборную панель…	Restoring instrument cluster…
+Стрелка	Strelka
+Камеры и дорожные опасности	Speed cameras and road hazards
+Предупреждения Стрелки	Strelka alerts
+Предупреждения в навигации, виджете карты и на приборной панели	Alerts in navigation, the home map widget and the instrument cluster
+Установите и настройте Стрелку	Install and configure Strelka
+Нужен доступ к предупреждениям	Notification access is required
+Ожидаем подключения к уведомлениям	Waiting for the notification connection
+Сервис Стрелки запущен	Strelka service is running
+Стрелка не запущена	Strelka is not running
+Доступ к предупреждениям	Notification access
+Android разрешает доступ ко всем уведомлениям. Jeland OS обрабатывает только уведомления Стрелки.	Android grants access to all notifications. Jeland OS processes only Strelka notifications.
+Запускать со Jeland OS	Start with Jeland OS
+Запуск обнаружения камер при открытии Jeland OS	Start camera detection when Jeland OS opens
+Запустить	Start
+Открыть Стрелку	Open Strelka
+Скачать Стрелку	Download Strelka
+База и звук настраиваются в Стрелке. Дата её базы недоступна Jeland OS.	Manage the database and audio in Strelka. Its database date is not available to Jeland OS.
+Скрыть инструкцию	Hide instructions
+Как настроить	Setup instructions
+1. Установите обычную Стрелку и предоставьте ей GPS.	1. Install the regular Strelka app and grant it location access.
+2. Обновите базу и включите её автоматическое обновление каждые 24 часа.	2. Update its database and enable automatic updates every 24 hours.
+3. В Стрелке включите вывод уведомлений для умных часов.	3. Enable smartwatch notifications in Strelka.
+4. Разрешите Jeland OS доступ к предупреждениям. Если системный экран недоступен, выполните setup-strelka.cmd на компьютере.	4. Grant Jeland OS notification access. If the system screen is unavailable, run setup-strelka.cmd on your computer.
+Включите предупреждения Стрелки	Enable Strelka alerts
+Эта версия Стрелки не поддерживает внешний запуск	This Strelka version does not support external startup
+Команда запуска передана в Стрелку	Start request sent to Strelka
+Не удалось запустить Стрелку. Откройте её вручную.	Could not start Strelka. Open it manually.
+Не удалось открыть Стрелку	Could not open Strelka
+Официальная загрузка: www.ivolk.ru/download.htm	Official download: www.ivolk.ru/download.htm
+Системный экран недоступен. Используйте setup-strelka.cmd на компьютере.	System screen unavailable. Run setup-strelka.cmd on your computer.
+
+Внешний запуск зависит от лицензии и настроек Стрелки	External startup depends on your Strelka license and settings
+Стрелка не подтвердила запуск. Откройте её и проверьте GPS, автоматизацию и лицензию.	Strelka did not confirm startup. Open it and check location access, automation, and your license.
+3. В Стрелке: Опции → Дополнительно → Вывод уведомлений → включить и применить.	3. In Strelka: Options → Additional → Notifications → enable and apply.
+
+Ограничение скорости камеры	Camera speed limit
+
+Выбрать цвет	Choose color
+Статистика поездки	Trip statistics
+С момента сброса	Since reset
+Предпросмотр	Preview
+Ближайший подъезд	Nearest vehicle access
+до объекта	from the destination
+Ищем ближайший подъезд…	Finding vehicle access…
+Не удалось найти автомобильный подъезд рядом с точкой. Выберите другое место на карте.	No reachable vehicle access was found nearby. Choose another point on the map.

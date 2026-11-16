@@ -34,6 +34,7 @@ import app.organicmaps.sdk.OrganicMaps
 import app.organicmaps.sdk.downloader.CountryItem
 import ru.jeland.os.localization.LocalizedIcon as Icon
 import ru.jeland.os.localization.LocalizedText as Text
+import ru.jeland.os.localization.localized
 import ru.jeland.os.navigation.*
 import ru.jeland.os.BuildConfig
 import ru.jeland.os.ui.*
@@ -43,7 +44,18 @@ import ru.jeland.os.ui.theme.*
 // transfer ownership before attaching the next surface, including the home map.
 private var currentSurface:JelandMapView?=null
 
-@Composable private fun CoMapsSurface(repository:CoMapsRepository,dark:Boolean,modifier:Modifier=Modifier,topOverlay:Int=0,bottomOverlay:Int=0,guidance:Boolean=false) {
+@Composable private fun CoMapsSurface(repository:CoMapsRepository,dark:Boolean,modifier:Modifier=Modifier,topOverlay:Int=0,bottomOverlay:Int=0,guidance:Boolean=false,projection:Boolean=false) {
+    val owner=LocalLifecycleOwner.current
+    val ownerState by owner.lifecycle.currentStateFlow.collectAsState()
+    val mainSource=mainMapSurface
+    if(projection&&mainSource!=null) {
+        CoMapsProjectionMirror(mainSource,modifier)
+        return
+    }
+    if(!ownerState.isAtLeast(Lifecycle.State.RESUMED)) {
+        Box(modifier.background(Jeland.colors.map))
+        return
+    }
     val ready by repository.ready.collectAsStateWithLifecycle()
     val error by repository.error.collectAsStateWithLifecycle()
     val lifecycle=LocalLifecycleOwner.current
@@ -64,7 +76,7 @@ private var currentSurface:JelandMapView?=null
         onDispose {lifecycle.lifecycle.removeObserver(observer)}
     }
     if(ready)AndroidView(factory={host->
-        currentSurface?.let {old->repository.surfacePaused();old.map().onSurfaceDestroyed(false);old.visibility=View.INVISIBLE}
+        currentSurface?.let {old->repository.surfacePaused();old.releaseRenderer();old.visibility=View.INVISIBLE}
         JelandMapView(host,repository.locationHelper,object:MapRenderingListener {
             override fun onRenderingCreated(){repository.surfaceReady()}
             override fun onRenderingRestored(){repository.surfaceReady()}
@@ -72,23 +84,33 @@ private var currentSurface:JelandMapView?=null
         }).also {mapView->
             mapView.map().setCallbackUnsupported {repository.error.value="Устройство не поддерживает отрисовку карты"}
             mapView.map().onStart();mapView.map().onResume();currentSurface=mapView;view=mapView
+            if(!projection)mainMapSurface=mapView
         }
     },modifier=modifier.testTag("comaps-map").onSizeChanged {size=it},update={mapView->
         if(currentSurface===mapView)coMapsViewport(size.width,size.height,topOverlay,bottomOverlay,guidance)?.let {
             mapView.setViewport(it.top,it.right,it.bottom,it.followOffset)
         }
     },onRelease={old->
-        if(currentSurface===old){repository.surfacePaused();old.map().onPause();old.map().onStop();old.map().onSurfaceDestroyed(false);currentSurface=null}
+        if(currentSurface===old){repository.surfacePaused();old.map().onPause();old.map().onStop();old.releaseRenderer();currentSurface=null}
+        if(mainMapSurface===old)mainMapSurface=null
+        old.releaseRenderer()
         view=null
     })else Box(modifier.background(Jeland.colors.map),contentAlignment=Alignment.Center) {
         if(error!=null)Label(error!!,Modifier.padding(20.dp))else CircularProgressIndicator(color=Jeland.colors.accent)
     }
 }
 
+/** Main-display cluster preview reuses the single native map surface and existing route/GPS. */
+@Composable fun CoMapsClusterSurface(host:OfflineNavigationRepository,dark:Boolean,modifier:Modifier,guidance:Boolean,mapFirst:Boolean=false,projection:Boolean=false) {
+    var pixels by remember {mutableIntStateOf(0)}
+    CoMapsSurface(host.comaps,dark,modifier.onSizeChanged {pixels=it.height},topOverlay=(pixels*if(mapFirst).25f else .19f).toInt(),bottomOverlay=(pixels*if(mapFirst).15f else .12f).toInt(),guidance=guidance,projection=projection)
+}
+
 @Composable fun CoMapsScreen(host:OfflineNavigationRepository,dark:Boolean) {
     val repository=host.comaps
     val state by repository.state.collectAsStateWithLifecycle()
     val selected by repository.selected.collectAsStateWithLifecycle()
+    val approach by repository.approach.collectAsStateWithLifecycle()
     val message by repository.message.collectAsStateWithLifecycle()
     val ready by repository.ready.collectAsStateWithLifecycle()
     val results by repository.results.collectAsStateWithLifecycle()
@@ -128,6 +150,7 @@ private var currentSurface:JelandMapView?=null
                     }
                 }
             }
+            StrelkaRoadAlertCard(host.roadAlerts)
         }
         Column(Modifier.align(Alignment.CenterEnd).padding(14.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             if(guidance)RoundControl(JIcons.Search,"Поиск места",Modifier.testTag("navigation-search-open")){sheet="search"}
@@ -145,6 +168,7 @@ private var currentSurface:JelandMapView?=null
                     Column(Modifier.weight(1f)) {
                         Text(if(state.arrived)"Вы прибыли"else"Прибытие ${state.arrivalTime}",color=c.text,fontSize=Jeland.type.title,maxLines=1)
                         Text(if(state.arrived)state.destination else"${state.minutes} мин · ${distanceLabel(state.kilometers*1000)}",color=c.muted,fontSize=Jeland.type.footnote,maxLines=1,overflow=TextOverflow.Ellipsis)
+                        approach?.let {Text(localized("Ближайший подъезд")+" · "+distanceLabel(it.distanceMeters)+" "+localized("до объекта"),Modifier.testTag("navigation-access-point"),color=c.accent,fontSize=Jeland.type.footnote)}
                     }
                     RoundControl(JIcons.Close,if(state.arrived)"Закрыть маршрут"else"Завершить маршрут"){if(state.arrived)repository.clearSelection()else repository.stop()}
                 }
@@ -154,6 +178,7 @@ private var currentSurface:JelandMapView?=null
                         Column(Modifier.weight(1f)) {
                             if(state.active)Text(if(state.preview)"Просмотр маршрута"else"${state.minutes} мин · ${distanceLabel(state.kilometers*1000)}",color=c.accent,fontSize=Jeland.type.title)
                             Text(selected?.fullName?:state.destination,color=c.text,fontSize=Jeland.type.body,maxLines=2,overflow=TextOverflow.Ellipsis)
+                            approach?.let {Text(localized("Ближайший подъезд")+" · "+distanceLabel(it.distanceMeters)+" "+localized("до объекта"),Modifier.testTag("navigation-access-point"),color=c.accent,fontSize=Jeland.type.footnote)}
                         }
                         RoundControl(JIcons.Close,if(state.active)"Завершить маршрут"else"Сбросить выбранную точку") {if(state.active)repository.stop()else repository.clearSelection()}
                     }
@@ -205,12 +230,16 @@ private var currentSurface:JelandMapView?=null
     val state by host.comaps.state.collectAsStateWithLifecycle()
     val c=Jeland.colors
     var bottomOverlay by remember {mutableIntStateOf(0)}
+    var alertOverlay by remember {mutableIntStateOf(0)}
     val content:@Composable ()->Unit={
         Box(Modifier.fillMaxSize()) {
-            CoMapsSurface(host.comaps,dark,Modifier.fillMaxSize(),bottomOverlay=bottomOverlay,guidance=state.active&&!state.preview)
+            CoMapsSurface(host.comaps,dark,Modifier.fillMaxSize(),topOverlay=alertOverlay,bottomOverlay=bottomOverlay,guidance=state.active&&!state.preview)
             Box(Modifier.matchParentSize().clickable(onClick=onClick))
+            Box(Modifier.align(Alignment.TopStart).fillMaxWidth().onSizeChanged {alertOverlay=it.height}) {
+                StrelkaRoadAlertCard(host.roadAlerts,Modifier.padding(8.dp),compact=true)
+            }
             Text("© OpenStreetMap · CoMaps",color=c.muted,fontSize=Jeland.type.micro,
-                modifier=Modifier.align(Alignment.TopEnd).background(c.panel.copy(alpha=.8f)).padding(4.dp))
+                modifier=Modifier.align(Alignment.TopEnd).padding(top=with(LocalDensity.current){alertOverlay.toDp()}).background(c.panel.copy(alpha=.8f)).padding(4.dp))
             Row(Modifier.align(Alignment.BottomStart).fillMaxWidth().onSizeChanged {bottomOverlay=it.height}.background(c.panel.copy(alpha=.92f)).clickable(onClick=onClick).padding(14.dp),
                 horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
                 if(state.active)NavigationManeuverSymbol(state,Modifier.size(38.dp))

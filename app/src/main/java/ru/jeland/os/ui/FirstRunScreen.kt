@@ -31,6 +31,8 @@ import ru.jeland.os.data.AppLanguage
 import ru.jeland.os.navigation.NavigationMapSettings
 import ru.jeland.os.navigation.NavigationVoicePanel
 import ru.jeland.os.navigation.NavigationVoiceLicensePanel
+import ru.jeland.os.ui.cluster.ClusterDesignChoices
+import ru.jeland.os.ui.cluster.ClusterColorSettings
 import ru.jeland.os.ui.theme.Jeland
 
 @Composable fun LanguageSettings(model:MainViewModel) {
@@ -90,7 +92,7 @@ import ru.jeland.os.ui.theme.Jeland
 @Composable fun FirstRunScreen(s:UiState,model:MainViewModel) {
     var page by rememberSaveable {mutableIntStateOf(0)}
     val startup by model.startup.collectAsStateWithLifecycle()
-    val steps=listOf("Язык","Оформление","Разрешения","Автозапуск","Навигация","Всё готово")
+    val steps=listOf("Язык","Оформление","Приборная панель","Разрешения","Автозапуск","Навигация","Всё готово")
     val scroll=rememberScrollState()
     var voiceLicense by remember {mutableStateOf(false)}
     if(voiceLicense)Dialog(onDismissRequest={voiceLicense=false},properties=DialogProperties(usePlatformDefaultWidth=false)) {
@@ -118,9 +120,20 @@ import ru.jeland.os.ui.theme.Jeland
                         SectionTitle("Ваш стиль")
                         AppearancePicker(s,model,setup=true)
                     }
-                    2->PermissionSettings(model)
-                    3->{SectionTitle("Всегда под рукой");SystemStartupSettings(startup,model::setSystemStartup,model::openStartupPermission)}
-                    4->{
+                    2->Column(Modifier.fillMaxWidth().testTag("setup-cluster"),verticalArrangement=Arrangement.spacedBy(20.dp)) {
+                        SectionTitle("Приборная панель","Выберите оформление приборной панели")
+                        val driveMode=ClusterDriveMode.read(s.car,android.os.SystemClock.elapsedRealtime())
+                        ClusterDesignChoices(s.preferences.clusterDesign,s.dark,s.preferences.clusterAccentFor(driveMode),s.media) {design->
+                            model.dependencies.preferences.change(model.dependencies.preferences.state.value.copy(clusterDesign=design))
+                        }
+                        if(s.preferences.clusterDesign!=ClusterDesign.ORIGINAL) {
+                            ClusterColorSettings(s.preferences,driveMode){model.dependencies.preferences.change(it)}
+                            Label("Показ на приборке включается кнопкой в предпросмотре.",small=true,muted=true)
+                        }
+                    }
+                    3->PermissionSettings(model)
+                    4->{SectionTitle("Всегда под рукой");SystemStartupSettings(startup,model::setSystemStartup,model::openStartupPermission)}
+                    5->{
                         SectionTitle("Навигация","Скачайте карты нужного региона. Настройки доступны и позже на вкладке навигации.")
                         NavigationMapSettings(model.dependencies.navigation)
                         NavigationVoicePanel(model.dependencies.navigation.voice){voiceLicense=true}

@@ -8,13 +8,21 @@ class PersistentInterfaceRepository(private val store:SettingsStore):InterfaceRe
     private fun enabled(key:String,default:Boolean)=store.string("ui.$key","$default").toBooleanStrictOrNull()?:default
     private val flow=MutableStateFlow(InterfacePreferences(enabled("fuel",true),enabled("tires",true),enabled("favorites",true),enabled("developer",false),
         runCatching {DashboardStyle.valueOf(store.string("ui.style",DashboardStyle.CLASSIC.name))}.getOrDefault(DashboardStyle.CLASSIC),
-        FreeDashboardLayout.decode(store.string("ui.free-layout",FreeDashboardLayout.default().encode()))))
+        FreeDashboardLayout.decode(store.string("ui.free-layout",FreeDashboardLayout.default().encode())),
+        ClusterDesign.fromStored(store.string("ui.cluster-design",ClusterDesign.ORIGINAL.name)),
+        runCatching {ClusterAccent.valueOf(store.string("ui.cluster-accent",ClusterAccent.CYAN.name))}.getOrDefault(ClusterAccent.CYAN),
+        runCatching {ClusterColorMode.valueOf(store.string("ui.cluster-color-mode",ClusterColorMode.MANUAL.name))}.getOrDefault(ClusterColorMode.MANUAL),
+        ClusterTripPeriod.fromStored(store.string("ui.cluster-trip-period",ClusterTripPeriod.SINCE_START.name))))
     override val state=flow.asStateFlow()
     override fun change(value:InterfacePreferences) {
         val validated=value.copy(freeLayout=FreeDashboardLayout.decode(value.freeLayout.encode()))
         flow.value=validated
         mapOf("fuel" to value.showFuel,"tires" to value.showTires,"favorites" to value.showFavorites,"developer" to value.developerPanel).forEach {(k,v)->store.put("ui.$k","$v")}
         store.put("ui.style",value.style.name)
+        store.put("ui.cluster-design",value.clusterDesign.name)
+        store.put("ui.cluster-accent",value.clusterAccent.name)
+        store.put("ui.cluster-color-mode",value.clusterColorMode.name)
+        store.put("ui.cluster-trip-period",value.clusterTripPeriod.name)
         store.put("ui.free-layout",validated.freeLayout.encode())
     }
 }

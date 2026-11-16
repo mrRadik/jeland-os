@@ -33,14 +33,16 @@ def main():
     if os_info['package']!='ru.jeland.os' or voice['package']!='ru.kost.ruvoice' or sha(args.voice)!=VOICE_SHA:
         raise ValueError('Unexpected application or non-original RuVoice APK')
     version=os_info['versionName']
-    if any(x not in '0123456789.-' for x in version):raise ValueError('Unexpected version name')
+    import re
+    if not re.fullmatch(r'[0-9]+(?:\.[0-9]+){1,3}(?:-[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*)?',version):raise ValueError('Unexpected version name')
     destination=args.output/f'JelandOS-Installer-{version}'
     archive=args.output/f'JelandOS-Windows-Installer-{version}.zip'
     if destination.exists() or archive.exists():raise ValueError('Choose a new output directory; an existing bundle is not overwritten')
     destination.mkdir(parents=True)
     def copy(source,name):
         target=destination/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
-    for name in ['install.cmd','install.ps1','configure-updates.ps1','enable-updates.cmd','engine/InstallAssist.ps1','engine/AdbTools.ps1','engine/Install-APK.ps1',
+    for name in ['START.cmd','install.cmd','windows-setup.ps1','install.ps1','install-strelka.cmd','install-strelka.ps1','setup-strelka.cmd','setup-strelka.ps1',
+                 'engine/ApkMetadata.ps1','engine/StrelkaAccess.ps1','configure-updates.ps1','enable-updates.cmd','engine/InstallAssist.ps1','engine/AdbTools.ps1','engine/Install-APK.ps1',
                  'install-helper/helper.dex','install-helper/InstallVariants.java']:
         copy(SOURCE/name,name)
     for path in destination.rglob('*'):
@@ -54,6 +56,7 @@ def main():
     copy(args.adb_dir/'NOTICE.txt','licenses/ADB-NOTICE.txt')
     copy(ROOT/'LICENSE','licenses/JelandOS-LICENSE.txt')
     copy(ROOT/'THIRD_PARTY_NOTICES.md','licenses/JelandOS-THIRD-PARTY.md')
+    copy(ROOT/'docs/ROAD-ALERTS.md','STRELKA.md')
     copy(ROOT/'app/src/main/assets/voice/ruvoice/LICENSE.txt','licenses/RuVoice-LICENSE.txt')
     copy(ROOT/'app/src/main/assets/voice/ruvoice/NOTICE.txt','licenses/RuVoice-NOTICE.txt')
     (destination/'licenses/ADB-SOURCE.txt').write_text('Android SDK Platform Tools for Windows\nhttps://dl.google.com/android/repository/platform-tools-latest-windows.zip\nhttps://android.googlesource.com/platform/packages/modules/adb/\n','utf-8')
@@ -64,7 +67,12 @@ def main():
    нажать «Версия» → инженерное меню → ADB/USB2.0 → DEVICE (зависит от прошивки).
 3. Подключите ГУ к компьютеру кабелем передачи данных USB. Подтвердите RSA-запрос
    на экране ГУ, если он появится. Если устройство не видно, проверьте кабель и драйвер.
-4. Запустите install.cmd. Если подключено несколько устройств, выберите нужное.
+4. Запустите START.cmd (или install.cmd). В меню выберите:
+   1 — установить / обновить Jeland OS и RuVoice;
+   2 — установить / обновить Стрелку и выдать права;
+   3 — подключить альтернативный вариант установки обновлений.
+   При первой установке начните с пункта 1. Для Стрелки на уже установленной
+   Jeland OS выберите только пункт 2. Если устройств несколько, выберите нужное.
 5. Проверьте модель/устройство и подтвердите установку буквой Y.
 6. Дождитесь «Готово». Будут установлены Jeland OS и оригинальный RuVoice 1.1.1.
 7. Если системная кнопка «Установить» не работает, согласитесь на подключение
@@ -72,7 +80,10 @@ def main():
 8. Пройдите начальную настройку Jeland OS: язык, оформление, разрешения,
    автозапуск, карты и голос. Условия модели RuVoice нужно подтвердить перед озвучкой.
 
-Интернет при установке, Python, Android SDK и отдельный помощник не нужны.
+Для Jeland OS и RuVoice интернет не нужен. Стрелка скачивается с официального
+сайта: нужен интернет на компьютере. Для установки без сети положите обычную
+Стрелку под именем Strelka.apk рядом с START.cmd. APK Стрелки в ZIP не включён.
+Python, Android SDK и отдельный помощник не нужны.
 Системный синтезатор по умолчанию не меняется. Приложения и настройки не удаляются.
 Файлы комплекта проверяются до начала установки. Версии на ГУ проверяются повторно.
 
@@ -80,6 +91,19 @@ def main():
 в этой версии Android), SYSTEM_ALERT_WINDOW для автозапуска и
 REQUEST_INSTALL_PACKAGES для обновлений. RuVoice получает только уведомления.
 Опция автозапуска включается в приложении.
+
+Пункт 2 ставит Стрелку через тот же ADB / PackageInstaller API и выдаёт GPS,
+фоновый GPS, состояние телефона, доступные Bluetooth/уведомления, работу в фоне,
+окна поверх приложений, обновления APK и исключение из энергосбережения.
+Доступ Jeland OS к уведомлениям подключается автоматически. Все права проверяются.
+Системные экраны разрешений Android открывать не требуется. Нужна Jeland OS 125+.
+При обновлении Стрелки её данные и лицензия сохраняются. Jeland OS и RuVoice
+в пункте 2 не переустанавливаются. PRO и базу активируйте/загрузите в самой Стрелке.
+Включите в Стрелке «Опции → Дополнительно → Вывод уведомлений», а в Jeland OS —
+предупреждения Стрелки в «Настройки → Камеры и дорожные опасности».
+Как скрыть большие окна — STRELKA.md.
+Условия использования Стрелки определяет её разработчик: https://www.ivolk.ru/
+
 
 Альтернативная установка подключается только после отдельного согласия. Служба
 Jeland OS нажимает «Установить» только для начатого и подтверждённого вами обновления
