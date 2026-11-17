@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -19,7 +20,17 @@ import ru.jeland.os.ui.theme.Jeland
 @Composable internal fun WhatsNewHost(repository:UpdateNewsRepository) {
     val news by repository.notice.collectAsStateWithLifecycle()
     val current=news?:return
-    val body=plainReleaseNotes(current.body).ifBlank {
+    val context=LocalContext.current
+    // Older updaters persisted the APK metadata without the release description.
+    // Keep the matching release's text offline in the new APK as well.
+    val releaseNotes=remember(context,current.versionCode,current.body) {
+        plainReleaseNotes(current.body).ifBlank {
+            runCatching {
+                context.assets.open("updates/${current.versionCode}.md").bufferedReader().use {it.readText()}
+            }.getOrDefault("").let(::plainReleaseNotes)
+        }
+    }
+    val body=releaseNotes.ifBlank {
         if(current.versionCode==123L)listOf(
             "Добавлено окно с изменениями после обновления приложения.",
             "Приборная панель настраивается в мастере первого запуска.",

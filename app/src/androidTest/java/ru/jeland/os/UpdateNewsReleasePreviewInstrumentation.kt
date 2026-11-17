@@ -31,6 +31,8 @@ class UpdateNewsReleasePreviewInstrumentation {
         val activity=ui.activity
         val notes=InstrumentationRegistry.getInstrumentation().context.assets
             .open("release-notes-1.4.0.md").bufferedReader().use {it.readText()}
+        val bundled=activity.assets.open("updates/134.md").bufferedReader().use {it.readText()}
+        assertEquals(plainReleaseNotes(notes),plainReleaseNotes(bundled))
         val prefs=activity.getSharedPreferences("update-news-release-preview",Context.MODE_PRIVATE)
         val context=object:ContextWrapper(activity) {
             override fun getApplicationContext():Context=this
@@ -39,9 +41,9 @@ class UpdateNewsReleasePreviewInstrumentation {
         val store=AndroidSettingsStore(context)
         val folder=File(activity.getExternalFilesDir(null),"qa-release-1.4.0").apply {mkdirs()}
         try {
-            for(dark in listOf(true,false)) {
+            for(body in listOf(notes,"")) for(dark in listOf(true,false)) {
                 prefs.edit().clear().commit()
-                UpdateNewsTracker(store).apply {arm(133,UpdateNews(134,"1.4.0",notes));captureInstalled(134)}
+                UpdateNewsTracker(store).apply {arm(133,UpdateNews(134,"1.4.0",body));captureInstalled(134)}
                 val repository=UpdateNewsRepository(store,134)
                 ui.runOnIdle {activity.setContent {
                     AppLocalization("ru") {JelandTheme(dark) {
@@ -54,7 +56,9 @@ class UpdateNewsReleasePreviewInstrumentation {
                 ui.onNodeWithTag("whats-new-close").assertIsDisplayed()
                 ui.waitForIdle()
                 val image=ui.onNodeWithTag("whats-new-dialog").captureToImage().asAndroidBitmap()
-                File(folder,if(dark)"whats-new-dark.png"else"whats-new-light.png").outputStream().use {
+                val theme=if(dark)"dark"else"light"
+                val legacy=if(body.isBlank())"-legacy"else""
+                File(folder,"whats-new-$theme$legacy.png").outputStream().use {
                     image.compress(Bitmap.CompressFormat.PNG,100,it)
                 }
                 assertNull(UpdateNewsRepository(store,134).notice.value)
