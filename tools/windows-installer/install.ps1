@@ -1,6 +1,6 @@
 ﻿#requires -version 5.1
 [CmdletBinding()]
-param([string]$Serial,[switch]$Yes,[switch]$LibraryOnly)
+param([string]$Serial,[switch]$Yes,[switch]$LibraryOnly,[switch]$VerifyOnly)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'engine\AdbTools.ps1')
 
@@ -92,5 +92,8 @@ function Invoke-JelandBundleInstall {
 }
 
 if($LibraryOnly){return}
-try {exit (Invoke-JelandBundleInstall -Root $PSScriptRoot -Serial $Serial -Yes:$Yes)}
+try {
+    if($VerifyOnly){$null=Read-JelandBundle $PSScriptRoot;Write-Host 'Файлы комплекта проверены.';exit 0}
+    exit (Invoke-JelandBundleInstall -Root $PSScriptRoot -Serial $Serial -Yes:$Yes)
+}
 catch {Write-Host $_.Exception.Message -ForegroundColor Red;exit 1}

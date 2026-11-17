@@ -22,8 +22,8 @@ android {
         applicationId = "ru.jeland.os"
         minSdk = 30
         targetSdk = 35
-        versionCode = 106
-        versionName = "1.3.0"
+        versionCode = 134
+        versionName = "1.4.0"
         // Native ARM64 on the HU, native x86_64 in BlueStacks (no ARM GL bridge).
         ndk { abiFilters += if(providers.gradleProperty("localDemoAbi").orNull=="x86_64")listOf("x86_64")else listOf("arm64-v8a", "x86_64") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -58,6 +58,7 @@ android {
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 kapt {arguments {arg("room.schemaLocation","$projectDir/schemas")}}
 dependencies {
+    implementation(files("libs/commons-net-3.13.0.jar", "libs/commons-io-2.21.0.jar"))
     implementation(project(":comaps-sdk"))
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     kapt("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")

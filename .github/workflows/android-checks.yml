@@ -35,6 +35,9 @@ jobs:
           }
           & ./tools/windows-installer/test-installer.ps1
           & ./tools/windows-installer/test-install-assist.ps1
+          & ./tools/windows-installer/test-strelka.ps1
+          & ./tools/windows-installer/test-install-strelka.ps1
+          & ./tools/windows-installer/test-windows-setup.ps1
 
   android:
     name: Android checks

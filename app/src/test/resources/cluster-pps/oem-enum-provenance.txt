@@ -1,0 +1,6 @@
+sva.cluster SHA256 be5033c9ecb0212076940382b60b0ae34b48df5c852e05f7694c510bc9e7fe6c
+LUT address 0x87cdd0, RcMTopBottomGearUpdate 0x1a37f8; RcDataMgr::getGear 0x174928, a006 byte 0.
+KZB SHA256 67191300129aedf60c8a9ffc2cb839d6cede48c34de12a54190e66a660eb994f
+State integer records 0x4d12b45..0x4d14d20. Labels unavailable in this KZB stay empty (not guessed).
+These 72 cases come from OEM firmware, not 72 observations on the car. Captures are field-*.txt.
+Android INFO /26 basic values are separately backed by stock CarInfoUtil.

@@ -14,10 +14,10 @@ object GitHubUpdateCodec {
     fun manifestJson(m:AppUpdateManifest)=JSONObject().put("schema",m.schema).put("applicationId",m.applicationId)
         .put("versionCode",m.versionCode).put("versionName",m.versionName).put("minSdk",m.minSdk)
         .put("apkName",m.apkName).put("size",m.size).put("sha256",m.sha256)
-    fun pending(c:AppUpdateCandidate)=manifestJson(c.manifest).put("apkUrl",c.apk.url).put("releaseTag",c.releaseTag).toString()
+    fun pending(c:AppUpdateCandidate)=manifestJson(c.manifest).put("apkUrl",c.apk.url).put("releaseTag",c.releaseTag).put("releaseNotes",c.releaseNotes).toString()
     fun restore(value:String):AppUpdateCandidate {
         val j=JSONObject(value);val m=manifest(j);val url=j.getString("apkUrl")
-        return AppUpdatePolicy.candidate(m,listOf(UpdateAsset(m.apkName,url,m.size)),j.getString("releaseTag"),url.substringBeforeLast('/')+"/"+AppUpdatePolicy.MANIFEST)
+        return AppUpdatePolicy.candidate(m,listOf(UpdateAsset(m.apkName,url,m.size)),j.getString("releaseTag"),url.substringBeforeLast('/')+"/"+AppUpdatePolicy.MANIFEST,j.optString("releaseNotes",""))
     }
 }
 
@@ -31,7 +31,7 @@ class GitHubUpdateSource {
             UpdateAsset(it.getString("name"),it.getString("browser_download_url"),it.getLong("size"))}}
         val manifest=assets.singleOrNull {it.name==AppUpdatePolicy.MANIFEST}?:error("В релизе пока нет jelandos-update.json")
         check(manifest.size in 1..MAX_METADATA.toLong()&&AppUpdatePolicy.releaseUrl(manifest.url,AppUpdatePolicy.MANIFEST)){"Некорректное описание релиза"}
-        return AppUpdatePolicy.candidate(GitHubUpdateCodec.manifest(JSONObject(text(manifest.url))),assets,release.getString("tag_name"),manifest.url)
+        return AppUpdatePolicy.candidate(GitHubUpdateCodec.manifest(JSONObject(text(manifest.url))),assets,release.getString("tag_name"),manifest.url,release.optString("body",""))
     }
     private fun text(url:String):String {
         val connection=open(url)

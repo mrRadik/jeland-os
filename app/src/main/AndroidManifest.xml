@@ -23,6 +23,7 @@
         <intent><action android:name="android.intent.action.INSTALL_PACKAGE" /><data android:mimeType="application/vnd.android.package-archive" /></intent>
         <intent><action android:name="android.intent.action.VIEW" /><data android:mimeType="application/vnd.android.package-archive" /></intent>
         <package android:name="ru.kost.ruvoice" />
+        <package android:name="com.ivolk.StrelkaGPS" />
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
         <package android:name="com.iflytek.autofly.sceneengine" />
         <package android:name="com.desaysv.ivi.vds.vr" />
@@ -36,6 +37,7 @@
         <package android:name="com.desaysv.ivi.vds.rvc" />
         <package android:name="com.liontech.weather" />
         <package android:name="com.desaysv.ivi.vds.carlan" />
+        <package android:name="com.liontech.autonavi" />
         <package android:name="com.desaysv.ivi.vds.bt" />
         <package android:name="com.desaysv.ivi.vds.media" />
         <package android:name="com.desaysv.svmusicapp" />
@@ -48,6 +50,10 @@
         android:usesCleartextTraffic="false" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher">
         <activity android:name=".data.updates.UpdateInstallActivity" android:exported="false" android:excludeFromRecents="true" />
         <receiver android:name=".data.updates.UpdateInstallReceiver" android:exported="false" />
+        <service android:name=".data.roadalerts.StrelkaNotificationListener" android:exported="true"
+            android:label="@string/road_alerts_listener" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+        </service>
         <service android:name=".data.updates.UpdateInstallAssistService" android:exported="true"
             android:label="@string/update_install_assist_label" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
@@ -68,6 +74,10 @@
             android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_paths" />
         </provider>
+        <activity android:name=".data.cluster.ClusterDisplayActivity" android:exported="false"
+            android:launchMode="singleInstance" android:excludeFromRecents="true" android:supportsRtl="false" android:allowEmbedded="true"
+            android:configChanges="uiMode|orientation|screenSize|smallestScreenSize|screenLayout|density|fontScale|locale|layoutDirection"
+            android:theme="@style/Theme.JelandOS.ClusterDisplay" />
         <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

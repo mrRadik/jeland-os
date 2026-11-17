@@ -11,7 +11,7 @@ import ru.jeland.os.ui.JelandApp
 import ru.jeland.os.ui.MainViewModel
 
 class MainActivity : ComponentActivity() {
-    override fun onResume(){super.onResume();ru.jeland.os.data.StartupVisibility.resumed=true}
+    override fun onResume(){super.onResume();ru.jeland.os.data.StartupVisibility.resumed=true;(application as JelandApplication).container.clusterProjection.dashboardResumed()}
     override fun onPause(){ru.jeland.os.data.StartupVisibility.resumed=false;super.onPause()}
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

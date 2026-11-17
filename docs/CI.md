@@ -7,7 +7,7 @@ Workflow `.github/workflows/android-checks.yml` запускается для PR
 
 ```sh
 bash ./gradlew --no-daemon --console=plain --stacktrace --continue \
-  testDebugUnitTest lintDebug assembleDebug compileDebugAndroidTestKotlin
+  testDebugUnitTest testReleaseUnitTest lintDebug assembleDebug compileDebugAndroidTestKotlin
 ```
 
 Нужны JDK 21, Python 3.11+, Android SDK Platform 36 и Build Tools 35.0.0.
@@ -15,7 +15,7 @@ bash ./gradlew --no-daemon --console=plain --stacktrace --continue \
 CI загружает этот подмодуль автоматически. Подготовка движка и карт описана
 в [инструкции CoMaps](COMAPS.md).
 Отчёты JUnit и Lint доступны в Actions в `android-check-reports` в течение 7 дней.
-Отдельная проверка **Windows installer checks** проверяет синтаксис PowerShell
+Задание **Windows installer checks** в том же workflow проверяет синтаксис PowerShell
 и сценарии установщика в Windows с подменённым ADB, без подключения к устройству.
 Android-тесты на устройстве и проверка в автомобиле выполняются отдельно.
 CI не имеет доступа к ГУ или ключу подписи и ничего не публикует.

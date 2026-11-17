@@ -1,0 +1,759 @@
+{
+  "source": "G7PH_CHERY_T1EJ_INT_VS_SOP6_FULL_24542_260320_R.zip",
+  "archive_sha256": "75bb257b5c1392f6972287a935b1c866998157a24aeb7219ccb4c166683299f1",
+  "resource": "/emmc/sva/resource/kzb/cluster.kzb",
+  "resource_sha256": "4cd42b1aa6deaee8f2950b434157646c3623facfc0d793c72786328863928c90",
+  "png_bytes_unchanged": true,
+  "files": [
+    {
+      "file": "indicator/LED_ABS-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_ABS-Yellow.png",
+      "source_offset": 79367596,
+      "sha256": "98160dd730924292b426af94c306ebd494863159c3fefa1ffe35e57fb37f435d"
+    },
+    {
+      "file": "indicator/LED_AVH-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_AVH-Green.png",
+      "source_offset": 79386768,
+      "sha256": "db533b9c0c263565c06481d17b0cd3d95d40f8c44fe739575b6bba0b0b8a1297"
+    },
+    {
+      "file": "indicator/LED_AVH-White.png",
+      "resource": "/Resource Files/Images/indicator/LED_AVH-White.png",
+      "source_offset": 79389032,
+      "sha256": "b0532cf404815e3d39512850423d766695c9f2bb60746f3d0e66c587708680b8"
+    },
+    {
+      "file": "indicator/LED_AVH-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_AVH-Yellow.png",
+      "source_offset": 79393728,
+      "sha256": "873f3fb23ba0ea7d6c0c49fd9a788d3b4b23148062619b3a58aca8ec11deca0d"
+    },
+    {
+      "file": "indicator/LED_AirBag-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_AirBag-Red.png",
+      "source_offset": 79400212,
+      "sha256": "534bed947525f28750da991dc251357ffd27fd85c3d5994c8432f565b0ab8730"
+    },
+    {
+      "file": "indicator/LED_BSD-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_BSD-Green.png",
+      "source_offset": 79417140,
+      "sha256": "ba7c96e6be18eed7566be4748a8804b12c29a31969b8e40547f262f9d7a25c30"
+    },
+    {
+      "file": "indicator/LED_BSD-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_BSD-Yellow.png",
+      "source_offset": 79418508,
+      "sha256": "e62f2cd40c420b8124cd2d01f1068f59f7a4fd019d82196573a962cd1ed420f9"
+    },
+    {
+      "file": "indicator/LED_BrakeFluidLevel-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_BrakeFluidLevel-Red.png",
+      "source_offset": 79420088,
+      "sha256": "36a94559c94e48509f1f4d9093e3ef339d66262fa7e3161f14f92b9f60a7c628"
+    },
+    {
+      "file": "indicator/LED_Charging-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_Charging-Red.png",
+      "source_offset": 79422104,
+      "sha256": "f5eb0bec25de11cf8a7ac0a33e76602dcd4b432ee88628dfecdb35de9e123789"
+    },
+    {
+      "file": "indicator/LED_CoolantTemp-Blue.png",
+      "resource": "/Resource Files/Images/indicator/LED_CoolantTemp-Blue.png",
+      "source_offset": 79427872,
+      "sha256": "180c10ff1a66d6799280d2e0b51283fa27d4cbecf7364bfe98da6c7876328294"
+    },
+    {
+      "file": "indicator/LED_CoolantTemp-Normal.png",
+      "resource": "/Resource Files/Images/indicator/LED_CoolantTemp-Normal.png",
+      "source_offset": 79431604,
+      "sha256": "eed79c7a43a5e2d486d0835b40e90bd5f447fa392ab3a1c07c4718b29b2c5a35"
+    },
+    {
+      "file": "indicator/LED_CoolantTemp-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_CoolantTemp-Red.png",
+      "source_offset": 79432996,
+      "sha256": "e77e4d1ca99de83536e8a5c5d85ceb337ffaee356e954d8482393f21e039e3cb"
+    },
+    {
+      "file": "indicator/LED_Cruise-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_Cruise-Green.png",
+      "source_offset": 79439568,
+      "sha256": "f6a5d06468ed6cfd63ca8d3cc64838594b24181ff06627e0a0b13882cd1a8e4c"
+    },
+    {
+      "file": "indicator/LED_EPB-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_EPB-Red.png",
+      "source_offset": 79477368,
+      "sha256": "e8c56e0636448c01b77cd0d63c6da424e4b6561ecd77b55a8b653fab263214bf"
+    },
+    {
+      "file": "indicator/LED_EPB-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_EPB-Yellow.png",
+      "source_offset": 79479184,
+      "sha256": "e2142b087e485216d86f00687824fd2780c35eb8076c8b1e9a5ba71f8d5484f9"
+    },
+    {
+      "file": "indicator/LED_EPC-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_EPC-Yellow.png",
+      "source_offset": 79481736,
+      "sha256": "1683b20180364a78d18a263d007f67bace96d4207ddfe5dfba9eac375e9d4da3"
+    },
+    {
+      "file": "indicator/LED_EPS-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_EPS-Red.png",
+      "source_offset": 79483060,
+      "sha256": "da2fb534ee0e6d7a50726df9eed5a8e8971cf771f9a3349c5cb8e6c338db1fe0"
+    },
+    {
+      "file": "indicator/LED_EPS-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_EPS-Yellow.png",
+      "source_offset": 79484660,
+      "sha256": "6bb8b8d08c9dbf6c9bce872653e933c7ac1689f122cb0c808eb0c5bcedd21b6f"
+    },
+    {
+      "file": "indicator/LED_ElecStability-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_ElecStability-Yellow.png",
+      "source_offset": 79492624,
+      "sha256": "23174c02b16b48aab7d64faa5c99c929fa029efdb9bc6493c3834d915a24097b"
+    },
+    {
+      "file": "indicator/LED_ElecStabilityOFF-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_ElecStabilityOFF-Yellow.png",
+      "source_offset": 79494316,
+      "sha256": "5c9eb675ec97894d426cfe8a7f78ab534fb76c2775c0c849c1f88f5ab4a6440f"
+    },
+    {
+      "file": "indicator/LED_FrontFog-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_FrontFog-Green.png",
+      "source_offset": 79503388,
+      "sha256": "638a8e166e2b393ac4c039f358e5a3f0d3d5b4e2e4d9dbd2d27f4c460dd78651"
+    },
+    {
+      "file": "indicator/LED_FuelLevel-Normal.png",
+      "resource": "/Resource Files/Images/indicator/LED_FuelLevel-Normal.png",
+      "source_offset": 79505396,
+      "sha256": "961f05c3595d75466e5abbb220bb3b099986631db5ddc4fc8ad1929d602d60e6"
+    },
+    {
+      "file": "indicator/LED_FuelLevelLow-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_FuelLevelLow-Yellow.png",
+      "source_offset": 79512604,
+      "sha256": "511306e63faf5bc5bf14958e67f94b73f0c5abe77942a04c45f53c54733c44b9"
+    },
+    {
+      "file": "indicator/LED_GWL-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_GWL-Yellow.png",
+      "source_offset": 79520644,
+      "sha256": "4efa5fb044363a0db34e6c3708081d384458e75be5c6f80aa7ecc6e6b780d262"
+    },
+    {
+      "file": "indicator/LED_GearBoxFault-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_GearBoxFault-Red.png",
+      "source_offset": 79523032,
+      "sha256": "8c16619dbf0adea6c65f10e56819bcc876d03768b3d60a3c570b01f462c68bfc"
+    },
+    {
+      "file": "indicator/LED_GearBoxFault-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_GearBoxFault-Yellow.png",
+      "source_offset": 79524664,
+      "sha256": "7846af235e9680491aa221e85e8a71fe5c8ac3e3da0eb2be0add427fadd44b7f"
+    },
+    {
+      "file": "indicator/LED_HDC-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_HDC-Green.png",
+      "source_offset": 79531540,
+      "sha256": "c5826d3b16b8d001bb7780ef8cf3a38fec4e21c8855a62accae85b0de72c7a09"
+    },
+    {
+      "file": "indicator/LED_HDC-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_HDC-Yellow.png",
+      "source_offset": 79535400,
+      "sha256": "8fad00f86cb88f0db7a49d874dfaa5c696626c336c02fc6094481ed028808d3d"
+    },
+    {
+      "file": "indicator/LED_HighBeam.png",
+      "resource": "/Resource Files/Images/indicator/LED_HighBeam.png",
+      "source_offset": 79544004,
+      "sha256": "548132524b8908e73b26b4b2646a3d88a4d1bfdbb9baee52a3a23570af39093b"
+    },
+    {
+      "file": "indicator/LED_IceRoad-White.png",
+      "resource": "/Resource Files/Images/indicator/LED_IceRoad-White.png",
+      "source_offset": 79545988,
+      "sha256": "50c9ef27a06e64ea9feabeac000a633951b5f746c9be15b46f1f65ee5ace0041"
+    },
+    {
+      "file": "indicator/LED_LDWRight-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_LDWRight-Green.png",
+      "source_offset": 79562424,
+      "sha256": "fa45481b66f70cc041488a12114e8e3fbc3ffc69fa6272b14438a8936d8a0fed"
+    },
+    {
+      "file": "indicator/LED_LDWRight-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_LDWRight-Grey.png",
+      "source_offset": 79564068,
+      "sha256": "2a9415478cdec5f4be26fe2efa47b68d0c23bcdb536bf7f95b0fef0af68b4530"
+    },
+    {
+      "file": "indicator/LED_LDWRight-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_LDWRight-Yellow.png",
+      "source_offset": 79569188,
+      "sha256": "cc22b412eec20c4cae3007d3e58b76ea3efde92d6c38c87dbbb921ea0b62db42"
+    },
+    {
+      "file": "indicator/LED_LaneKeeping-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_LaneKeeping-Green.png",
+      "source_offset": 79571184,
+      "sha256": "4f5ba0bd27f9fd959e2f2e109049fdd13019a53f971729a3f43fc11e45aa14f9"
+    },
+    {
+      "file": "indicator/LED_LaneKeeping-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_LaneKeeping-Grey.png",
+      "source_offset": 79572568,
+      "sha256": "faad16312bd627cf308a2b0f3faf2f136400d31a5b94c9e9418264d7b3d65f91"
+    },
+    {
+      "file": "indicator/LED_LaneKeeping-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_LaneKeeping-Red.png",
+      "source_offset": 79576984,
+      "sha256": "858fa6d6a30231e20fc57035d7f58b71a2cea91a69093def6de1138362024955"
+    },
+    {
+      "file": "indicator/LED_LaneKeeping-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_LaneKeeping-Yellow.png",
+      "source_offset": 79578244,
+      "sha256": "3de2b569c6c45ff87b9d1d1caf2a12d37cbfb9007e40590abcab444ed03d5c5a"
+    },
+    {
+      "file": "indicator/LED_LeftTurn.png",
+      "resource": "/Resource Files/Images/indicator/LED_LeftTurn.png",
+      "source_offset": 79579892,
+      "sha256": "d009102fd643b0ce40ac54e79d211a1113d684b619a0497bb4c295632797e080"
+    },
+    {
+      "file": "indicator/LED_MILEmission-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_MILEmission-Yellow.png",
+      "source_offset": 79591192,
+      "sha256": "7b054b97684f03f5cf5b8e47cb717efd7651a55e1693cc4228e972c1738657a4"
+    },
+    {
+      "file": "indicator/LED_MaintenanceTip.png",
+      "resource": "/Resource Files/Images/indicator/LED_MaintenanceTip.png",
+      "source_offset": 79593080,
+      "sha256": "f6048f8c11e98b73db80d688aefb354e9297d1fed4e2df2f7ebae4403c95a142"
+    },
+    {
+      "file": "indicator/LED_NearBeam-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_NearBeam-Green.png",
+      "source_offset": 79598232,
+      "sha256": "8bc9871feb90549febc9a78828fcab61228921df93dcb05800f0f589604cf80f"
+    },
+    {
+      "file": "indicator/LED_OilPressure-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_OilPressure-Red.png",
+      "source_offset": 79602176,
+      "sha256": "ca308b589edbecb9259da8e065b376a38abd724d4bcaa496e5282ec89032fd89"
+    },
+    {
+      "file": "indicator/LED_Position.png",
+      "resource": "/Resource Files/Images/indicator/LED_Position.png",
+      "source_offset": 79603216,
+      "sha256": "58137eafa61d83593612627c76158cbe12be1dcf4d595d65f7243ac9d5cf7c1d"
+    },
+    {
+      "file": "indicator/LED_RearFog-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_RearFog-Yellow.png",
+      "source_offset": 79610328,
+      "sha256": "883aa091c8047679df96788e1a4fbb853b980de575035ef805526767baebe529"
+    },
+    {
+      "file": "indicator/LED_RightTurn.png",
+      "resource": "/Resource Files/Images/indicator/LED_RightTurn.png",
+      "source_offset": 79625184,
+      "sha256": "459dc4cc611523fa8852880a4bcb8c00f3ecf4e0a117415a4a2d3c6f759131c3"
+    },
+    {
+      "file": "indicator/LED_SeatBelt-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_SeatBelt-Green.png",
+      "source_offset": 79626552,
+      "sha256": "2d53cdde56cafc9a6edae6b18c00dd51b47614208ad1740e004b3c043e3b9485"
+    },
+    {
+      "file": "indicator/LED_SeatBelt-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_SeatBelt-Grey.png",
+      "source_offset": 79628136,
+      "sha256": "ec0be4e94e50c528cc94c2338bed3bec7374462714bc2869a600ca03a7358916"
+    },
+    {
+      "file": "indicator/LED_SeatBelt-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_SeatBelt-Red.png",
+      "source_offset": 79630876,
+      "sha256": "0b8a5dbd4ee20bb4dbe87e501e63be711fefe45921b57bb41a5f3692274df332"
+    },
+    {
+      "file": "indicator/LED_StartStop-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_StartStop-Green.png",
+      "source_offset": 79650612,
+      "sha256": "9a63a252a9c1d89493172531800e20b4acadf4bf65f29bf2c3e1976e68602638"
+    },
+    {
+      "file": "indicator/LED_StartStop-White.png",
+      "resource": "/Resource Files/Images/indicator/LED_StartStop-White.png",
+      "source_offset": 79652536,
+      "sha256": "320900647331dcc733d784d5180ce4fdabe30471a08b78f9985908729fb739a0"
+    },
+    {
+      "file": "indicator/LED_StartStop-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_StartStop-Yellow.png",
+      "source_offset": 79654644,
+      "sha256": "b024df883d3527b6f9c3e81fc034d0603c6f0b85a6198d1499f69faa045692e5"
+    },
+    {
+      "file": "indicator/LED_TPMS-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_TPMS-Yellow.png",
+      "source_offset": 79678168,
+      "sha256": "993d7d36a93390636370a17659081dfea8019e6f4744ae91c1423da94d957f3f"
+    },
+    {
+      "file": "metric/clock.png",
+      "resource": "/Resource Files/Images/Menu/Icon/icon_Trip_4.png",
+      "source_offset": 33293816,
+      "sha256": "bb6589c41c50ba2621450d6485c8646f0ca8b9dcf7c750017f243b05034b5bb7"
+    },
+    {
+      "file": "metric/road.png",
+      "resource": "/Resource Files/Images/Menu/Icon/icon_Trip_5.png",
+      "source_offset": 33294744,
+      "sha256": "5e11f7e9d00873fdf7d7ea97029463476be25be0d3cd2d50007a6cd2fe26c288"
+    },
+    {
+      "file": "navigation/left.png",
+      "resource": "/Resource Files/Images/Navi/NaviLine_International/2.png",
+      "source_offset": 33740112,
+      "sha256": "fee28472accd740d4fbadb7c3c6e8fb78a90aa385edbe28041af52065432e5d3"
+    },
+    {
+      "file": "navigation/straight.png",
+      "resource": "/Resource Files/Images/Navi/NaviLine_International/20.png",
+      "source_offset": 33741676,
+      "sha256": "c89edcfccf5f5a83eea89953fe50dc437ef80ccd6044eefdcf5306e4f9a12585"
+    },
+    {
+      "file": "navigation/right.png",
+      "resource": "/Resource Files/Images/Navi/NaviLine_International/3.PNG",
+      "source_offset": 33768676,
+      "sha256": "37cad6ab09702bf4c18c1ca17d0f9ae7eba9544ea1b9124b7fd5ef290c51ac28"
+    },
+    {
+      "file": "indicator/LED_HMA-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_HMA-Grey.png",
+      "source_offset": 79537704,
+      "sha256": "0e816f0bf2f3b9186ba4f6eda391dae818d9d183e91c1dd5e6d86783de0d171a"
+    },
+    {
+      "file": "indicator/LED_HMA-White.png",
+      "resource": "/Resource Files/Images/indicator/LED_HMA-White.png",
+      "source_offset": 79540032,
+      "sha256": "d5fac3009261dc6235b9daf3d372e63d4d54cfdf9d4c669bb18ea7b422f69cdf"
+    },
+    {
+      "file": "indicator/LED_HMA-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_HMA-Yellow.png",
+      "source_offset": 79541960,
+      "sha256": "9796c28cdb6c206d8289aea285004774e87ed624981ffd9cfdfc4b189960f984"
+    },
+    {
+      "file": "indicator/LED_Daytime-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_Daytime-Green.png",
+      "source_offset": 79451556,
+      "sha256": "44265300126950b3d24d61a813ad926d131c92c743a00910aaa662b93ec1659c"
+    },
+    {
+      "file": "indicator/LED_SpeedLimit-Fault.png",
+      "resource": "/Resource Files/Images/indicator/LED_SpeedLimit-Fault.png",
+      "source_offset": 79632224,
+      "sha256": "394090df4d3d8a0c45bafc9bbabf9e3f3a3fba641d636dd9310a81d7487696a5"
+    },
+    {
+      "file": "indicator/LED_SpeedLimit.png",
+      "resource": "/Resource Files/Images/indicator/LED_SpeedLimit.png",
+      "source_offset": 79647812,
+      "sha256": "01b301a65f3488e293ddc9f29013f6d997010dc5b422a99e86753a2e3f088acd"
+    },
+    {
+      "file": "indicator/LED_SpeedLimit-OFF.png",
+      "resource": "/Resource Files/Images/indicator/LED_SpeedLimit-OFF.png",
+      "source_offset": 79642832,
+      "sha256": "be89cacb8ba94f3aa913876de5fb7b078a8563c540aa380bd34297fca25e2dfd"
+    },
+    {
+      "file": "indicator/LED_ACCNoObject-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_ACCNoObject-Grey.png",
+      "source_offset": 79372412,
+      "sha256": "80e33c853275c88ab9b869eb78c13770fb425de76374659685fa35c05a0c524d"
+    },
+    {
+      "file": "indicator/LED_ACCTargetObject-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_ACCTargetObject-Grey.png",
+      "source_offset": 79379564,
+      "sha256": "cbde15291b2ad93547144a0b0a775f0306fa179e4c7245a31e69316da9cd3017"
+    },
+    {
+      "file": "indicator/LED_ACCNoObject-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_ACCNoObject-Green.png",
+      "source_offset": 79370412,
+      "sha256": "590d4fa4254cffd27d7c16abcdecdff63c1633c70dffd5f194adc848d86485f4"
+    },
+    {
+      "file": "indicator/LED_ACCTargetObject-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_ACCTargetObject-Green.png",
+      "source_offset": 79377880,
+      "sha256": "0ddb1a6d04ad54db6d545c61dc7856beb6e9779cfec1377b0478eb7fb7961b13"
+    },
+    {
+      "file": "indicator/LED_ACCTargetObject-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_ACCTargetObject-Yellow.png",
+      "source_offset": 79382052,
+      "sha256": "94fee8badf915be16a1730ed143bc9bb44ca98afa0c3f5ee691ac5db2de7c6b8"
+    },
+    {
+      "file": "indicator/LED_AEB-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_AEB-Yellow.png",
+      "source_offset": 79385228,
+      "sha256": "752ee340908f73c254dce399c3477bf7997a105d7a0ad91a82752c1942953d7a"
+    },
+    {
+      "file": "indicator/LED_AEB-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_AEB-Red.png",
+      "source_offset": 79384088,
+      "sha256": "81e7c9bc76c2be43efd68b761e0e20c2f6fd53ff27c9ad7927de02e60ba0b0a1"
+    },
+    {
+      "file": "indicator/LED_FCW-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_FCW-Yellow.png",
+      "source_offset": 79499256,
+      "sha256": "9034b7e5d33887a1b6c13800aa94aba935bad77e1c1cfc21b71a5d418e98e392"
+    },
+    {
+      "file": "indicator/LED_TJA-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_TJA-Grey.png",
+      "source_offset": 79659816,
+      "sha256": "d0ba62a84a6978036a7b4577cdffacbb228687cd6ae9047c9d28f1367dc78718"
+    },
+    {
+      "file": "indicator/LED_TJA-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_TJA-Green.png",
+      "source_offset": 79656880,
+      "sha256": "fce0f4d539c5977c7f6ae6f041ae970b22e16fdee8a592a06c10746950f2eacf"
+    },
+    {
+      "file": "indicator/LED_TJA-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_TJA-Yellow.png",
+      "source_offset": 79665168,
+      "sha256": "d0dbbb657e2bf598aeded4375783b8a5a9d9b6339bd2d0238356a624b5aa35a9"
+    },
+    {
+      "file": "indicator/LED_DrivingModeECO.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeECO.png",
+      "source_offset": 79453256,
+      "sha256": "354069c37e7832f127dc2a9a28457ec7a81c51b00273780f0bc35555d1d8adff"
+    },
+    {
+      "file": "indicator/LED_DrivingModeSport.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeSport.png",
+      "source_offset": 79468780,
+      "sha256": "b617c8df749abada4efae5da00e68c95b5d9d838a932f01cc015e375ef520aa6"
+    },
+    {
+      "file": "indicator/LED_FatigueDriving.png",
+      "resource": "/Resource Files/Images/indicator/LED_FatigueDriving.png",
+      "source_offset": 79501352,
+      "sha256": "9775c310129fafb16e234cf894039046ac00cc639a844cd8ae61a67c47cc3440"
+    },
+    {
+      "file": "indicator/LED_Warning-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_Warning-Yellow.png",
+      "source_offset": 79752804,
+      "sha256": "17add16b78e24631a64170f22d59d18fd0da7695018edff9283afd7c34e14eb9"
+    },
+    {
+      "file": "indicator/LED_EleSteerLock-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_EleSteerLock-Red.png",
+      "source_offset": 79486932,
+      "sha256": "fdaf73528e7039908ad76068eb84bcf8509a1c9e5d0edac8eeabeb16b310dd27"
+    },
+    {
+      "file": "indicator/LED_EleSteerLock-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_EleSteerLock-Yellow.png",
+      "source_offset": 79490336,
+      "sha256": "3866ea08e2be44256886b2511dfdcb01385db2e83be9ffa116d56be6e1a49d02"
+    },
+    {
+      "file": "indicator/LED_EleSteerLock-White.png",
+      "resource": "/Resource Files/Images/indicator/LED_EleSteerLock-White.png",
+      "source_offset": 79488436,
+      "sha256": "0cad01270a176024c586b26053d17d2f9982b5b3fe1d490125be741e44d8e1ee"
+    },
+    {
+      "file": "indicator/LED_ACCNoObject-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_ACCNoObject-Yellow.png",
+      "source_offset": 79375420,
+      "sha256": "dd17f6789d0de698bc0845eb97f09cbb7c9f36c4398799df29ea0ab841f45c9b"
+    },
+    {
+      "file": "indicator/LED_CoolantTempNormal.png",
+      "resource": "/Resource Files/Images/indicator/LED_CoolantTempNormal.png",
+      "source_offset": 79435300,
+      "sha256": "e7691f9b09c8a19f5cc20fd0d7a5c8325330f78fda2b68960f1b8cb5082a3296"
+    },
+    {
+      "file": "indicator/LED_DrivingModeNormal-1.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeNormal-1.png",
+      "source_offset": 79456916,
+      "sha256": "754fc38a029d6d4c0e4bad1c52f066fc0877beac16ae5140ed507f082f348faa"
+    },
+    {
+      "file": "indicator/LED_GPF-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_GPF-Green.png",
+      "source_offset": 79516264,
+      "sha256": "b1777620ffee7cda86c1290988a7e752a6c69e605590def23e5961f8c3c406da"
+    },
+    {
+      "file": "indicator/LED_GPF-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_GPF-Yellow.png",
+      "source_offset": 79518232,
+      "sha256": "6b8984c31adfe7b803365523474c81a22300a2fc4387b70a21e795d50f6f3dff"
+    },
+    {
+      "file": "indicator/LED_GearBoxTemp-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_GearBoxTemp-Red.png",
+      "source_offset": 79527220,
+      "sha256": "075a05a795ae62cb6cc4c5b077ee0bd3713208c712e0f18e6a4fe7fabd661aef"
+    },
+    {
+      "file": "indicator/LED_GearBoxTemp-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_GearBoxTemp-Yellow.png",
+      "source_offset": 79528916,
+      "sha256": "83cfd791fcfad8c133071b97b15469a350efb6672e615737aeb756c91fd1cfdb"
+    },
+    {
+      "file": "indicator/LED_NearBeam-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_NearBeam-Red.png",
+      "source_offset": 79600436,
+      "sha256": "660000442501af8504dd1c1d8429db12124bff0eea6dc514e6badac0cada2316"
+    },
+    {
+      "file": "indicator/LED_DrivingModeSNOW.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeSNOW.png",
+      "source_offset": 79465860,
+      "sha256": "83c77d4b05808a496435a783baf06f642827440302728d5047a239e29d4b02e1"
+    },
+    {
+      "file": "indicator/LED_DrivingModeMUD.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeMUD.png",
+      "source_offset": 79455244,
+      "sha256": "a5cb51fcd1bc7e985f08ac7e33a02c0f7f002c8be82f37dc8e2c66bba508c509"
+    },
+    {
+      "file": "indicator/LED_DrivingModeSAND.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeSAND.png",
+      "source_offset": 79463480,
+      "sha256": "ab9ef9ae8d578f3be441a9ae2f281efffe71c950e4e69a8b94ed012dd91a160c"
+    },
+    {
+      "file": "indicator/LED_AWD-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_AWD-Yellow.png",
+      "source_offset": 79398056,
+      "sha256": "cd85c28065eae32391326e899c0445869fe6901358373935894b0765d5ab5984"
+    },
+    {
+      "file": "indicator/LED_AWD-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_AWD-Red.png",
+      "source_offset": 79396384,
+      "sha256": "c19b050d7d951cd475fb77fa09e04d348e3ba6c88a87cf02910e98d2670bf06c"
+    },
+    {
+      "file": "indicator/LED_IntelligentNavi-Grey.png",
+      "resource": "/Resource Files/Images/indicator/LED_IntelligentNavi-Grey.png",
+      "source_offset": 79550984,
+      "sha256": "d0ba62a84a6978036a7b4577cdffacbb228687cd6ae9047c9d28f1367dc78718"
+    },
+    {
+      "file": "indicator/LED_IntelligentNavi-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_IntelligentNavi-Green.png",
+      "source_offset": 79548048,
+      "sha256": "fce0f4d539c5977c7f6ae6f041ae970b22e16fdee8a592a06c10746950f2eacf"
+    },
+    {
+      "file": "indicator/LED_TJA-White.png",
+      "resource": "/Resource Files/Images/indicator/LED_TJA-White.png",
+      "source_offset": 79662960,
+      "sha256": "4fdba886870eb3c655080ad41b63699c6fa301e5b03a1347140804b588a9c542"
+    },
+    {
+      "file": "indicator/LED_IntelligentNavi-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_IntelligentNavi-Yellow.png",
+      "source_offset": 79555984,
+      "sha256": "d0dbbb657e2bf598aeded4375783b8a5a9d9b6339bd2d0238356a624b5aa35a9"
+    },
+    {
+      "file": "indicator/LED_DrivingModeOFFROAD.png",
+      "resource": "/Resource Files/Images/indicator/LED_DrivingModeOFFROAD.png",
+      "source_offset": 79459700,
+      "sha256": "fe34231378740cbb02541f61d28863893b6f6166c7e48b26c7683e2ff0ae6727"
+    },
+    {
+      "file": "indicator/LED_DMS-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_DMS-Green.png",
+      "source_offset": 79448972,
+      "sha256": "85321b317e2cbc05b9b948c60c0ba4d743b73dbe4cd823ddc9314187e781d32c"
+    },
+    {
+      "file": "indicator/LED_DMS-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_DMS-Yellow.png",
+      "source_offset": 79450184,
+      "sha256": "ca56f09eb0f54bf46a06db2b882693497137e85c5b5df23d85398b9caef9a3e9"
+    },
+    {
+      "file": "extra/PHEV/LED_Power_battery_yellow.png",
+      "resource": "/Resource Files/Images/PHEV/LED_Power_battery_yellow.png",
+      "source_offset": 34400116,
+      "sha256": "09bdea0e4b3b1aff8e0401e6dde8bbaf3a380f44e854584df7e2555045ed1849"
+    },
+    {
+      "file": "extra/PHEV/LED_Power_battery_red.png",
+      "resource": "/Resource Files/Images/PHEV/LED_Power_battery_red.png",
+      "source_offset": 34397280,
+      "sha256": "9341151ab2afc05dd44859806d31e60e98ba5df314e0b95125d88fa54e7a6001"
+    },
+    {
+      "file": "extra/PHEV/LED_Power_battery_white.png",
+      "resource": "/Resource Files/Images/PHEV/LED_Power_battery_white.png",
+      "source_offset": 34398608,
+      "sha256": "4d28da7b71a4185054f13e74629300c41cd3e5157d98fd65838376b9ea3c2dc6"
+    },
+    {
+      "file": "extra/TopBottom/PHEV/LED_ready.png",
+      "resource": "/Resource Files/Images/TopBottom/PHEV/LED_ready.png",
+      "source_offset": 66070148,
+      "sha256": "9b88614cd8ccda2ea3ebc11a77d8a77d6c6ee4de53dfd6f7fe24e71113606ea9"
+    },
+    {
+      "file": "extra/PHEV/img_ev.png",
+      "resource": "/Resource Files/Images/PHEV/img_ev.png",
+      "source_offset": 34430048,
+      "sha256": "c34717d1c167f6f93d2b11b1ea7d2595d8b922e1006fb6b57332337c577882d2"
+    },
+    {
+      "file": "extra/PHEV/img_hev.png",
+      "resource": "/Resource Files/Images/PHEV/img_hev.png",
+      "source_offset": 34430992,
+      "sha256": "cae7a9590e89753fc4eaff6fe3cc241b716e76394886783604e6f0728af0de91"
+    },
+    {
+      "file": "indicator/LED_dqgr.png",
+      "resource": "/Resource Files/Images/indicator/LED_dqgr.png",
+      "source_offset": 79760140,
+      "sha256": "ac08c970a0f05943eda3d4cce91c9db566ddbcc04cc87d589bfc29866852338d"
+    },
+    {
+      "file": "indicator/LED_avas_yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_avas_yellow.png",
+      "source_offset": 79757712,
+      "sha256": "9c9b4fabe4570f4d3b33a0e6f4d5d27e11178edfc169a587d90b624a5c88c66b"
+    },
+    {
+      "file": "indicator/LED_hv_yelow.png",
+      "resource": "/Resource Files/Images/indicator/LED_hv_yelow.png",
+      "source_offset": 79764508,
+      "sha256": "f6329c4130af298f57dc7dca5e15c4e52c5a20b131c92b426e7b102946039727"
+    },
+    {
+      "file": "indicator/LED_hv_rew.png",
+      "resource": "/Resource Files/Images/indicator/LED_hv_rew.png",
+      "source_offset": 79763392,
+      "sha256": "416ccb126b98c99190e1d5ffd10d6e57633d6f6a94fe3e081c3564439552326f"
+    },
+    {
+      "file": "extra/PHEV/LED_charge_red.png",
+      "resource": "/Resource Files/Images/PHEV/LED_charge_red.png",
+      "source_offset": 34401976,
+      "sha256": "10b9a746fee4372016876569b979cfea9dfe346a8243d608814b69f9641ae265"
+    },
+    {
+      "file": "extra/PHEV/LED_charge_blue.png",
+      "resource": "/Resource Files/Images/PHEV/LED_charge_blue.png",
+      "source_offset": 34400892,
+      "sha256": "1de3f18db8e02881a4a0e4f4bf4dd63a7c6f3a23ffc4967dfa4d91726d475d29"
+    },
+    {
+      "file": "indicator/LED_Power_failure_red.png",
+      "resource": "/Resource Files/Images/indicator/LED_Power_failure_red.png",
+      "source_offset": 79608248,
+      "sha256": "2c8e9f1db904197c0c959fefa675e6bf176502f11c1bd823af92c0090e3ef1f7"
+    },
+    {
+      "file": "extra/PHEV/img_ev+.png",
+      "resource": "/Resource Files/Images/PHEV/img_ev+.png",
+      "source_offset": 34428872,
+      "sha256": "01ff0f81926cc707d7c93f0454cca5becf803d13ae7154bdbc585e32f7ba7c1b"
+    },
+    {
+      "file": "indicator/LED_LaneKeeping-Off.png",
+      "resource": "/Resource Files/Images/indicator/LED_LaneKeeping-Off.png",
+      "source_offset": 79574468,
+      "sha256": "13e7da2d2ae0b60bab4c6a1dc3407399c7e4420a56a6cfe22ac8843201060c43"
+    },
+    {
+      "file": "indicator/LED_LDWRight-Off.png",
+      "resource": "/Resource Files/Images/indicator/LED_LDWRight-Off.png",
+      "source_offset": 79566324,
+      "sha256": "40bd7ca6bad7b96ee1d766cb8d6cb0311b1f7e7e76db222a94d7fb8965defd80"
+    },
+    {
+      "file": "indicator/LED_trailer-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_trailer-Green.png",
+      "source_offset": 79769008,
+      "sha256": "94abcfa55dfdc899ee506ee63ff3c27d415479e53ca4bac7d302047fc2cabcc7"
+    },
+    {
+      "file": "indicator/LED_lighting-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_lighting-Yellow.png",
+      "source_offset": 79765956,
+      "sha256": "6c7033b943ca2b122b9e019f661606a036e76ad159315dcd9419247088ddcb8b"
+    },
+    {
+      "file": "indicator/LED_EDS-Green.png",
+      "resource": "/Resource Files/Images/indicator/LED_EDS-Green.png",
+      "source_offset": 79471592,
+      "sha256": "18c4a18ec905d3e88816938660bc9fd79a9365cf0839ced14a8a012bc5c78a9a"
+    },
+    {
+      "file": "indicator/LED_EDS-Yellow.png",
+      "resource": "/Resource Files/Images/indicator/LED_EDS-Yellow.png",
+      "source_offset": 79474128,
+      "sha256": "42fbaed15e761fee45840ccfe6075fc429a0756e1b32abd42a9d91b2bcc7c5c5"
+    },
+    {
+      "file": "indicator/LED_EDS-Red.png",
+      "resource": "/Resource Files/Images/indicator/LED_EDS-Red.png",
+      "source_offset": 79472932,
+      "sha256": "817e2dccad56f3c0c07fd8e8a1d5c36d286b7e9f9afc8e20a0e10d22e6e7215f"
+    },
+    {
+      "file": "indicator/LED_MiniCar.png",
+      "resource": "/Resource Files/Images/indicator/LED_MiniCar.png",
+      "source_offset": 79594536,
+      "sha256": "99013562b259790f2dbed74366e0331b878ba677ecd9959544d717044f8bd034"
+    },
+    {
+      "file": "indicator/LED_Lim.png",
+      "resource": "/Resource Files/Images/indicator/LED_Lim.png",
+      "source_offset": 79581284,
+      "sha256": "80ed9b53085d54d5e81013c75b589a3d5dee0c07ef56584812de8c8d9a4a4442"
+    }
+  ]
+}

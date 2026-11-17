@@ -25,7 +25,7 @@ class ReleaseReadinessInstrumentation {
         androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         Thread.sleep(400) // Let the platform window transition finish before capturing pixels.
         val folder=File(ui.activity.getExternalFilesDir(null),"qa-1.0.0").apply {mkdirs()}
-        val bitmap=checkNotNull(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+        val bitmap=ui.onRoot(useUnmergedTree=true).captureToImage().asAndroidBitmap()
         File(folder,"$name.png").outputStream().use {bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun openedDoorsAndLowFuelAreReadable() {
@@ -54,7 +54,10 @@ class ReleaseReadinessInstrumentation {
         ui.onNodeWithTag("setup-style-MINIMAL").performClick()
         ui.onNodeWithTag("setup-theme-LIGHT").performClick();capture("setup-2-appearance-en")
         ui.onNodeWithTag("setup-next").performClick()
-        ui.onNodeWithText("Permissions").assertIsDisplayed();capture("setup-3-permissions-en")
+        ui.onNodeWithTag("setup-cluster").assertExists()
+        ui.onNodeWithTag("cluster-design-original").performScrollTo().performClick();capture("setup-3-cluster-en")
+        ui.onNodeWithTag("setup-next").performClick()
+        ui.onNodeWithText("Permissions").assertIsDisplayed();capture("setup-4-permissions-en")
         ui.onNodeWithTag("setup-next").performClick()
         ui.onNodeWithText("Start with the system").assertIsDisplayed();capture("setup-4-startup-en")
         ui.onNodeWithTag("setup-next").performClick()

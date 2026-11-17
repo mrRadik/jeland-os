@@ -6,12 +6,13 @@ import ru.jeland.os.navigation.comaps.CoMapsRepository
 
 /** One CoMaps session and voice shared by the navigation tab and home map. */
 class OfflineNavigationRepository(context:Context):NavigationRepository,AutoCloseable {
+    val roadAlerts=ru.jeland.os.data.roadalerts.RoadAlertsRuntime.get(context)
     val places=NavigationPlacesRepository(ru.jeland.os.data.AndroidSettingsStore(context))
     val gps=AndroidGpsSource(context)
     val voice=NavigationVoice(context)
     val comaps=CoMapsRepository(context,gps,voice)
     override val state=comaps.state
-    fun resume()=comaps.resume()
+    fun resume(){roadAlerts.resume();comaps.resume()}
     fun pause(){comaps.pause();if(!state.value.active)gps.pause()}
     override fun toggleRoute(){if(state.value.active)comaps.stop()else comaps.build()}
     override fun setDestination(value:String){comaps.initialize();comaps.search(value)}
