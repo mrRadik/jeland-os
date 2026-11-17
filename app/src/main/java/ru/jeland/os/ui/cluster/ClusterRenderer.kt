@@ -96,7 +96,7 @@ internal class ClusterRenderer(private val resources:Resources) {
         bitmap?.let {c.drawBitmap(it,null,RectF(0f,0f,2048f,768f),p)}
         c.restore()
         labelsForNativeEnglish=l.km=="km"
-        
+
         when(design){
             ClusterDesign.CLASSIC->{
                 val (left,right)=ClusterGeometry.dials(design)
