@@ -22,7 +22,7 @@ class ClusterIslandInstrumentation {
         val panel=ClusterPanelState(speed=90.0,rpm=1600.0,gear="D7",outside=-12.5,indicators=emptyList())
         val warning=mutableStateOf<ClusterOemMessage?>(null)
         ui.runOnIdle {ui.activity.setContent {
-            BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(1920f/720f).testTag("island-scene")) {
+            Box(Modifier.fillMaxWidth().aspectRatio(1920f/720f).testTag("island-scene")) {
                 ClusterArtwork(panel.copy(message=warning.value),ClusterDesign.CLASSIC,true,"20:35",Modifier.matchParentSize())
             }
         }}

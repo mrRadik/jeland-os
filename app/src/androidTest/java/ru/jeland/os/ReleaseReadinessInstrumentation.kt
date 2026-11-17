@@ -25,7 +25,7 @@ class ReleaseReadinessInstrumentation {
         androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         Thread.sleep(400) // Let the platform window transition finish before capturing pixels.
         val folder=File(ui.activity.getExternalFilesDir(null),"qa-1.0.0").apply {mkdirs()}
-        val bitmap=checkNotNull(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+        val bitmap=ui.onRoot(useUnmergedTree=true).captureToImage().asAndroidBitmap()
         File(folder,"$name.png").outputStream().use {bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun openedDoorsAndLowFuelAreReadable() {

@@ -29,7 +29,7 @@ def main():
     apk=folder/manifest['apkName']
     if apk.name!=f'JelandOS-{version}.apk' or apk.stat().st_size!=manifest['size'] or digest(apk)!=manifest['sha256']:
         raise ValueError('APK does not match its update manifest')
-    files=[apk,folder/'jelandos-update.json',folder/'JelandOS-Windows-Installer.zip',folder/'SHA256SUMS.txt',folder/'LICENSE',folder/'THIRD_PARTY_NOTICES.md']
+    files=[apk,folder/'jelandos-update.json',folder/'JelandOS-Windows-Installer.zip',folder/'JelandOS-Strelka-setup.zip',folder/'SHA256SUMS.txt',folder/'LICENSE',folder/'THIRD_PARTY_NOTICES.md']
     expected={path.name:(path.stat().st_size,digest(path)) for path in files}
     credential_reply=subprocess.run(['git','-c','credential.interactive=false','credential','fill'],
         input='protocol=https\nhost=github.com\n\n',capture_output=True,text=True,timeout=30,

@@ -29,7 +29,7 @@ class ClusterColorInstrumentation {
         var dark by mutableStateOf(true)
         ui.runOnUiThread {ui.activity.setContent {JelandTheme(dark) {
             Column(Modifier.fillMaxSize().background(Jeland.colors.background).padding(20.dp)) {
-                BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(1920f/720f).testTag("colour-stage")) {
+                Box(Modifier.fillMaxWidth().aspectRatio(1920f/720f).testTag("colour-stage")) {
                     ClusterArtwork(ClusterPanelState(speed=90.0,rpm=2100.0,gear="D",rangeKm=442.0,fuel=.7,driveMode=mode),
                         ClusterDesign.CLASSIC,dark,"12:36",Modifier.fillMaxSize(),accent=prefs.clusterAccentFor(mode))
                 }
