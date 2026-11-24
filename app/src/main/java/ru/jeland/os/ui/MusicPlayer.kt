@@ -1,5 +1,7 @@
 package ru.jeland.os.ui
 
+import ru.jeland.os.localization.LocalizedIcon as Icon
+
 import ru.jeland.os.localization.LocalizedText as Text
 
 import android.graphics.BitmapFactory
@@ -20,7 +22,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.shape.CircleShape
@@ -132,14 +133,17 @@ import kotlin.math.*
                             Glyph(if(s.source.contains("Bluetooth",true))JIcons.Bluetooth else JIcons.MusicNote,null,Modifier.size(36.dp),true)
                             Column(Modifier.weight(1f)) {
                                 Text(s.source,color=c.text,fontSize=19.sp,maxLines=1,modifier=Modifier.testTag("music-active-source"))
-                                Text(if(hasQueue)"Плейлист · ${queue.size} композиций  ›"else"Аудио автомобиля",color=if(hasQueue)c.accent else c.muted,fontSize=13.sp,modifier=Modifier
-                                    .then(if(hasQueue)Modifier.testTag("music-open-playlist").clickable(role=Role.Button){showPlaylist=true}else Modifier).padding(top=4.dp,bottom=6.dp))
+                                Row(Modifier.then(if(hasQueue)Modifier.testTag("music-open-playlist").clickable(role=Role.Button){showPlaylist=true}else Modifier)
+                                    .padding(top=4.dp,bottom=6.dp),verticalAlignment=Alignment.CenterVertically) {
+                                    Text(if(hasQueue)"Плейлист · ${queue.size} композиций"else"Аудио автомобиля",color=if(hasQueue)c.accent else c.muted,fontSize=13.sp)
+                                    if(hasQueue)Icon(JIcons.ChevronRight,null,Modifier.size(16.dp),tint=c.accent)
+                                }
                             }
                         }
                     }
                     if(!s.live)Panel(Modifier.weight(1f).height(84.dp)) {
                         Row(Modifier.fillMaxSize().padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                            Text("♪",color=c.accent,fontSize=28.sp)
+                            Icon(JIcons.MusicNote,null,Modifier.size(28.dp),tint=c.accent)
                             JelandSlider(s.volume.toFloat(),{r.setVolume(it.toInt())},valueRange=0f..100f,modifier=Modifier.weight(1f).testTag("media-volume"))
                             Text("${s.volume}",color=c.text,fontSize=18.sp)
                         }
@@ -212,7 +216,7 @@ import kotlin.math.*
     }
 }
 
-/** Filled transport glyphs, independent of the thin outline icons used elsewhere. */
+/** Original HU transport pictograms shared with the other media controls. */
 @Composable fun MusicTransport(s:MediaState,r:MediaRepository,modifier:Modifier=Modifier,compact:Boolean=false,borderless:Boolean=false) {
     Row(modifier,horizontalArrangement=Arrangement.spacedBy(if(borderless)8.dp else if(compact)28.dp else 64.dp,Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically) {
         MusicTransportButton(-1,false,"Предыдущая композиция",Modifier.size(if(borderless)54.dp else if(compact)58.dp else 108.dp).testTag("media-previous"),s.controlsEnabled,false,borderless,r::previous)
@@ -227,21 +231,7 @@ import kotlin.math.*
         .border(if(primary)2.dp else 1.dp,if(primary)c.accent else c.outline,CircleShape)
     Box(modifier.alpha(if(enabled)1f else .38f).clip(CircleShape).then(surface)
         .semantics {contentDescription=description}.clickable(enabled=enabled,role=Role.Button,onClick=onClick),contentAlignment=Alignment.Center) {
-        Canvas(Modifier.fillMaxSize(if(borderless).48f else .36f)) {
-            val tint=c.text
-            if(direction==0&&pausedGlyph) {
-                drawRoundRect(tint,Offset(size.width*.12f,0f),Size(size.width*.27f,size.height),CornerRadius(size.width*.06f))
-                drawRoundRect(tint,Offset(size.width*.61f,0f),Size(size.width*.27f,size.height),CornerRadius(size.width*.06f))
-            }else {
-                val previous=direction<0
-                val path=Path().apply {
-                    if(previous){moveTo(size.width*.82f,size.height*.08f);lineTo(size.width*.18f,size.height*.5f);lineTo(size.width*.82f,size.height*.92f)}
-                    else{moveTo(size.width*.18f,size.height*.08f);lineTo(size.width*.82f,size.height*.5f);lineTo(size.width*.18f,size.height*.92f)}
-                    close()
-                }
-                drawPath(path,tint)
-                if(direction!=0)drawRoundRect(tint,Offset(size.width*(if(previous).04f else .84f),size.height*.08f),Size(size.width*.12f,size.height*.84f),CornerRadius(size.width*.04f))
-            }
-        }
+        val icon=when {direction<0->JIcons.SkipPrevious;direction>0->JIcons.SkipNext;pausedGlyph->JIcons.Pause;else->JIcons.PlayArrow}
+        Icon(icon,null,Modifier.fillMaxSize(if(borderless).48f else .36f),tint=c.text)
     }
 }

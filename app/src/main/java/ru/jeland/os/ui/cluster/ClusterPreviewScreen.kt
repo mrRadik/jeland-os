@@ -41,6 +41,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import ru.jeland.os.core.*
@@ -186,7 +187,8 @@ import java.util.Date
                 panel.activeNavigation!=null,mapFirst=true,projection=projection)
         }
         ClusterArtwork(panel,design,dark,clock,Modifier.matchParentSize(),accent=resolvedAccent,
-            startupAt=if(projection)model.dependencies.clusterProjection.openedAtMillis else null,roadAlert=roadAlert,navigationMode=navigationMode) {
+            startupAt=if(projection)model.dependencies.clusterProjection.openedAtMillis else null,roadAlert=roadAlert,navigationMode=navigationMode,
+            onRoadAlertShown=model.dependencies.navigation.roadAlerts::alertShown) {
             clusterMapBounds(design,panel.activeNavigation!=null)?.takeIf {navigationMode==ClusterNavigationMode.MAP}?.let {bounds->
                 Box(Modifier.offset(x=maxWidth*((bounds.left+2f)/2048f),y=maxHeight*(bounds.top/768f))
                         .width(maxWidth*((bounds.width-4f)/2048f)).height(maxHeight*((bounds.height-2f)/768f))
@@ -201,7 +203,7 @@ import java.util.Date
     }
 }
 
-@Composable internal fun ClusterArtwork(panel:ClusterPanelState,design:ClusterDesign,dark:Boolean,clock:String,modifier:Modifier=Modifier,miniature:Boolean=false,accent:ClusterAccent=ClusterAccent.CYAN,startupAt:Long?=null,roadAlert:RoadAlert?=null,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP,content:@Composable BoxWithConstraintsScope.()->Unit={}) {
+@Composable internal fun ClusterArtwork(panel:ClusterPanelState,design:ClusterDesign,dark:Boolean,clock:String,modifier:Modifier=Modifier,miniature:Boolean=false,accent:ClusterAccent=ClusterAccent.CYAN,startupAt:Long?=null,roadAlert:RoadAlert?=null,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP,onRoadAlertShown:(RoadAlert)->Unit={},content:@Composable BoxWithConstraintsScope.()->Unit={}) {
     val resources=LocalContext.current.resources
     val renderer=remember(resources) {ClusterRenderer(resources)}
     DisposableEffect(renderer){onDispose {renderer.close()}}
@@ -261,15 +263,18 @@ import java.util.Date
                     renderer.drawWarningOverlay(native,panel,design,dark,labels);native.restore()
                 }
             }
-            ClusterIslandOverlay(panel,dark,clock,labels,accent,renderer,if(miniature)null else roadAlert)
+            ClusterIslandOverlay(panel,dark,clock,labels,accent,renderer,if(miniature)null else roadAlert,onRoadAlertShown)
         }
     }
 }
 
 /** The capsule expands over the existing scene; neither instruments nor permanent lamps reflow. */
 @Composable private fun BoxWithConstraintsScope.ClusterIslandOverlay(panel:ClusterPanelState,dark:Boolean,clock:String,
-    labels:ClusterLabels,accent:ClusterAccent,renderer:ClusterRenderer,roadAlert:RoadAlert?) {
+    labels:ClusterLabels,accent:ClusterAccent,renderer:ClusterRenderer,roadAlert:RoadAlert?,onRoadAlertShown:(RoadAlert)->Unit) {
     val notice=clusterIslandNotice(panel,labels,roadAlert)
+    if(notice?.road==true&&roadAlert!=null) {
+        LifecycleResumeEffect(roadAlert) {onRoadAlertShown(roadAlert);onPauseOrDispose {}}
+    }
     var previous by remember {mutableStateOf<ClusterIslandNotice?>(notice)}
     if(notice!=null)SideEffect {previous=notice}
     val retained=notice?:previous

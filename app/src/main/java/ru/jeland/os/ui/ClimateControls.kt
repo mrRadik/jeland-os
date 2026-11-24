@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.vector.ImageVector
+import ru.jeland.os.ui.theme.AppIcon
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextAlign
@@ -82,7 +82,7 @@ import ru.jeland.os.ui.theme.JIcons
     }
 }
 
-@Composable private fun ClimateAction(title:String,icon:ImageVector?,active:Boolean,enabled:Boolean,modifier:Modifier,onClick:()->Unit,word:String?=null) {
+@Composable private fun ClimateAction(title:String,icon:AppIcon?,active:Boolean,enabled:Boolean,modifier:Modifier,onClick:()->Unit,word:String?=null) {
     val c=Jeland.colors
     Column(modifier.height(124.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.48f)else c.raised.copy(alpha=.7f))
         .border(1.dp,if(active&&enabled)c.accent else c.outline,Jeland.control).semantics {selected=active;contentDescription=title;if(!enabled)disabled()}
@@ -95,7 +95,7 @@ import ru.jeland.os.ui.theme.JIcons
 }
 
 /** Compact square controls in both the fan selector and permanent dock. */
-@Composable fun ClimateBarButton(icon:ImageVector?=null,text:String?=null,description:String,active:Boolean=false,enabled:Boolean=true,modifier:Modifier=Modifier,accent:Color=Jeland.colors.accent,onClick:()->Unit) {
+@Composable fun ClimateBarButton(icon:AppIcon?=null,text:String?=null,description:String,active:Boolean=false,enabled:Boolean=true,modifier:Modifier=Modifier,accent:Color=Jeland.colors.accent,onClick:()->Unit) {
     val c=Jeland.colors
     Box(modifier.height(64.dp).widthIn(min=58.dp).clip(Jeland.control).background(if(active&&enabled)c.deep.copy(alpha=.48f)else c.raised.copy(alpha=.8f))
         .border(1.4.dp,if(active&&enabled)accent else c.outline,Jeland.control).semantics {contentDescription=description;selected=active;if(!enabled)disabled()}

@@ -136,7 +136,7 @@ import ru.jeland.os.ui.theme.*
     var query by rememberSaveable {mutableStateOf("")}
     Column(verticalArrangement=Arrangement.spacedBy(14.dp)) {
         AppsSearch(query,{query=it},model::refreshApps)
-        Label("Избранное: ${state.favoriteApps.size}. Звезда добавляет ярлык, стрелки меняют порядок. Значки берутся с устройства.",small=true,muted=true)
+        Label("Избранное: ${state.favoriteApps.size}. Сердечко добавляет ярлык, стрелки меняют порядок. Значки берутся с устройства.",small=true,muted=true)
         if(state.loading)Label("Читаем доступные приложения…",small=true)
         state.error?.let {Label(it,small=true)}
         val apps=state.installed.filter {it.label.contains(query,true)||it.packageName.contains(query,true)}
@@ -188,7 +188,8 @@ import ru.jeland.os.ui.theme.*
         Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Top,horizontalArrangement=Arrangement.SpaceBetween) {
                 AppIcon(app,model,Modifier.size(68.dp).testTag("app-icon-${app.id}"))
-                RoundControl(JIcons.Star,"Избранное ${app.label}",Modifier.size(44.dp).testTag("favorite-${app.packageName}")
+                RoundControl(if(favorite)JIcons.Favorite else JIcons.FavoriteBorder,
+                    if(favorite)"Убрать ${app.label} из избранного"else"Добавить ${app.label} в избранное",Modifier.size(44.dp).testTag("favorite-${app.packageName}")
                     .semantics {stateDescription=if(favorite)"В избранном"else"Не в избранном"},favorite){model.dependencies.apps.toggleFavorite(app.id)}
             }
             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {

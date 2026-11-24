@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -84,14 +86,23 @@ import ru.jeland.os.ui.theme.JIcons
                             Text(entry.place?.name?:entry.query,color=c.text,fontSize=Jeland.type.secondary)
                             entry.place?.let {Text(it.searchSubtitle,color=c.muted,fontSize=Jeland.type.footnote)}
                         }
-                        entry.place?.let {place->IconButton(onClick={onFavorite(place)},modifier=Modifier.testTag("navigation-history-favorite-$index")) {Icon(JIcons.Star,"Сохранить точку",tint=c.accent)}}
+                        entry.place?.let {place->
+                            val favorite=favorites.firstOrNull {it.id==navigationPlaceKey(place)}
+                            IconButton(onClick={if(favorite!=null)places?.removeFavorite(favorite.id)else onFavorite(place)},
+                                modifier=Modifier.testTag("navigation-history-favorite-$index").semantics {
+                                    selected=favorite!=null;stateDescription=if(favorite!=null)"В избранном"else"Не в избранном"
+                                }) {
+                                Icon(if(favorite!=null)JIcons.Favorite else JIcons.FavoriteBorder,
+                                    if(favorite!=null)"Убрать из избранного"else"Сохранить точку",tint=if(favorite!=null)c.accent else c.muted)
+                            }
+                        }
                         IconButton(onClick={places?.removeHistory(entry.id)},modifier=Modifier.testTag("navigation-history-remove-$index")) {Icon(JIcons.Close,"Удалить запись истории",tint=c.muted)}
                     }
                     HorizontalDivider(color=c.outline)
                 }
             }
             "favorites"->{
-                if(favorites.isEmpty())item {Label("Избранных точек пока нет. Нажмите звезду у результата поиска или выбранной точки на карте.",small=true,muted=true)}
+                if(favorites.isEmpty())item {Label("Избранных точек пока нет. Нажмите сердечко у результата поиска или выбранной точки на карте.",small=true,muted=true)}
                 itemsIndexed(favorites,key={_,entry->entry.id}) {index,entry->
                     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                         Column(Modifier.weight(1f).clickable {places?.rememberSelection(entry.title,entry.destination);onChoose(entry.destination)}
@@ -100,7 +111,9 @@ import ru.jeland.os.ui.theme.JIcons
                             Text(entry.place.fullName,color=c.muted,fontSize=Jeland.type.footnote)
                         }
                         IconButton(onClick={onFavorite(entry.place)},modifier=Modifier.testTag("navigation-favorite-edit-$index")) {Icon(JIcons.Edit,"Переименовать точку",tint=c.accent)}
-                        IconButton(onClick={places?.removeFavorite(entry.id)},modifier=Modifier.testTag("navigation-favorite-remove-$index")) {Icon(JIcons.Close,"Убрать из избранного",tint=c.muted)}
+                        IconButton(onClick={places?.removeFavorite(entry.id)},modifier=Modifier.testTag("navigation-favorite-remove-$index").semantics {
+                            selected=true;stateDescription="В избранном"
+                        }) {Icon(JIcons.Favorite,"Убрать из избранного",tint=c.accent)}
                     }
                     HorizontalDivider(color=c.outline)
                 }
@@ -115,8 +128,15 @@ import ru.jeland.os.ui.theme.JIcons
                     Text(place.name,color=c.text,fontSize=Jeland.type.secondary)
                     Text(place.searchSubtitle,color=c.muted,fontSize=Jeland.type.footnote,modifier=Modifier.testTag("navigation-result-locality-$index"))
                   }
-                  if(places!=null)IconButton(onClick={onFavorite(place)},modifier=Modifier.testTag("navigation-result-favorite-$index")) {
-                    Icon(JIcons.Star,"Сохранить точку",tint=if(favorites.any {it.id==navigationPlaceKey(place)})c.accent else c.muted)
+                  if(places!=null) {
+                    val favorite=favorites.firstOrNull {it.id==navigationPlaceKey(place)}
+                    IconButton(onClick={if(favorite!=null)places.removeFavorite(favorite.id)else onFavorite(place)},
+                        modifier=Modifier.testTag("navigation-result-favorite-$index").semantics {
+                            selected=favorite!=null;stateDescription=if(favorite!=null)"В избранном"else"Не в избранном"
+                        }) {
+                        Icon(if(favorite!=null)JIcons.Favorite else JIcons.FavoriteBorder,
+                            if(favorite!=null)"Убрать из избранного"else"Сохранить точку",tint=if(favorite!=null)c.accent else c.muted)
+                    }
                   }
                 }
                 HorizontalDivider(color=c.outline)

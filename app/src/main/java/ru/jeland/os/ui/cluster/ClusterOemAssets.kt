@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.graphics.*
 import ru.jeland.os.core.ClusterCoolantCondition
 import ru.jeland.os.core.ClusterIndicatorSpec
+import ru.jeland.os.ui.theme.AppIcon
 
 /** Original SOP6 glyphs. Warning colours are never recoloured with the design accent. */
 internal enum class ClusterOemIcon(val file:String,val neutral:Boolean=false) {
@@ -58,6 +59,18 @@ internal class ClusterOemAssets(private val resources:Resources) {
         resources.assets.open(path).use {stream->
             checkNotNull(BitmapFactory.decodeStream(stream,null,BitmapFactory.Options().apply {inScaled=false}))
         }
+    }
+    /** Use the same original HU pictograms as the Compose controls, with the same bounds. */
+    fun drawIcon(c:Canvas,icon:AppIcon,x:Float,y:Float,size:Float,tint:Int) {
+        val source=cache.getOrPut("res:${icon.resource}") {
+            checkNotNull(BitmapFactory.decodeResource(resources,icon.resource,BitmapFactory.Options().apply {inScaled=false}))
+        }
+        val crop=icon.source?.let {Rect(it.left,it.top,it.right,it.bottom)}?:Rect(0,0,source.width,source.height)
+        val scale=minOf(size/crop.width(),size/crop.height())
+        val width=crop.width()*scale;val height=crop.height()*scale
+        paint.colorFilter=if(icon.preserveColors)null else PorterDuffColorFilter(tint,PorterDuff.Mode.SRC_IN)
+        c.drawBitmap(source,crop,RectF(x+(size-width)/2,y+(size-height)/2,x+(size+width)/2,y+(size+height)/2),paint)
+        paint.colorFilter=null
     }
     fun draw(c:Canvas,icon:ClusterOemIcon,x:Float,y:Float,width:Float,height:Float=width,neutralTint:Int?=null,centerVisible:Boolean=false) {
         val source=bitmap(icon)

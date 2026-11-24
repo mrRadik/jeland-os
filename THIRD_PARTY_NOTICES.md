@@ -10,7 +10,7 @@
 | AndroidX, Jetpack Compose, Room | см. app/build.gradle.kts | Apache-2.0, https://android.googlesource.com/platform/frameworks/support/ |
 | Apache Commons Net / IO | 3.13.0 / 2.21.0 | Apache-2.0; original LICENSE/NOTICE in assets/licenses/apache-commons; https://commons.apache.org/ |
 | Kotlin, coroutines | см. Gradle | Apache-2.0, https://github.com/JetBrains/kotlin |
-| Lucide / Feather | локальные векторные контуры | ISC / MIT; уведомления в app/src/main/assets/licenses/ |
+| Штатные иконки ГУ Jeland J7 | SVHvac, Launcher, SystemUI, SOP6 | Ресурсы соответствующих правообладателей; источники и хеши в app/src/main/assets/icons/oem/provenance.json и docs/OEM-ICONS.md |
 
 Полные тексты основных лицензий включены в `app/src/main/assets/licenses/`
 и вместе с ними поставляются в APK. Лицензии транзитивных зависимостей
@@ -43,3 +43,5 @@ https://github.com/kost-t-human/ruvoice-tts/releases/tag/v1.1.1.
 описания совместимости. Это не заявление об официальной поддержке производителем.
 Системные APK, прошивки автомобиля, личные журналы и ключи подписи в репозиторий
 и релиз Jeland OS не включаются.
+Отдельные штатные изображения интерфейса перечислены в таблице выше;
+лицензия проекта не распространяется на права их владельцев.

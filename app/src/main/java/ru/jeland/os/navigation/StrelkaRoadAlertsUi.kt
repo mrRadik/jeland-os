@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import ru.jeland.os.localization.LocalizedIcon as Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.delay
 import ru.jeland.os.data.roadalerts.StrelkaRoadAlerts
 import ru.jeland.os.localization.LocalizedText as Text
@@ -29,6 +30,7 @@ import ru.jeland.os.ui.theme.*
 
 @Composable fun StrelkaRoadAlertCard(repository:StrelkaRoadAlerts,modifier:Modifier=Modifier,compact:Boolean=false) {
     val alert=rememberStrelkaRoadAlert(repository)?:return
+    LifecycleResumeEffect(alert) {repository.alertShown(alert);onPauseOrDispose {}}
     val c=Jeland.colors
     Row(modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(c.panel.copy(alpha=.97f))
         .clickable(onClick=repository::openApp).padding(if(compact)10.dp else 14.dp).testTag("strelka-road-alert"),
@@ -50,6 +52,8 @@ import ru.jeland.os.ui.theme.*
         SectionTitle("Камеры и дорожные опасности")
         SettingsToggle("Предупреждения Стрелки","Предупреждения в навигации, виджете карты и на приборной панели",state.enabled,Modifier.testTag("strelka-enabled")){repository.setEnabled(!state.enabled)}
         if(state.enabled) {
+            SettingsToggle("Звук предупреждений","Короткий «пу-пуп» при появлении карточки · канал навигации",state.soundEnabled,Modifier.testTag("strelka-sound")){repository.setSoundEnabled(!state.soundEnabled)}
+            Control("Прослушать сигнал",Modifier.fillMaxWidth().testTag("strelka-test-sound"),onClick=repository::testSound)
             val status=when {
                 !state.installed->"Установите и настройте Стрелку"
                 !state.permission->"Нужен доступ к предупреждениям"
@@ -66,7 +70,7 @@ import ru.jeland.os.ui.theme.*
                     Control("Открыть Стрелку",Modifier.weight(1f),onClick=repository::openApp)
                 }
             }else Control("Скачать Стрелку",Modifier.fillMaxWidth(),onClick=repository::download)
-            Text("База и звук настраиваются в Стрелке. Дата её базы недоступна Jeland OS.",color=c.muted,fontSize=Jeland.type.footnote)
+            Text("База настраивается в Стрелке. Её голос и бипер можно отключить: Jeland OS подаст свой короткий сигнал. Дата базы недоступна Jeland OS.",color=c.muted,fontSize=Jeland.type.footnote)
             Control(if(help)"Скрыть инструкцию"else"Как настроить",Modifier.fillMaxWidth().testTag("strelka-help")){help=!help}
             if(help)Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 Text("1. Установите обычную Стрелку и предоставьте ей GPS.",color=c.text,fontSize=Jeland.type.footnote)

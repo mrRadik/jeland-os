@@ -30,7 +30,7 @@ internal fun clusterIslandNotice(state:ClusterPanelState,labels:ClusterLabels,ro
 internal class ClusterIslandPainter(private val assets:ClusterOemAssets) {
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val bounds=Rect()
-    private val roadSymbols=ClusterRoadAlertSymbols()
+    private val roadSymbols=ClusterRoadAlertSymbols(assets)
     private val regular=Typeface.create("sans-serif",Typeface.NORMAL)
     private val medium=Typeface.create("sans-serif-medium",Typeface.NORMAL)
     private fun lines(notice:ClusterIslandNotice):List<String> {

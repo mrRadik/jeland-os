@@ -4,7 +4,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import ru.jeland.os.core.ClimateState
 import ru.jeland.os.ui.climateDockTemperature
-import ru.jeland.os.ui.fanCycleMillis
+import ru.jeland.os.ui.climateFanLevel
 
 class ClimateDisplayTest {
     @Test fun dockShowsCenteredIntegerLabelsWithoutChangingSetpoints() {
@@ -19,9 +19,15 @@ class ClimateDisplayTest {
         assertEquals("—",climateDockTemperature(s.copy(available=emptySet()),true))
         assertEquals("22",climateDockTemperature(s.copy(driverRaw=7),true))
     }
-    @Test fun higherFanLevelsRotateFasterWithBoundedDuration() {
-        for(level in 1..10)assertTrue(fanCycleMillis(level) in 1000..2440)
-        for(level in 2..10)assertTrue(fanCycleMillis(level)<fanCycleMillis(level-1))
-        assertEquals(fanCycleMillis(1),fanCycleMillis(-1));assertEquals(fanCycleMillis(10),fanCycleMillis(100))
+    @Test fun fanScaleUsesReportedSpeedAndDoesNotShowStaleOrUnknownLevels() {
+        val s=ClimateState(power=true,fan=5)
+        assertEquals(5,climateFanLevel(s))
+        assertEquals(10,climateFanLevel(s.copy(fan=10)))
+        assertEquals(0,climateFanLevel(s.copy(power=false)))
+        assertEquals(0,climateFanLevel(s.copy(fan=0)))
+        assertNull(climateFanLevel(s.copy(available=setOf(18))))
+        assertNull(climateFanLevel(s.copy(available=setOf(12))))
+        assertNull(climateFanLevel(s.copy(fan=11)))
+        assertNull(climateFanLevel(s.copy(fan=-1)))
     }
 }

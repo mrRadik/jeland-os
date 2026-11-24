@@ -251,7 +251,7 @@ import kotlin.math.sin
 }
 
 /** Shared readout presentation; fuel/battery keep their own data and callbacks. */
-@Composable internal fun VehicleMetric(title:String,icon:androidx.compose.ui.graphics.vector.ImageVector,
+@Composable internal fun VehicleMetric(title:String,icon:ru.jeland.os.ui.theme.AppIcon,
     value:String,fraction:Float?,detailTitle:String,detail:String,tint:Color,modifier:Modifier=Modifier,
     valueTag:String?=null,onClick:()->Unit) {
     val c=Jeland.colors

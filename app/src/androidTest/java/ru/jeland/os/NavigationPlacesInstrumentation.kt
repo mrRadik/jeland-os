@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.text.input.TextFieldValue
@@ -14,6 +15,7 @@ import org.junit.Test
 import ru.jeland.os.core.MemorySettingsStore
 import ru.jeland.os.navigation.*
 import ru.jeland.os.ui.theme.*
+import java.io.File
 
 class NavigationPlacesInstrumentation {
     @get:Rule val ui=createAndroidComposeRule<MainActivity>()
@@ -62,5 +64,32 @@ class NavigationPlacesInstrumentation {
         ui.runOnIdle {assertEquals(1,repo.history.value.size)}
         ui.onNodeWithTag("navigation-history-clear-confirm").performClick()
         ui.runOnIdle {assertTrue(repo.history.value.isEmpty());assertEquals("Дом",repo.favorites.value.single().title)}
+    }
+    @Test fun favoriteHeartTracksSavedStateAcrossSearchHistoryAndFavorites() {
+        val repo=NavigationPlacesRepository(MemorySettingsStore());show(repo)
+        fun capture(name:String) {
+            val file=File(ui.activity.getExternalFilesDir(null),"qa-favorite-hearts/$name.png").apply {parentFile!!.mkdirs()}
+            file.outputStream().use {ui.onNodeWithTag("navigation-result-favorite-0").captureToImage().asAndroidBitmap()
+                .compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+        }
+        ui.onNodeWithTag("navigation-result-favorite-0").assertIsNotSelected().assertContentDescriptionEquals("Сохранить точку")
+        capture("empty")
+        ui.onNodeWithTag("navigation-result-favorite-0").performClick()
+        ui.onNodeWithTag("navigation-favorite-save").performClick()
+        ui.onNodeWithTag("navigation-result-favorite-0").assertIsSelected().assertContentDescriptionEquals("Убрать из избранного")
+        capture("filled")
+        ui.runOnIdle {repo.rememberSelection("Мира 1",home)}
+        ui.onNodeWithTag("navigation-search-tab-history").performClick()
+        ui.onNodeWithTag("navigation-history-favorite-0").assertIsSelected().performClick()
+        ui.runOnIdle {assertTrue(repo.favorites.value.isEmpty())}
+        ui.onNodeWithTag("navigation-favorite-title").assertDoesNotExist()
+        ui.onNodeWithTag("navigation-search-tab-search").performClick()
+        ui.onNodeWithTag("navigation-result-favorite-0").assertIsNotSelected().performClick()
+        ui.onNodeWithTag("navigation-favorite-save").performClick()
+        ui.onNodeWithTag("navigation-search-tab-favorites").performClick()
+        ui.onNodeWithTag("navigation-favorite-remove-0").assertIsSelected().performClick()
+        ui.runOnIdle {assertTrue(repo.favorites.value.isEmpty());assertEquals(1,repo.history.value.size)}
+        ui.onNodeWithTag("navigation-search-tab-search").performClick()
+        ui.onNodeWithTag("navigation-result-favorite-0").assertIsNotSelected()
     }
 }

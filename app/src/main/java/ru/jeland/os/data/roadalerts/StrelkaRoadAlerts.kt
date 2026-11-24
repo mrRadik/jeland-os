@@ -16,7 +16,7 @@ import ru.jeland.os.core.*
 
 data class StrelkaRoadAlertsState(val enabled:Boolean=false,val autoStart:Boolean=false,val installed:Boolean=false,
     val version:String="",val permission:Boolean=false,val connected:Boolean=false,val running:Boolean=false,
-    val alert:RoadAlert?=null,val message:String="")
+    val alert:RoadAlert?=null,val message:String="",val soundEnabled:Boolean=true)
 
 /** Small process-wide endpoint, independent of the car/renderer graph and active navigation route. */
 object RoadAlertsRuntime {
@@ -31,19 +31,24 @@ class StrelkaRoadAlerts internal constructor(context:Context) {
     private val prefs=app.getSharedPreferences("road-alerts",Context.MODE_PRIVATE)
     private val handler=Handler(Looper.getMainLooper())
     private val inbox=RoadAlertInbox()
+    private val chimePolicy=RoadAlertChimePolicy()
+    private val chime=RoadAlertChime(app)
     private var listener:StrelkaNotificationListener?=null
     private var serviceKey:String?=null
     private var alertGeneration=0L
     private var lastStart=-30_000L
     private var lastBind=-30_000L
     private var startGeneration=0L
-    private val mutable=MutableStateFlow(StrelkaRoadAlertsState(prefs.getBoolean("enabled",false),prefs.getBoolean("auto-start",false)))
+    private val mutable=MutableStateFlow(StrelkaRoadAlertsState(prefs.getBoolean("enabled",false),prefs.getBoolean("auto-start",false),
+        soundEnabled=prefs.getBoolean("sound-enabled",true)))
     val state=mutable.asStateFlow()
     private val expiry=Runnable {expire()}
     init {refresh()}
     private fun now()=SystemClock.elapsedRealtime()
-    private fun publish(){
+    private fun publish(replay:Boolean=false){
         inbox.expire(now())
+        chimePolicy.update(inbox.current,replay)
+        if(inbox.current==null)chime.stop()
         mutable.value=state.value.copy(alert=inbox.current)
         handler.removeCallbacks(expiry)
         inbox.current?.let {handler.postDelayed(expiry,(it.expiresAt-now()).coerceAtLeast(1))}
@@ -71,6 +76,16 @@ class StrelkaRoadAlerts internal constructor(context:Context) {
         mutable.value=state.value.copy(enabled=value,running=value&&state.value.running,message="")
         publish()
         if(value){refresh();listener?.sync();resume()}
+    }
+    fun setSoundEnabled(value:Boolean) {
+        prefs.edit().putBoolean("sound-enabled",value).apply();mutable.value=state.value.copy(soundEnabled=value)
+        if(!value)chime.stop()
+    }
+    fun testSound(){chime.play()}
+    fun alertShown(alert:RoadAlert) {
+        val current=state.value
+        if(!current.enabled||!current.permission||!current.connected||current.alert!=alert||now()>=alert.expiresAt)return
+        if(chimePolicy.shown()&&current.soundEnabled)chime.play()
     }
     fun setAutoStart(value:Boolean) {
         prefs.edit().putBoolean("auto-start",value).apply();mutable.value=state.value.copy(autoStart=value)
@@ -145,8 +160,9 @@ class StrelkaRoadAlerts internal constructor(context:Context) {
             n.extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty(),
             n.extras?.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty(),value.postTime,
             n.flags and Notification.FLAG_FOREGROUND_SERVICE!=0,n.flags and Notification.FLAG_GROUP_SUMMARY!=0)
+        expire()
         if(inbox.accept(snapshot,now(),System.currentTimeMillis(),replay))alertGeneration++
-        publish()
+        publish(replay)
     }
     internal fun removed(value:StatusBarNotification) {
         if(value.packageName!=StrelkaNoticePolicy.PACKAGE)return

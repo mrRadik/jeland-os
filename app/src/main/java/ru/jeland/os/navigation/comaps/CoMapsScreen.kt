@@ -138,6 +138,7 @@ private var currentSurface:JelandMapView?=null
     val searching by repository.searching.collectAsStateWithLifecycle()
     val missing by repository.missingMaps.collectAsStateWithLifecycle()
     val following by repository.following.collectAsStateWithLifecycle()
+    val favorites by host.places.favorites.collectAsStateWithLifecycle()
     var sheet by rememberSaveable {mutableStateOf<String?>(null)}
     var query by rememberSaveable(stateSaver=TextFieldValue.Saver){mutableStateOf(TextFieldValue())}
     var favorite by remember {mutableStateOf<NavigationPlace?>(null)}
@@ -207,7 +208,11 @@ private var currentSurface:JelandMapView?=null
                         Control(if(state.calculating)"Строим…"else"Поехали",Modifier.weight(1f).testTag("navigation-build"),selected=true,enabled=!state.calculating) {
                             selected?.let {host.places.rememberSelection(query.text,it)};repository.build()
                         }
-                        RoundControl(JIcons.Star,"Сохранить точку в избранное"){favorite=selected}
+                        val saved=selected?.let {place->favorites.firstOrNull {it.id==navigationPlaceKey(place)}}
+                        RoundControl(if(saved!=null)JIcons.Favorite else JIcons.FavoriteBorder,
+                            if(saved!=null)"Убрать из избранного"else"Сохранить точку в избранное",active=saved!=null) {
+                            if(saved!=null)host.places.removeFavorite(saved.id)else favorite=selected
+                        }
                     }
                 }
             }else Control("Скачать карты",Modifier.testTag("navigation-maps")){sheet="maps"}

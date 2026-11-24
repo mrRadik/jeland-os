@@ -1,0 +1,1128 @@
+{
+  "sources": {
+    "hvac": {
+      "file": "SVHvac-current.apk",
+      "sha256": "30fd3d888d8174bff4302eed5e0917a39182bfda5c4171250ac02db694402f7c"
+    },
+    "launcher": {
+      "file": "launcher.apk",
+      "sha256": "e26d82c9c3beda78395ea73a5bb2a35f863c1717b4a2551c39fe9fd2bd8d9048"
+    },
+    "systemui": {
+      "file": "SystemUI.apk",
+      "sha256": "7c4ff954b818da887c1ab5aaddedd22b1cedae075cb3fefec15905a3a289331e"
+    }
+  },
+  "icons": {
+    "Home": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_home",
+      "archive_path": "res/PG.png",
+      "configuration": "mdpi",
+      "original_sha256": "5329b75bb4e549f84563ebe52c17f4e77036381e1833b63385a1901843d48a13",
+      "file": "app/src/main/res/drawable-nodpi/oem_home.png",
+      "sha256": "5329b75bb4e549f84563ebe52c17f4e77036381e1833b63385a1901843d48a13",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        20,
+        21,
+        60,
+        59
+      ]
+    },
+    "Trips": {
+      "source": "launcher",
+      "resource": "drawable/ic_clock_black_24dp",
+      "archive_path": "res/T2.xml",
+      "configuration": "",
+      "original_sha256": "36a71a00f1449b917ca0c0118ee2f819bf3f3da2d60384b467ab6ceaa651f3ed",
+      "file": "app/src/main/res/drawable/oem_trips.xml",
+      "sha256": "ac39347809bb74d1a15bd0d1e34df4d3cf3e7089264b6a9b246e34e33db2695b",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "c85e8531e793e02d0176c350a909c2f6a3a62b6d74a0906bf4bba81ebfc1a34c"
+    },
+    "Automations": {
+      "source": "launcher",
+      "resource": "drawable/ic_widget",
+      "archive_path": "res/vv.xml",
+      "configuration": "",
+      "original_sha256": "0cccaca58d0ac36b0866e601730489c61abb730716b43b4fe17217380c67d90b",
+      "file": "app/src/main/res/drawable/oem_automations.xml",
+      "sha256": "752b4c8bd3f3bbbfd051b96aeeeee4ebe2decff45451236218bdf61a9211bf81",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "0e426a93c5c9d2b0f421a87ee2083001fb56c772bcd823dbb3673ab56daf9fcd"
+    },
+    "Edit": {
+      "source": "launcher",
+      "resource": "mipmap/set_edit",
+      "archive_path": "res/RX.png",
+      "configuration": "mdpi",
+      "original_sha256": "01a5ce15fbdd5066764441312d1d53da36f44c2b5648f806666bffbc1f8dd3b6",
+      "file": "app/src/main/res/drawable-nodpi/oem_edit.png",
+      "sha256": "01a5ce15fbdd5066764441312d1d53da36f44c2b5648f806666bffbc1f8dd3b6",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        6,
+        42,
+        42
+      ]
+    },
+    "Delete": {
+      "source": "systemui",
+      "resource": "mipmap/icon_list_deleted",
+      "archive_path": "res/si.png",
+      "configuration": "mdpi",
+      "original_sha256": "43b1ab7965e4d4dd92737678cd825a449bedb9532ebec6c60462abc1f676619c",
+      "file": "app/src/main/res/drawable-nodpi/oem_delete.png",
+      "sha256": "43b1ab7965e4d4dd92737678cd825a449bedb9532ebec6c60462abc1f676619c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        5,
+        42,
+        44
+      ]
+    },
+    "MusicNote": {
+      "source": "systemui",
+      "resource": "mipmap/icon_dock_music_n_dark",
+      "archive_path": "res/dU.png",
+      "configuration": "mdpi",
+      "original_sha256": "0a30283144655ee4c4c101eaa1d1ee7164771b307dccde2ab8ebffc357e06b44",
+      "file": "app/src/main/res/drawable-nodpi/oem_music_note.png",
+      "sha256": "0a30283144655ee4c4c101eaa1d1ee7164771b307dccde2ab8ebffc357e06b44",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        24,
+        24,
+        68,
+        73
+      ]
+    },
+    "Navigation": {
+      "source": "systemui",
+      "resource": "mipmap/icon_dock_nav_n_dark",
+      "archive_path": "res/f0.png",
+      "configuration": "mdpi",
+      "original_sha256": "2ca7e09a648bc5a2f6ab48e093d09c7d04dc7f51261b7b62c35a93b1ed41cbb1",
+      "file": "app/src/main/res/drawable-nodpi/oem_navigation.png",
+      "sha256": "2ca7e09a648bc5a2f6ab48e093d09c7d04dc7f51261b7b62c35a93b1ed41cbb1",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        23,
+        29,
+        69,
+        76
+      ]
+    },
+    "DirectionsCar": {
+      "source": "systemui",
+      "resource": "mipmap/icon_dock_car_n_dark",
+      "archive_path": "res/zt.png",
+      "configuration": "mdpi",
+      "original_sha256": "3f01f944bb0c4c7cea768259534db3150b401e126c335a225872001e6f178d51",
+      "file": "app/src/main/res/drawable-nodpi/oem_directions_car.png",
+      "sha256": "3f01f944bb0c4c7cea768259534db3150b401e126c335a225872001e6f178d51",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        21,
+        30,
+        76,
+        70
+      ]
+    },
+    "Apps": {
+      "source": "launcher",
+      "resource": "drawable/ic_apps",
+      "archive_path": "res/Hd.xml",
+      "configuration": "",
+      "original_sha256": "2257ad28ff0866cc1a337e5d61455a574cf5e7919ce0647049745280c0021f55",
+      "file": "app/src/main/res/drawable/oem_apps.xml",
+      "sha256": "810a66ca61c745e18040242d6160025d8c19fb203dbb276e5d99a1e52b746116",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "1021eb962df3bdd2b5246bd35dd7c92ca63877c6859417aec04904a99d83485d"
+    },
+    "Settings": {
+      "source": "launcher",
+      "resource": "drawable/ic_setting",
+      "archive_path": "res/_e.xml",
+      "configuration": "",
+      "original_sha256": "5c8a28e72b2ce520468e2a9c1dc7bd326e3923dd87ce1950a1caef36cd4caa71",
+      "file": "app/src/main/res/drawable/oem_settings.xml",
+      "sha256": "1d36863bac10c7ff72147703644374f13c9946426285442c6ffdf623825d664c",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "5adb6836229d9059a2651acc187ca51562bf2e8382f26bca977a41c2986076e4"
+    },
+    "Add": {
+      "source": "launcher",
+      "resource": "mipmap/card_add_n",
+      "archive_path": "res/VR.png",
+      "configuration": "mdpi",
+      "original_sha256": "8701111cf5adca9455af269d9de82d9c03464305659d018c4a6fe3a6c9bc2510",
+      "file": "app/src/main/res/drawable-nodpi/oem_add.png",
+      "sha256": "8701111cf5adca9455af269d9de82d9c03464305659d018c4a6fe3a6c9bc2510",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        4,
+        4,
+        60,
+        60
+      ]
+    },
+    "Remove": {
+      "source": "launcher",
+      "resource": "mipmap/card_delete_n",
+      "archive_path": "res/Uq1.png",
+      "configuration": "mdpi",
+      "original_sha256": "6d29e6bfda8949b4006dbc217f2811e05c4c72ab86fdf284c2b50dc85d5f6fae",
+      "file": "app/src/main/res/drawable-nodpi/oem_remove.png",
+      "sha256": "6d29e6bfda8949b4006dbc217f2811e05c4c72ab86fdf284c2b50dc85d5f6fae",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        4,
+        4,
+        60,
+        60
+      ]
+    },
+    "Close": {
+      "source": "systemui",
+      "resource": "drawable/ic_clear_black_24dp",
+      "archive_path": "res/k3.xml",
+      "configuration": "",
+      "original_sha256": "57553ddf36227bc44f784727ed003d3f1ec3f3727c9575c4fc9c9bc58357ad76",
+      "file": "app/src/main/res/drawable/oem_close.xml",
+      "sha256": "a121a9ec62412bda5dba52111ee7e109d4cd87e268a4655935bbf4ce3eff2121",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "bead04fe5e520b9362dbde0f71c11255ec34b6af3fe57ada3ebc534b78c9b124"
+    },
+    "ChevronRight": {
+      "source": "systemui",
+      "resource": "drawable/ic_keyboard_arrow_right_black_24dp",
+      "archive_path": "res/B-.xml",
+      "configuration": "",
+      "original_sha256": "b6b54b7a6fdef7a71a5d6314747c8f66d83d97d7b04b5cc20af8a37ebcc3fe3c",
+      "file": "app/src/main/res/drawable/oem_chevron_right.xml",
+      "sha256": "496038c067def5101ed3a4daead89b13fe734d3b63ee4f25bc95d4a07f750a73",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "fa377ffba2181735fde8babd343c8e550d685fd9e899608d3fd70a46b6fab89e"
+    },
+    "ChevronLeft": {
+      "source": "systemui",
+      "resource": "drawable/ic_keyboard_arrow_left_black_24dp",
+      "archive_path": "res/1W.xml",
+      "configuration": "",
+      "original_sha256": "cee4d9254b6de790bc5940f216f5fbb35d139baac49dcc0c67d2b1004adb0b4e",
+      "file": "app/src/main/res/drawable/oem_chevron_left.xml",
+      "sha256": "37258a4f53810cc514d28f222e6dd704f2bd10bbc3ef944a4694230179b644bc",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "0e54273ca88135f36757f661e538ecd7963cc8f6d8d1fa8a09ed557085e1c201"
+    },
+    "ChevronUp": {
+      "source": "systemui",
+      "resource": "drawable/ic_menu_arrow_up_black_24dp",
+      "archive_path": "res/VW.xml",
+      "configuration": "",
+      "original_sha256": "97feae68a2aebbbd97f89acb825336852409ffe9c43cc1125659bbd559a6a723",
+      "file": "app/src/main/res/drawable/oem_chevron_up.xml",
+      "sha256": "b0c147bf80b6ddf7f6905ae2907ca8ed42eb737fa1c2c813eb20b9bfdbdbbd67",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "f084e75b289d66cf75a49aa25d608105474b9e2f01ee7eb6b40133b7e6d54aa7"
+    },
+    "Expand": {
+      "source": "systemui",
+      "resource": "drawable/ic_menu_arrow_down_black_24dp",
+      "archive_path": "res/Hp.xml",
+      "configuration": "",
+      "original_sha256": "c5bca7c72629fc979984a3ea8ee9091016611ac1e59cdadcd6fe935b1e2304f6",
+      "file": "app/src/main/res/drawable/oem_expand.xml",
+      "sha256": "4ad9eadb180fb275e7ad6876acbafe3a8e802e650432f59d139f609e186dedd0",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "74d1ff578b43ba70af6f11bec9f7de8cdccaf47b7d40e793c15eb7a02fb2763b"
+    },
+    "Fan": {
+      "source": "systemui",
+      "resource": "mipmap/third_icon_wind",
+      "archive_path": "res/Yy.png",
+      "configuration": "mdpi",
+      "original_sha256": "cdef159ab47126e44b1d2d3094f612a140f3ccffe5de99eeb8ba6afb70f20ab3",
+      "file": "app/src/main/res/drawable-nodpi/oem_fan.png",
+      "sha256": "cdef159ab47126e44b1d2d3094f612a140f3ccffe5de99eeb8ba6afb70f20ab3",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        8,
+        8,
+        41,
+        41
+      ]
+    },
+    "Power": {
+      "source": "hvac",
+      "resource": "mipmap/btn_hvac_on",
+      "archive_path": "res/1Y.png",
+      "configuration": "mdpi",
+      "original_sha256": "30ab33a00f05619f4abd6d7cead05cf69114508af050e6552f33f97c17b5caf2",
+      "file": "app/src/main/res/drawable-nodpi/oem_power.png",
+      "sha256": "30ab33a00f05619f4abd6d7cead05cf69114508af050e6552f33f97c17b5caf2",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        11,
+        11,
+        59,
+        59
+      ]
+    },
+    "Snowflake": {
+      "source": "hvac",
+      "resource": "mipmap/wimd_n",
+      "archive_path": "res/v9.png",
+      "configuration": "mdpi",
+      "original_sha256": "8a66d73d295c7788b9aac91aeeaf4e34f2087c333cefb5860beb2311211edca6",
+      "file": "app/src/main/res/drawable-nodpi/oem_snowflake.png",
+      "sha256": "8a66d73d295c7788b9aac91aeeaf4e34f2087c333cefb5860beb2311211edca6",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        11,
+        9,
+        37,
+        39
+      ]
+    },
+    "Thermometer": {
+      "source": "systemui",
+      "resource": "mipmap/third_icon_temp",
+      "archive_path": "res/6n.png",
+      "configuration": "mdpi",
+      "original_sha256": "3b726862bf27c1054195332c316fed464b83f1198fe7a5973bba6dd154501503",
+      "file": "app/src/main/res/drawable-nodpi/oem_thermometer.png",
+      "sha256": "3b726862bf27c1054195332c316fed464b83f1198fe7a5973bba6dd154501503",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        0,
+        0,
+        7,
+        7
+      ]
+    },
+    "Fuel": {
+      "source": "cluster",
+      "resource": "indicator/LED_FuelLevel-Normal.png",
+      "archive_path": "indicator/LED_FuelLevel-Normal.png",
+      "configuration": "existing OEM cluster asset",
+      "original_sha256": "961f05c3595d75466e5abbb220bb3b099986631db5ddc4fc8ad1929d602d60e6",
+      "file": "app/src/main/res/drawable-nodpi/oem_fuel.png",
+      "sha256": "961f05c3595d75466e5abbb220bb3b099986631db5ddc4fc8ad1929d602d60e6",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        14,
+        57,
+        51
+      ]
+    },
+    "Battery": {
+      "source": "cluster",
+      "resource": "indicator/LED_Charging-Red.png",
+      "archive_path": "indicator/LED_Charging-Red.png",
+      "configuration": "existing OEM cluster asset",
+      "original_sha256": "f5eb0bec25de11cf8a7ac0a33e76602dcd4b432ee88628dfecdb35de9e123789",
+      "file": "app/src/main/res/drawable-nodpi/oem_battery.png",
+      "sha256": "f5eb0bec25de11cf8a7ac0a33e76602dcd4b432ee88628dfecdb35de9e123789",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        16,
+        55,
+        47
+      ]
+    },
+    "Hazard": {
+      "source": "systemui",
+      "resource": "mipmap/icon_fault_33",
+      "archive_path": "res/F-5.png",
+      "configuration": "mdpi",
+      "original_sha256": "2de55835f5dd145ab302f4a0df67c4845c6486c526b82089745d89ed8092097c",
+      "file": "app/src/main/res/drawable-nodpi/oem_hazard.png",
+      "sha256": "2de55835f5dd145ab302f4a0df67c4845c6486c526b82089745d89ed8092097c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        43,
+        8,
+        110,
+        72
+      ]
+    },
+    "Cloud": {
+      "source": "launcher",
+      "resource": "mipmap/ic_w_cloudy",
+      "archive_path": "res/6m.png",
+      "configuration": "mdpi",
+      "original_sha256": "1acba312e790c701aa2ac77298e380090c924c8cf6880e3b68cff6fb5a7cce76",
+      "file": "app/src/main/res/drawable-nodpi/oem_cloud.png",
+      "sha256": "1acba312e790c701aa2ac77298e380090c924c8cf6880e3b68cff6fb5a7cce76",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        17,
+        74,
+        64
+      ]
+    },
+    "FavoriteBorder": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_favorite_n",
+      "archive_path": "res/vZ.png",
+      "configuration": "mdpi",
+      "original_sha256": "a331521f7b4ec9ea97b7a94d92253d9d36e789ca4133149359ec2c2badd792ff",
+      "file": "app/src/main/res/drawable-nodpi/oem_favorite_border.png",
+      "sha256": "a331521f7b4ec9ea97b7a94d92253d9d36e789ca4133149359ec2c2badd792ff",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        10,
+        42,
+        44
+      ]
+    },
+    "Star": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_favorite_s",
+      "archive_path": "res/5W.png",
+      "configuration": "mdpi",
+      "original_sha256": "ab452c5340be82085a8d479dcadec5716d1c22179daa5634848d832cb4496708",
+      "file": "app/src/main/res/drawable-nodpi/oem_star.png",
+      "sha256": "ab452c5340be82085a8d479dcadec5716d1c22179daa5634848d832cb4496708",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        10,
+        42,
+        44
+      ]
+    },
+    "PlayArrow": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_play_n",
+      "archive_path": "res/iw1.png",
+      "configuration": "mdpi",
+      "original_sha256": "41072920936d1a685c11c76e0c8aefddd1c144fdbf7589e14286dc7bc621d89a",
+      "file": "app/src/main/res/drawable-nodpi/oem_play_arrow.png",
+      "sha256": "41072920936d1a685c11c76e0c8aefddd1c144fdbf7589e14286dc7bc621d89a",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        20,
+        13,
+        50,
+        51
+      ]
+    },
+    "Pause": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_pause_n",
+      "archive_path": "res/K6.png",
+      "configuration": "mdpi",
+      "original_sha256": "4dcf0b3c8944c427370ca5a3ec3c66d778d13988f424a54f3db79c57a145fc6a",
+      "file": "app/src/main/res/drawable-nodpi/oem_pause.png",
+      "sha256": "4dcf0b3c8944c427370ca5a3ec3c66d778d13988f424a54f3db79c57a145fc6a",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        20,
+        13,
+        44,
+        51
+      ]
+    },
+    "SkipNext": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_next_song_n",
+      "archive_path": "res/OF.png",
+      "configuration": "mdpi",
+      "original_sha256": "3590a946aa56ea865b45b37a26f25d30c02ebd4e7c3a0e0b70264b0cfec6e28a",
+      "file": "app/src/main/res/drawable-nodpi/oem_skip_next.png",
+      "sha256": "3590a946aa56ea865b45b37a26f25d30c02ebd4e7c3a0e0b70264b0cfec6e28a",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        16,
+        15,
+        48,
+        49
+      ]
+    },
+    "SkipPrevious": {
+      "source": "launcher",
+      "resource": "mipmap/card_ic_previous_song_n",
+      "archive_path": "res/BE.png",
+      "configuration": "mdpi",
+      "original_sha256": "0ffab80ab916ca55aabc37ccf60e34f06fb4dc4c41972229fd2a1c9968c0ff03",
+      "file": "app/src/main/res/drawable-nodpi/oem_skip_previous.png",
+      "sha256": "0ffab80ab916ca55aabc37ccf60e34f06fb4dc4c41972229fd2a1c9968c0ff03",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        16,
+        15,
+        48,
+        49
+      ]
+    },
+    "TurnRight": {
+      "source": "launcher",
+      "resource": "mipmap/navi_03",
+      "archive_path": "res/P6.png",
+      "configuration": "mdpi",
+      "original_sha256": "b254086455e074070c6d4b43ed35da25762c6d4bbad1d2d1ee39af5ee4474184",
+      "file": "app/src/main/res/drawable-nodpi/oem_turn_right.png",
+      "sha256": "b254086455e074070c6d4b43ed35da25762c6d4bbad1d2d1ee39af5ee4474184",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        15,
+        5,
+        85,
+        97
+      ]
+    },
+    "TurnLeft": {
+      "source": "launcher",
+      "resource": "mipmap/navi_02",
+      "archive_path": "res/Hq.png",
+      "configuration": "mdpi",
+      "original_sha256": "46442e0d059f36f9df7ff615fe3ebe88b35c976d375f94e692a9258cc2d4b541",
+      "file": "app/src/main/res/drawable-nodpi/oem_turn_left.png",
+      "sha256": "46442e0d059f36f9df7ff615fe3ebe88b35c976d375f94e692a9258cc2d4b541",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        15,
+        5,
+        85,
+        97
+      ]
+    },
+    "Straight": {
+      "source": "launcher",
+      "resource": "mipmap/navi_09",
+      "archive_path": "res/fA.png",
+      "configuration": "mdpi",
+      "original_sha256": "be30089b888202da9e9b820fffc2289f1983727741838a49d98df6d21207fb2f",
+      "file": "app/src/main/res/drawable-nodpi/oem_straight.png",
+      "sha256": "be30089b888202da9e9b820fffc2289f1983727741838a49d98df6d21207fb2f",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        29,
+        1,
+        71,
+        99
+      ]
+    },
+    "UTurn": {
+      "source": "launcher",
+      "resource": "mipmap/navi_08",
+      "archive_path": "res/HC.png",
+      "configuration": "mdpi",
+      "original_sha256": "772f2d4f5a0b23e4fa5eaf7b20ffb1117158069d01375f814307fd7daa131b24",
+      "file": "app/src/main/res/drawable-nodpi/oem_u_turn.png",
+      "sha256": "772f2d4f5a0b23e4fa5eaf7b20ffb1117158069d01375f814307fd7daa131b24",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        13,
+        5,
+        82,
+        94
+      ]
+    },
+    "Roundabout": {
+      "source": "launcher",
+      "resource": "mipmap/navi_105",
+      "archive_path": "res/Vy.png",
+      "configuration": "mdpi",
+      "original_sha256": "81ce83e67b24a8a6b2227062f32bf3af38461b880af4f9e7a662e2cc39dea631",
+      "file": "app/src/main/res/drawable-nodpi/oem_roundabout.png",
+      "sha256": "81ce83e67b24a8a6b2227062f32bf3af38461b880af4f9e7a662e2cc39dea631",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        14,
+        13,
+        89,
+        87
+      ]
+    },
+    "Destination": {
+      "source": "launcher",
+      "resource": "mipmap/navi_15",
+      "archive_path": "res/uv.png",
+      "configuration": "mdpi",
+      "original_sha256": "14c0d0e81f8016405595107cb9c8278158d6d980a1c4e5fa13b5df0ce1b6fa35",
+      "file": "app/src/main/res/drawable-nodpi/oem_destination.png",
+      "sha256": "14c0d0e81f8016405595107cb9c8278158d6d980a1c4e5fa13b5df0ce1b6fa35",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        15,
+        10,
+        85,
+        90
+      ]
+    },
+    "Search": {
+      "source": "launcher",
+      "resource": "drawable/ic_allapps_search",
+      "archive_path": "res/w1.xml",
+      "configuration": "",
+      "original_sha256": "0be0b21de559ff2d1b3fc0723d5227d615bb0c08e7b7f80ddd5bfab74240b534",
+      "file": "app/src/main/res/drawable/oem_search.xml",
+      "sha256": "a4fb9162c30da2e707c719031d753bbf9227d85ce668915f8215f1413abb84cd",
+      "bytes_unchanged": false,
+      "source_bounds": null,
+      "native_path_sha256": "8566debda444a4c6c5a0c19bed9cc1e0850032d82486b7e754b1df683402df27"
+    },
+    "Refresh": {
+      "source": "systemui",
+      "resource": "mipmap/icon_clean_loading",
+      "archive_path": "res/Dy.png",
+      "configuration": "mdpi",
+      "original_sha256": "9ce0cbd85534aeb2d4073403eeff65ce027a81386ce50728ca6b7fa8abd454b5",
+      "file": "app/src/main/res/drawable-nodpi/oem_refresh.png",
+      "sha256": "9ce0cbd85534aeb2d4073403eeff65ce027a81386ce50728ca6b7fa8abd454b5",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        16,
+        16,
+        300,
+        303
+      ]
+    },
+    "Bluetooth": {
+      "source": "systemui",
+      "resource": "mipmap/icon_bt_elec_low_dark",
+      "archive_path": "res/TF.png",
+      "configuration": "mdpi",
+      "original_sha256": "11a2e581e7afa012ca7280c7016e28600b6ef36f6f11be3588354fe874758fd3",
+      "file": "app/src/main/res/drawable-nodpi/oem_bluetooth.png",
+      "sha256": "11a2e581e7afa012ca7280c7016e28600b6ef36f6f11be3588354fe874758fd3",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        10,
+        40,
+        38
+      ]
+    },
+    "Warning": {
+      "source": "systemui",
+      "resource": "mipmap/icon_fault_33",
+      "archive_path": "res/F-5.png",
+      "configuration": "mdpi",
+      "original_sha256": "2de55835f5dd145ab302f4a0df67c4845c6486c526b82089745d89ed8092097c",
+      "file": "app/src/main/res/drawable-nodpi/oem_warning.png",
+      "sha256": "2de55835f5dd145ab302f4a0df67c4845c6486c526b82089745d89ed8092097c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        43,
+        8,
+        110,
+        72
+      ]
+    },
+    "DarkMode": {
+      "source": "systemui",
+      "resource": "mipmap/light_mini",
+      "archive_path": "res/oP.png",
+      "configuration": "mdpi",
+      "original_sha256": "8d62c48c5413aa0bee6f0fb28cb1ee8c3e71e086d13cfaa9edd2f723179cdcf9",
+      "file": "app/src/main/res/drawable-nodpi/oem_dark_mode.png",
+      "sha256": "8d62c48c5413aa0bee6f0fb28cb1ee8c3e71e086d13cfaa9edd2f723179cdcf9",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        1,
+        1,
+        37,
+        38
+      ]
+    },
+    "LightMode": {
+      "source": "systemui",
+      "resource": "mipmap/light_max",
+      "archive_path": "res/Xn.png",
+      "configuration": "mdpi",
+      "original_sha256": "03f4ed0b6b92f95c60c25a0992b0742a0f2f44bafc0d389e6993a71875d8abe0",
+      "file": "app/src/main/res/drawable-nodpi/oem_light_mode.png",
+      "sha256": "03f4ed0b6b92f95c60c25a0992b0742a0f2f44bafc0d389e6993a71875d8abe0",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        0,
+        1,
+        37,
+        38
+      ]
+    },
+    "Seat": {
+      "source": "systemui",
+      "resource": "mipmap/icon_dock_driver_dark",
+      "archive_path": "res/O9.png",
+      "configuration": "mdpi",
+      "original_sha256": "abd5d513a5aa1ebc7c4a4db3b1cbaece6b1ffc1ada39b1bc9d47d57a01962b74",
+      "file": "app/src/main/res/drawable-nodpi/oem_seat.png",
+      "sha256": "abd5d513a5aa1ebc7c4a4db3b1cbaece6b1ffc1ada39b1bc9d47d57a01962b74",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        25,
+        23,
+        72,
+        75
+      ]
+    },
+    "SeatHeating": {
+      "source": "hvac",
+      "resource": "drawable/btn_master_driver_hot_off",
+      "archive_path": "res/j9.png",
+      "configuration": "",
+      "original_sha256": "9e097ed774cc7a385e36992ae712fb01ba79104aebd449754236875bcc8edcbf",
+      "file": "app/src/main/res/drawable-nodpi/oem_seat_heating.png",
+      "sha256": "9e097ed774cc7a385e36992ae712fb01ba79104aebd449754236875bcc8edcbf",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        1,
+        4,
+        49,
+        46
+      ]
+    },
+    "SeatVentilation": {
+      "source": "hvac",
+      "resource": "drawable/btn_master_driver_wind_off",
+      "archive_path": "res/_a.png",
+      "configuration": "",
+      "original_sha256": "9127e51791d1ae4498168df4f4ef81db902ed7628e2c34540d9f9a75fd510382",
+      "file": "app/src/main/res/drawable-nodpi/oem_seat_ventilation.png",
+      "sha256": "9127e51791d1ae4498168df4f4ef81db902ed7628e2c34540d9f9a75fd510382",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        3,
+        3,
+        47,
+        42
+      ]
+    },
+    "Heat": {
+      "source": "hvac",
+      "resource": "mipmap/heating_n",
+      "archive_path": "res/Lf.png",
+      "configuration": "mdpi",
+      "original_sha256": "b00f539035c20bf98782c1ff66ccba8931bdde2c9c484356db759671d5534ce1",
+      "file": "app/src/main/res/drawable-nodpi/oem_heat.png",
+      "sha256": "b00f539035c20bf98782c1ff66ccba8931bdde2c9c484356db759671d5534ce1",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        10,
+        10,
+        38,
+        38
+      ]
+    },
+    "AirFace": {
+      "source": "hvac",
+      "resource": "drawable/icon_blow_face_f",
+      "archive_path": "res/0W.png",
+      "configuration": "",
+      "original_sha256": "724a2ae61e9080a7d512c6e2dbf63bc523a8a3595a49578eeacadfb86dc5d894",
+      "file": "app/src/main/res/drawable-nodpi/oem_air_face.png",
+      "sha256": "724a2ae61e9080a7d512c6e2dbf63bc523a8a3595a49578eeacadfb86dc5d894",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        19,
+        21,
+        68,
+        66
+      ]
+    },
+    "AirFeet": {
+      "source": "hvac",
+      "resource": "drawable/icon_blow_foot_f",
+      "archive_path": "res/dX.png",
+      "configuration": "",
+      "original_sha256": "6dd64806364cf2e79e8ba6b982e214b5147624dafd6a44b26206097f051d152c",
+      "file": "app/src/main/res/drawable-nodpi/oem_air_feet.png",
+      "sha256": "6dd64806364cf2e79e8ba6b982e214b5147624dafd6a44b26206097f051d152c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        8,
+        25,
+        68,
+        66
+      ]
+    },
+    "Windshield": {
+      "source": "hvac",
+      "resource": "drawable/icon_blow_defrost_n",
+      "archive_path": "res/dV1.png",
+      "configuration": "",
+      "original_sha256": "1e3432fb93616fcd99b415c4dacd35e7ba326c94386d45627d3e9619544f4342",
+      "file": "app/src/main/res/drawable-nodpi/oem_windshield.png",
+      "sha256": "1e3432fb93616fcd99b415c4dacd35e7ba326c94386d45627d3e9619544f4342",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        21,
+        19,
+        68,
+        66
+      ]
+    },
+    "Waves": {
+      "source": "hvac",
+      "resource": "mipmap/btn_front_defrost_on",
+      "archive_path": "res/YY.png",
+      "configuration": "mdpi",
+      "original_sha256": "530a6cb8ae45fc9737a9c5a46d84e20b66ee2ebe1394c86662a9d2e5bf6d89aa",
+      "file": "app/src/main/res/drawable-nodpi/oem_waves.png",
+      "sha256": "530a6cb8ae45fc9737a9c5a46d84e20b66ee2ebe1394c86662a9d2e5bf6d89aa",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        5,
+        13,
+        65,
+        56
+      ]
+    },
+    "RearDefrost": {
+      "source": "hvac",
+      "resource": "mipmap/rear_defrost_s",
+      "archive_path": "res/7N.png",
+      "configuration": "mdpi",
+      "original_sha256": "5911f3c6d09663f5f9f2950c8365a2f42597f5a7a7689c22dbab38b48307e1d9",
+      "file": "app/src/main/res/drawable-nodpi/oem_rear_defrost.png",
+      "sha256": "5911f3c6d09663f5f9f2950c8365a2f42597f5a7a7689c22dbab38b48307e1d9",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        12,
+        13,
+        59,
+        55
+      ]
+    },
+    "WindshieldHeat": {
+      "source": "hvac",
+      "resource": "mipmap/btn_front_heat_on",
+      "archive_path": "res/mz.png",
+      "configuration": "mdpi",
+      "original_sha256": "71c1a93c04437ab9c0d20358f2e350aaa5108ee6f8f94614188ac472e7386b83",
+      "file": "app/src/main/res/drawable-nodpi/oem_windshield_heat.png",
+      "sha256": "71c1a93c04437ab9c0d20358f2e350aaa5108ee6f8f94614188ac472e7386b83",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        6,
+        13,
+        65,
+        48
+      ]
+    },
+    "Loop": {
+      "source": "hvac",
+      "resource": "mipmap/icon_circulate_in_s",
+      "archive_path": "res/a9.png",
+      "configuration": "night-mdpi",
+      "original_sha256": "8b996e713f2503dc62c3e5a055a8ef0fc6aa6b28aa1481161bbfd1b1cd708dde",
+      "file": "app/src/main/res/drawable-nodpi/oem_loop.png",
+      "sha256": "8b996e713f2503dc62c3e5a055a8ef0fc6aa6b28aa1481161bbfd1b1cd708dde",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        16,
+        30,
+        74,
+        64
+      ]
+    },
+    "Steering": {
+      "source": "hvac",
+      "resource": "mipmap/icon_wheelhot_n",
+      "archive_path": "res/cX.png",
+      "configuration": "mdpi",
+      "original_sha256": "05a9c517f9184bf1fbb23ae5509ebe25e987f02bd01dadaec0bbf11c41b0b187",
+      "file": "app/src/main/res/drawable-nodpi/oem_steering.png",
+      "sha256": "05a9c517f9184bf1fbb23ae5509ebe25e987f02bd01dadaec0bbf11c41b0b187",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        24,
+        23,
+        66,
+        67
+      ]
+    },
+    "SpeedCamera": {
+      "source": "systemui",
+      "resource": "mipmap/icon_dock_360",
+      "archive_path": "res/nT.png",
+      "configuration": "mdpi",
+      "original_sha256": "4765aaa0181d9971f3fe3580f46b847d2d1caf0b8af103b5e955eac5fa126e0c",
+      "file": "app/src/main/res/drawable-nodpi/oem_speed_camera.png",
+      "sha256": "4765aaa0181d9971f3fe3580f46b847d2d1caf0b8af103b5e955eac5fa126e0c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        20,
+        27,
+        80,
+        69
+      ]
+    },
+    "Cameraswitch": {
+      "source": "systemui",
+      "resource": "mipmap/icon_dock_360",
+      "archive_path": "res/nT.png",
+      "configuration": "mdpi",
+      "original_sha256": "4765aaa0181d9971f3fe3580f46b847d2d1caf0b8af103b5e955eac5fa126e0c",
+      "file": "app/src/main/res/drawable-nodpi/oem_cameraswitch.png",
+      "sha256": "4765aaa0181d9971f3fe3580f46b847d2d1caf0b8af103b5e955eac5fa126e0c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        20,
+        27,
+        80,
+        69
+      ]
+    },
+    "SwapHoriz": {
+      "source": "systemui",
+      "resource": "mipmap/icon_rear_mirror_fold",
+      "archive_path": "res/9c.png",
+      "configuration": "mdpi",
+      "original_sha256": "ef5ca27b3a48adf9ab274fbe8b14d2f287f3aeb8e8ede39da87d778e450ccd6c",
+      "file": "app/src/main/res/drawable-nodpi/oem_swap_horiz.png",
+      "sha256": "ef5ca27b3a48adf9ab274fbe8b14d2f287f3aeb8e8ede39da87d778e450ccd6c",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        25,
+        22,
+        94,
+        87
+      ]
+    },
+    "Door": {
+      "source": "systemui",
+      "resource": "mipmap/icon_fault_24",
+      "archive_path": "res/V-.png",
+      "configuration": "mdpi",
+      "original_sha256": "e75490811584bb826f445eccaeb96a9b6d95aab829aa1c740f632e1f970392ac",
+      "file": "app/src/main/res/drawable-nodpi/oem_door.png",
+      "sha256": "e75490811584bb826f445eccaeb96a9b6d95aab829aa1c740f632e1f970392ac",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        49,
+        3,
+        105,
+        70
+      ]
+    },
+    "Hood": {
+      "source": "systemui",
+      "resource": "mipmap/icon_fault_169",
+      "archive_path": "res/yC.png",
+      "configuration": "mdpi",
+      "original_sha256": "9f73b909bcc3d6b3be082f0f70154ca72019cb427628d3110dc2c1bef549e3da",
+      "file": "app/src/main/res/drawable-nodpi/oem_hood.png",
+      "sha256": "9f73b909bcc3d6b3be082f0f70154ca72019cb427628d3110dc2c1bef549e3da",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        51,
+        3,
+        105,
+        70
+      ]
+    },
+    "Trunk": {
+      "source": "systemui",
+      "resource": "mipmap/icon_fault_162",
+      "archive_path": "res/ka.png",
+      "configuration": "mdpi",
+      "original_sha256": "fd6ee7be8260276fd518df750cd6881b1e4f858d52a582e677784a42d63bdff0",
+      "file": "app/src/main/res/drawable-nodpi/oem_trunk.png",
+      "sha256": "fd6ee7be8260276fd518df750cd6881b1e4f858d52a582e677784a42d63bdff0",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        32,
+        13,
+        118,
+        61
+      ]
+    },
+    "Signal0": {
+      "source": "systemui",
+      "resource": "mipmap/icon_signal0_dark",
+      "archive_path": "res/s_.png",
+      "configuration": "mdpi",
+      "original_sha256": "c62497b976f110a32dc48d5cb84540ce6274e1a1ef1f8afef5304ddeae58b9d2",
+      "file": "app/src/main/res/drawable-nodpi/oem_signal0.png",
+      "sha256": "c62497b976f110a32dc48d5cb84540ce6274e1a1ef1f8afef5304ddeae58b9d2",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        10,
+        13,
+        35,
+        35
+      ]
+    },
+    "Signal1": {
+      "source": "systemui",
+      "resource": "mipmap/icon_signal1_dark",
+      "archive_path": "res/b0.png",
+      "configuration": "mdpi",
+      "original_sha256": "32e24a19decc4a257067d50bae41b1932c9ef6f996759a6ee6787f7d0b97d376",
+      "file": "app/src/main/res/drawable-nodpi/oem_signal1.png",
+      "sha256": "32e24a19decc4a257067d50bae41b1932c9ef6f996759a6ee6787f7d0b97d376",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        10,
+        13,
+        35,
+        35
+      ]
+    },
+    "Signal2": {
+      "source": "systemui",
+      "resource": "mipmap/icon_signal2_dark",
+      "archive_path": "res/LH.png",
+      "configuration": "mdpi",
+      "original_sha256": "ea6e718fef7e3de162d252b9a21d35fe8fe544c8770a6b98c5344f82f2f99014",
+      "file": "app/src/main/res/drawable-nodpi/oem_signal2.png",
+      "sha256": "ea6e718fef7e3de162d252b9a21d35fe8fe544c8770a6b98c5344f82f2f99014",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        10,
+        13,
+        35,
+        35
+      ]
+    },
+    "Signal3": {
+      "source": "systemui",
+      "resource": "mipmap/icon_signal3_dark",
+      "archive_path": "res/4b.png",
+      "configuration": "mdpi",
+      "original_sha256": "48f3b4ede299a32c30cfa8337f1138acea12a6c3cf1f87724b47638401ba7c5e",
+      "file": "app/src/main/res/drawable-nodpi/oem_signal3.png",
+      "sha256": "48f3b4ede299a32c30cfa8337f1138acea12a6c3cf1f87724b47638401ba7c5e",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        10,
+        13,
+        35,
+        35
+      ]
+    },
+    "Signal4": {
+      "source": "systemui",
+      "resource": "mipmap/icon_signal4_dark",
+      "archive_path": "res/pu.png",
+      "configuration": "mdpi",
+      "original_sha256": "c17895dbea11273922cec4b8acb4a4c12e22a9e49b9c0500981fbc6a959c33b8",
+      "file": "app/src/main/res/drawable-nodpi/oem_signal4.png",
+      "sha256": "c17895dbea11273922cec4b8acb4a4c12e22a9e49b9c0500981fbc6a959c33b8",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        10,
+        13,
+        35,
+        35
+      ]
+    },
+    "Wifi1": {
+      "source": "systemui",
+      "resource": "mipmap/icon_wifi1_dark",
+      "archive_path": "res/Os.png",
+      "configuration": "mdpi",
+      "original_sha256": "a1b384f9471de1bcd0ae6b04e181b2e52ba1c4dd09268b611af0edc69a23eb50",
+      "file": "app/src/main/res/drawable-nodpi/oem_wifi1.png",
+      "sha256": "a1b384f9471de1bcd0ae6b04e181b2e52ba1c4dd09268b611af0edc69a23eb50",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        13,
+        39,
+        34
+      ]
+    },
+    "Wifi2": {
+      "source": "systemui",
+      "resource": "mipmap/icon_wifi2_dark",
+      "archive_path": "res/4O.png",
+      "configuration": "mdpi",
+      "original_sha256": "edbd4ad2c170c9e33f3dea6b319d76ba560e47f65683a5f4f13fa6e635264228",
+      "file": "app/src/main/res/drawable-nodpi/oem_wifi2.png",
+      "sha256": "edbd4ad2c170c9e33f3dea6b319d76ba560e47f65683a5f4f13fa6e635264228",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        13,
+        39,
+        34
+      ]
+    },
+    "Wifi3": {
+      "source": "systemui",
+      "resource": "mipmap/icon_wifi3_dark",
+      "archive_path": "res/SX.png",
+      "configuration": "mdpi",
+      "original_sha256": "45b1269d095efc66e96134f576017c398f1941eee3d35e2cb5da9942acb1df5e",
+      "file": "app/src/main/res/drawable-nodpi/oem_wifi3.png",
+      "sha256": "45b1269d095efc66e96134f576017c398f1941eee3d35e2cb5da9942acb1df5e",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        13,
+        39,
+        34
+      ]
+    },
+    "Wifi4": {
+      "source": "systemui",
+      "resource": "mipmap/icon_wifi4_dark",
+      "archive_path": "res/_x.png",
+      "configuration": "mdpi",
+      "original_sha256": "a95aefa8b19b495cade5b9a19123d57f901c3d99eec78d056173031833d0012e",
+      "file": "app/src/main/res/drawable-nodpi/oem_wifi4.png",
+      "sha256": "a95aefa8b19b495cade5b9a19123d57f901c3d99eec78d056173031833d0012e",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        13,
+        40,
+        34
+      ]
+    },
+    "WifiOff": {
+      "source": "systemui",
+      "resource": "mipmap/icon_wifi_abnormal_dark",
+      "archive_path": "res/HV.png",
+      "configuration": "mdpi",
+      "original_sha256": "476a11eb5c2dd6d53047d79c4687ec4ef188ff936705b7ce89114672d55c7ddf",
+      "file": "app/src/main/res/drawable-nodpi/oem_wifi_off.png",
+      "sha256": "476a11eb5c2dd6d53047d79c4687ec4ef188ff936705b7ce89114672d55c7ddf",
+      "bytes_unchanged": true,
+      "source_bounds": [
+        9,
+        13,
+        39,
+        34
+      ]
+    }
+  },
+  "custom_icons": {
+    "Shade": {
+      "source": "imagegen-built-in",
+      "file": "app/src/main/res/drawable-nodpi/ic_panoramic_shade_generated_v1.png",
+      "sha256": "109db4a0af8d42338cf2270077bc9687705cbb690232fc178b7209ad274a9af7",
+      "source_bounds": [
+        338,
+        373,
+        1064,
+        787
+      ],
+      "generation_metadata": "icons/custom/panoramic-shade.json"
+    }
+  }
+}

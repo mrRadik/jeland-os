@@ -21,8 +21,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.graphicsLayer
+import ru.jeland.os.ui.theme.AppIcon
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -31,7 +30,6 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -70,14 +68,15 @@ val LocalFramelessDashboard=staticCompositionLocalOf {false}
 @Composable fun Label(text: String, modifier: Modifier=Modifier, small: Boolean=false, muted: Boolean=false) {
     Text(text,modifier,color=if(muted) Jeland.colors.muted else Jeland.colors.text,style=if(small) Jeland.caption else Jeland.body)
 }
-@Composable fun Glyph(icon: ImageVector, description: String?=null, modifier: Modifier=Modifier, active: Boolean=false) {
+@Composable fun Glyph(icon: AppIcon, description: String?=null, modifier: Modifier=Modifier, active: Boolean=false) {
     Icon(icon,description,modifier.size(31.dp),tint=if(active) Jeland.colors.accent else Jeland.colors.muted)
 }
-@Composable fun Control(text: String, modifier: Modifier=Modifier, selected: Boolean=false, accent:Color=Jeland.colors.accent, enabled:Boolean=true, onClick: ()->Unit) {
+@Composable fun Control(text: String, modifier: Modifier=Modifier, selected: Boolean=false, accent:Color=Jeland.colors.accent, enabled:Boolean=true, icon:AppIcon?=null,onClick: ()->Unit) {
     val c=Jeland.colors
     Box(modifier.heightIn(min=62.dp).alpha(if(enabled)1f else .5f).clip(Jeland.control).background(if(selected)c.deep.copy(alpha=.48f) else c.raised.copy(alpha=.8f))
         .border(1.4.dp,if(selected)accent else c.outline,Jeland.control).semantics {this.selected=selected}.clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=Jeland.space.inset,vertical=Jeland.space.pair),contentAlignment=Alignment.Center) {
-        Text(text,color=if(selected)accent else c.text,fontSize=Jeland.type.control)
+        if(icon==null)Text(text,color=if(selected)accent else c.text,fontSize=Jeland.type.control)
+        else Icon(icon,text,Modifier.size(28.dp),tint=if(selected)accent else c.text)
     }
 }
 /** Whole row is the touch target; native switch semantics work with accessibility/tests. */
@@ -96,12 +95,11 @@ val LocalFramelessDashboard=staticCompositionLocalOf {false}
         }
     }
 }
-@Composable fun RoundControl(icon: ImageVector, description: String, modifier: Modifier=Modifier, active: Boolean=false, accent:Color=Jeland.colors.accent, enabled:Boolean=true, spin:Boolean=false, spinSpeed:Int=0, onClick: ()->Unit) {
+@Composable fun RoundControl(icon: AppIcon, description: String, modifier: Modifier=Modifier, active: Boolean=false, accent:Color=Jeland.colors.accent, enabled:Boolean=true, onClick: ()->Unit) {
     val c=Jeland.colors
-    val rotation=fanRotation(spin&&enabled,spinSpeed)
     Box(modifier.size(60.dp).clip(CircleShape).background(if(active&&enabled)c.deep.copy(alpha=.5f)else c.raised.copy(alpha=.9f))
         .border(1.4.dp,if(active&&enabled)accent else c.outline,CircleShape).clickable(enabled=enabled,role=Role.Button,onClick=onClick),contentAlignment=Alignment.Center) {
-        Icon(icon,description,Modifier.size(32.dp).semantics {if(icon==JIcons.Fan)stateDescription=if(spin)"Вращается"else"Остановлен"}.graphicsLayer {rotationZ=rotation},tint=if(!enabled)c.unknown.copy(alpha=.5f)else if(active)accent else c.text)
+        Icon(icon,description,Modifier.size(32.dp),tint=if(!enabled)c.unknown.copy(alpha=.5f)else if(active)accent else c.text)
     }
 }
 @Composable fun SectionTitle(title: String, subtitle: String?=null) {

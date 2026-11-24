@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +43,12 @@ object AppLocale {@Volatile var current:Locale=Locale.forLanguageTag("ru");inter
 @Composable fun LocalizedIcon(imageVector:androidx.compose.ui.graphics.vector.ImageVector,contentDescription:String?,
     modifier:Modifier=Modifier,tint:Color=androidx.compose.material3.LocalContentColor.current) {
     androidx.compose.material3.Icon(imageVector,contentDescription?.let {localized(it)},modifier,tint)
+}
+@Composable fun LocalizedIcon(icon:ru.jeland.os.ui.theme.AppIcon,contentDescription:String?,
+    modifier:Modifier=Modifier,tint:Color=androidx.compose.material3.LocalContentColor.current) {
+    val opacity=if(icon.preserveColors)tint.alpha.takeIf {it.isFinite()}?:1f else 1f
+    androidx.compose.material3.Icon(ru.jeland.os.ui.theme.appIconPainter(icon),contentDescription?.let {localized(it)},modifier.alpha(opacity),
+        if(icon.preserveColors)Color.Unspecified else tint)
 }
 @Composable fun LocalizedIcon(painter:androidx.compose.ui.graphics.painter.Painter,contentDescription:String?,
     modifier:Modifier=Modifier,tint:Color=androidx.compose.material3.LocalContentColor.current) {

@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
+import ru.jeland.os.ui.theme.AppIcon
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -31,7 +31,7 @@ import ru.jeland.os.ui.theme.Jeland
 import java.util.Locale
 
 /** Alternative presentation only; original fuel/battery components supply the values. */
-@Composable internal fun VehicleSideGauge(title:String,icon:ImageVector,value:String,fraction:Float?,detail:String,
+@Composable internal fun VehicleSideGauge(title:String,icon:AppIcon,value:String,fraction:Float?,detail:String,
     tint:Color,modifier:Modifier=Modifier,valueTag:String?=null,onClick:()->Unit) {
     val c=Jeland.colors
     val level=fraction?.takeIf {it.isFinite()}?.coerceIn(0f,1f)

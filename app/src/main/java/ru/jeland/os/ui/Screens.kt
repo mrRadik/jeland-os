@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.ImageVector
+import ru.jeland.os.ui.theme.AppIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -82,7 +82,7 @@ import ru.jeland.os.ui.theme.Jeland
         }
     }
 }
-@Composable private fun QuickTile(title:String,detail:String,icon:ImageVector,modifier:Modifier,active:Boolean,tintOverride:androidx.compose.ui.graphics.Color?=null,onClick:()->Unit) {
+@Composable private fun QuickTile(title:String,detail:String,icon:AppIcon,modifier:Modifier,active:Boolean,tintOverride:androidx.compose.ui.graphics.Color?=null,onClick:()->Unit) {
     Panel(modifier.fillMaxHeight().clickable(onClick=onClick)) {
         BoxWithConstraints(Modifier.fillMaxSize().padding(10.dp)) {
             val tint=tintOverride?:if(active)Jeland.colors.warm else Jeland.colors.accent

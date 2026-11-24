@@ -119,7 +119,7 @@ Wi-Fi подключён, уровень {0}	Wi-Fi connected, signal {0}
 Встроенная карта	Built-in map
 Всё готово	All set
 Вы прибыли	You have arrived
-Выберите звезду на карточке в разделе «Все».	Tap the star on an app in All apps.
+Нажмите сердечко на карточке в разделе «Все».	Tap the heart on an app in All apps.
 Выберите место на карте	Choose a place on the map
 Выберите навигатор в настройках	Choose a navigation app in settings
 Выберите нужные функции. Если права уже выданы установщиком, переключатели будут включены.	Choose the features you need. Permissions already granted by the installer will appear enabled.
@@ -222,10 +222,10 @@ Wi-Fi подключён, уровень {0}	Wi-Fi connected, signal {0}
 Избранное · {0}	Favorites · {0}
 Избранное не прочитано. Не перезаписываем исходные данные.	Unable to read favorites. Your saved data has been kept.
 Избранное не удалось прочитать. Исходные данные сохранены.	Unable to read favorites. Your saved data has been kept.
-Избранное: {0}. Звезда добавляет ярлык, стрелки меняют порядок. Значки берутся с устройства.	Favorites: {0}. Tap a star to add an app and use arrows to change the order.
+Избранное: {0}. Сердечко добавляет ярлык, стрелки меняют порядок. Значки берутся с устройства.	Favorites: {0}. Tap a heart to add an app and use arrows to change the order.
 Избранные приложения	Favorite apps
 Избранные точки останутся.	Saved places will be kept.
-Избранных точек пока нет. Нажмите звезду у результата поиска или выбранной точки на карте.	No saved places yet. Tap the star on a search result or a selected map location.
+Избранных точек пока нет. Нажмите сердечко у результата поиска или выбранной точки на карте.	No saved places yet. Tap the heart on a search result or a selected map location.
 Изменение не сохранено. Повторите после проверки хранилища.	Unable to save the change. Check device storage and try again.
 Изменения не нужны	No changes needed
 Измените запрос или очистите поиск.	Change your query or clear the search.
@@ -297,7 +297,7 @@ Wi-Fi подключён, уровень {0}	Wi-Fi connected, signal {0}
 Навигатор не подключён.	Navigation app not connected.
 Навигация	Navigation
 Навигация · {0}	Navigation · {0}
-Нажмите карточку для запуска · звезда добавляет в избранное	Tap an app to open it · tap a star to add it to favorites
+Нажмите карточку для запуска · сердечко добавляет в избранное	Tap an app to open it · tap a heart to add it to favorites
 Нажмите на дом или найдите адрес	Tap a building or search for an address
 Нажмите, чтобы выбрать дом	Tap to choose a place
 Назад	Back
@@ -1031,7 +1031,10 @@ Android разрешает доступ ко всем уведомлениям. 
 Запустить	Start
 Открыть Стрелку	Open Strelka
 Скачать Стрелку	Download Strelka
-База и звук настраиваются в Стрелке. Дата её базы недоступна Jeland OS.	Manage the database and audio in Strelka. Its database date is not available to Jeland OS.
+Звук предупреждений	Alert sound
+Короткий «пу-пуп» при появлении карточки · канал навигации	A short two-note chime when the card appears · navigation audio
+Прослушать сигнал	Preview chime
+База настраивается в Стрелке. Её голос и бипер можно отключить: Jeland OS подаст свой короткий сигнал. Дата базы недоступна Jeland OS.	Manage the database in Strelka. You can mute its voice and beeper: Jeland OS plays its own short chime. The database date is not available to Jeland OS.
 Скрыть инструкцию	Hide instructions
 Как настроить	Setup instructions
 1. Установите обычную Стрелку и предоставьте ей GPS.	1. Install the regular Strelka app and grant it location access.
@@ -1065,3 +1068,9 @@ Android разрешает доступ ко всем уведомлениям. 
 Карта видна постоянно, подсказки появляются при активном маршруте.	The map is always visible. Turn cues appear while navigating.
 Подсказки появляются только при активном маршруте.	Turn cues appear only while navigating.
 Карта	Map
+Переместить влево	Move left
+Переместить вверх	Move up
+Переместить вниз	Move down
+Переместить вправо	Move right
+Добавить {0} в избранное	Add {0} to favorites
+Убрать {0} из избранного	Remove {0} from favorites

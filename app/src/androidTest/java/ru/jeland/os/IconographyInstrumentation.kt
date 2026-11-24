@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Icon
+import ru.jeland.os.localization.LocalizedIcon as Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,26 +61,29 @@ class IconographyInstrumentation {
             ui.waitForIdle();save("icon-atlas-${if(dark)"dark"else"light"}")
         }
     }
-    @Test fun fanActuallyMovesAndStopsWhenPowerOrDataIsMissing() {
+    @Test fun fanShowsSpeedWithoutAnimationAndClearsWhenPowerOrDataIsMissing() {
         var state by mutableStateOf(ClimateState(power=true,fan=5))
-        // Infinite animations are cancelled by the test policy when autoAdvance is on.
-        // Use manual time BEFORE composing the animation, not after that cancellation.
         ui.mainClock.autoAdvance=false
         ui.activityRule.scenario.onActivity {it.setContent {JelandTheme(true) {Box(Modifier.size(160.dp).background(Jeland.colors.panel),contentAlignment=Alignment.Center) {
             ClimateFan(state,Modifier.size(80.dp).testTag("test-fan"))
         }}}}
         ui.mainClock.advanceTimeBy(32)
-        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Вращается"))
+        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Скорость вентилятора: 5 из 10"))
         val a=ui.onNodeWithTag("test-fan").captureToImage().asAndroidBitmap()
         ui.mainClock.advanceTimeBy(240)
         val b=ui.onNodeWithTag("test-fan").captureToImage().asAndroidBitmap()
-        assertFalse("Fan must rotate rather than remain a static glyph",a.sameAs(b));save("fan-frame-a",a);save("fan-frame-b",b)
+        assertTrue("Fan and scale must stay static while the reported speed is unchanged",a.sameAs(b))
+        save("fan-speed-5",a)
+        ui.runOnIdle {state=state.copy(fan=10)};ui.mainClock.advanceTimeBy(32)
+        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Скорость вентилятора: 10 из 10"))
+        val maximum=ui.onNodeWithTag("test-fan").captureToImage().asAndroidBitmap()
+        assertFalse("The scale must change when the reported speed changes",a.sameAs(maximum));save("fan-speed-10",maximum)
         ui.runOnIdle {state=state.copy(power=false)};ui.mainClock.advanceTimeBy(32)
-        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Остановлен"))
+        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Вентилятор выключен"))
         val stopped=ui.onNodeWithTag("test-fan").captureToImage().asAndroidBitmap();ui.mainClock.advanceTimeBy(300)
         assertTrue(stopped.sameAs(ui.onNodeWithTag("test-fan").captureToImage().asAndroidBitmap()))
         ui.runOnIdle {state=state.copy(power=true,available=setOf(18))};ui.mainClock.advanceTimeBy(32)
-        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Остановлен"))
+        ui.onNodeWithTag("test-fan").assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,"Скорость вентилятора: нет данных"))
         ui.mainClock.autoAdvance=true
     }
     @Test fun dockTemperaturesAreIntegerAndCenteredBetweenButtons() {

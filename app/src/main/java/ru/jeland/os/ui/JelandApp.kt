@@ -47,7 +47,7 @@ enum class Popup(val wheel:Wheel?=null) {
     TIRE_FRONT_LEFT(Wheel.FRONT_LEFT),TIRE_FRONT_RIGHT(Wheel.FRONT_RIGHT),TIRE_REAR_LEFT(Wheel.REAR_LEFT),TIRE_REAR_RIGHT(Wheel.REAR_RIGHT);
     companion object {fun tire(wheel:Wheel)=entries.first {it.wheel==wheel}}
 }
-private data class Destination(val route:String,val title:String,val icon:androidx.compose.ui.graphics.vector.ImageVector)
+private data class Destination(val route:String,val title:String,val icon:ru.jeland.os.ui.theme.AppIcon)
 private val destinations=listOf(
     Destination("home","Главная",JIcons.Home),Destination("music","Музыка",JIcons.MusicNote),Destination("navigation","Навигация",JIcons.Navigation),
     Destination("car","Автомобиль",JIcons.DirectionsCar),Destination("automations","Автоматизации",JIcons.Automations),
@@ -193,14 +193,9 @@ private val destinations=listOf(
             HeroOutlinedText(if(!ru.jeland.os.BuildConfig.DEMO_FEATURES){if(car.connected)""else"Подключение к автомобилю…"}else if(car.demo)"DEMO · БЕЗ ПОДКЛЮЧЕНИЯ К АВТО"else if(!car.connected)"ГУ · НЕТ СВЯЗИ"else if(car.writesEnabled)"ГУ · УПРАВЛЕНИЕ РАЗРЕШЕНО"else"ГУ · ТОЛЬКО ЧТЕНИЕ",color=if(overHero)c.text else c.muted,fontSize=Jeland.type.footnote,fontWeight=FontWeight.Medium,outlined=overHero)
         }
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            Canvas(Modifier.size(25.dp).semantics {contentDescription=if(connection.mobileLevel!=null)"Мобильный сигнал ${connection.mobileLevel} из 4"else"Мобильный сигнал недоступен"}) {
-                for(i in 0..3) {
-                    val height=size.height*(.25f+i*.23f);val x=size.width*i/4
-                    val top=Offset(x,size.height-height);val bar=Size(size.width*.13f,height)
-                    if(connection.mobileLevel!=null&&i<connection.mobileLevel)drawRect(c.heroText,top,bar)
-                    else drawRect(radioIndicatorColor(c.heroText,false),top,bar,style=Stroke(1.dp.toPx()))
-                }
-            }
+            val signal=when(connection.mobileLevel){1->JIcons.Signal1;2->JIcons.Signal2;3->JIcons.Signal3;4->JIcons.Signal4;else->JIcons.Signal0}
+            Icon(signal,if(connection.mobileLevel!=null)"Мобильный сигнал ${connection.mobileLevel} из 4"else"Мобильный сигнал недоступен",
+                Modifier.size(25.dp),tint=radioIndicatorColor(c.heroText,connection.mobileLevel!=null))
             HeroOutlinedText(connection.networkType?:if(connection.cellular)"Моб."else"—",color=radioIndicatorColor(c.heroText,connection.cellular),fontSize=Jeland.type.footnote,modifier=Modifier.testTag("mobile-network-type"),outlined=overHero)
         }
         WifiStatusIcon(connection)
@@ -238,7 +233,7 @@ private val destinations=listOf(
         SeatClimateButton(SeatSide.DRIVER,s.seats.driver,heatKnown=s.seats.known(95),ventilationKnown=s.seats.known(93)){show(Popup.DRIVER)}
         Temperature(true,model){show(Popup.DRIVER_TEMPERATURE)}
             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                RoundControl(JIcons.Fan,"Расширенный климат",Modifier.size(64.dp).testTag("expand-climate"),climateOn&&s.climate.known(12)&&s.climate.fan>0,spin=climateOn&&s.climate.known(12)&&s.climate.fan>0,spinSpeed=s.climate.fan){show(Popup.CLIMATE)}
+                ClimateFanButton(s.climate,Modifier.testTag("expand-climate")){show(Popup.CLIMATE)}
                 ClimateBarButton(text="AUTO",description="Автоматический климат",active=s.climate.known(4)&&s.climate.auto,enabled=climateOn&&s.climate.known(4),modifier=Modifier.testTag("bar-auto"),onClick=r::toggleAuto)
                 ClimateBarButton(text="A/C",description="Кондиционер",active=s.climate.known(1)&&s.climate.ac,enabled=climateOn&&s.climate.known(1),modifier=Modifier.testTag("bar-ac"),onClick=r::toggleAc)
                 ClimateBarButton(icon=JIcons.Loop,description="Рециркуляция",active=s.climate.known(8)&&s.climate.recirculation,enabled=climateOn&&s.climate.known(8),modifier=Modifier.testTag("bar-recirculation"),onClick=r::toggleRecirculation)
@@ -252,16 +247,9 @@ private val destinations=listOf(
 }
 @Composable private fun WifiStatusIcon(connection:ConnectivityState) {
     val c=Jeland.colors
-    Canvas(Modifier.size(27.dp).testTag("wifi-indicator").semantics {contentDescription=when{!connection.available->"Состояние Wi-Fi недоступно";connection.wifi->"Wi-Fi подключён, уровень ${connection.wifiLevel?:"неизвестен"}";connection.wifiEnabled==false->"Wi-Fi выключен";else->"Wi-Fi не подключён"}}) {
-        val base=Offset(size.width/2,size.height*.87f)
-        for(i in 1..3) {
-            val radius=size.width*(.18f+i*.16f)
-            val color=radioIndicatorColor(c.heroText,connection.wifi&&connection.wifiLevel!=null&&connection.wifiLevel>=i)
-            drawArc(color,-135f,90f,false,Offset(base.x-radius,base.y-radius),Size(radius*2,radius*2),style=Stroke(1.55.dp.toPx(),cap=androidx.compose.ui.graphics.StrokeCap.Round))
-        }
-        drawCircle(radioIndicatorColor(c.heroText,connection.wifi),1.5.dp.toPx(),base)
-        if(connection.available&&!connection.wifi)drawLine(radioIndicatorColor(c.heroText,false),Offset(size.width*.1f,size.height*.1f),Offset(size.width*.9f,size.height*.9f),1.5.dp.toPx())
-    }
+    val icon=if(!connection.wifi)JIcons.WifiOff else when(connection.wifiLevel){0,1->JIcons.Wifi1;2->JIcons.Wifi2;3->JIcons.Wifi3;else->JIcons.Wifi4}
+    Icon(icon,when{!connection.available->"Состояние Wi-Fi недоступно";connection.wifi->"Wi-Fi подключён, уровень ${connection.wifiLevel?:"неизвестен"}";connection.wifiEnabled==false->"Wi-Fi выключен";else->"Wi-Fi не подключён"},
+        Modifier.size(27.dp).testTag("wifi-indicator"),tint=radioIndicatorColor(c.heroText,connection.wifi))
 }
 @Composable private fun Temperature(driver:Boolean,model:MainViewModel,onClick:()->Unit) {
     val tag=if(driver)"driver"else"passenger"

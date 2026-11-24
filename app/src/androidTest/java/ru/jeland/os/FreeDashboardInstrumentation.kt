@@ -1,6 +1,7 @@
 package ru.jeland.os
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
@@ -91,7 +92,7 @@ class FreeDashboardInstrumentation {
             ui.waitForIdle()
             val folder=File(ui.activity.getExternalFilesDir(null),"qa-free-dashboard").apply {mkdirs()}
             File(folder,"editor.png").outputStream().use {
-                InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)
+                ui.onRoot().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)
             }
             assertEquals("Draft must not modify saved preferences",initial,app.preferences.state.value.freeLayout)
             ui.onNodeWithTag("free-save").performClick()

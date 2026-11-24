@@ -206,8 +206,9 @@ import kotlin.math.roundToInt
             }
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
                 Label("Переместить",small=true,muted=true,modifier=Modifier.weight(1f))
-                listOf(Triple("←",-1,0),Triple("↑",0,-1),Triple("↓",0,1),Triple("→",1,0)).forEachIndexed {index,(title,dx,dy)->
-                    Control(title,Modifier.width(60.dp).height(44.dp).testTag("free-move-$index")){replace(layout.move(selected.kind,selected.x+dx,selected.y+dy))}
+                listOf(Triple(JIcons.ChevronLeft,-1,0),Triple(JIcons.ChevronUp,0,-1),Triple(JIcons.Expand,0,1),Triple(JIcons.ChevronRight,1,0)).forEachIndexed {index,(icon,dx,dy)->
+                    val title=listOf("Переместить влево","Переместить вверх","Переместить вниз","Переместить вправо")[index]
+                    Control(title,Modifier.width(60.dp).height(44.dp).testTag("free-move-$index"),icon=icon){replace(layout.move(selected.kind,selected.x+dx,selected.y+dy))}
                 }
             }
         }

@@ -48,11 +48,11 @@ import ru.jeland.os.ui.theme.JIcons
             Panel(Modifier.fillMaxWidth().testTag("apps-empty")) {
                 Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                     Label(if(query.isNotBlank())"Ничего не найдено"else if(favoritesOnly)"В избранном пока пусто"else"Нет доступных приложений")
-                    Label(if(query.isNotBlank())"Измените запрос или очистите поиск."else if(favoritesOnly)"Выберите звезду на карточке в разделе «Все»."else"Отображаются только доступные launcher-приложения. Попробуйте обновить список.",small=true,muted=true)
+                    Label(if(query.isNotBlank())"Измените запрос или очистите поиск."else if(favoritesOnly)"Нажмите сердечко на карточке в разделе «Все»."else"Отображаются только доступные launcher-приложения. Попробуйте обновить список.",small=true,muted=true)
                 }
             }
         }
         AppsGrid(apps,state,model,Modifier.fillMaxWidth().weight(1f))
-        Text(if(favoritesOnly)"Настоящие ярлыки устройства · стрелки меняют порядок избранного"else"Нажмите карточку для запуска · звезда добавляет в избранное",color=Jeland.colors.muted,fontSize=Jeland.type.footnote,modifier=Modifier.padding(bottom=8.dp))
+        Text(if(favoritesOnly)"Настоящие ярлыки устройства · стрелки меняют порядок избранного"else"Нажмите карточку для запуска · сердечко добавляет в избранное",color=Jeland.colors.muted,fontSize=Jeland.type.footnote,modifier=Modifier.padding(bottom=8.dp))
     }
 }
