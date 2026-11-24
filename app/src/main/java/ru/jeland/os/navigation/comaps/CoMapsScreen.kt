@@ -18,6 +18,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
@@ -44,12 +47,12 @@ import ru.jeland.os.ui.theme.*
 // transfer ownership before attaching the next surface, including the home map.
 private var currentSurface:JelandMapView?=null
 
-@Composable private fun CoMapsSurface(repository:CoMapsRepository,dark:Boolean,modifier:Modifier=Modifier,topOverlay:Int=0,bottomOverlay:Int=0,guidance:Boolean=false,projection:Boolean=false) {
+@Composable private fun CoMapsSurface(repository:CoMapsRepository,dark:Boolean,modifier:Modifier=Modifier,topOverlay:Int=0,bottomOverlay:Int=0,guidance:Boolean=false,projection:Boolean=false,compact:Boolean=false) {
     val owner=LocalLifecycleOwner.current
     val ownerState by owner.lifecycle.currentStateFlow.collectAsState()
     val mainSource=mainMapSurface
     if(projection&&mainSource!=null) {
-        CoMapsProjectionMirror(mainSource,modifier)
+        CoMapsProjectionMirror(mainSource,modifier,compact)
         return
     }
     if(!ownerState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -89,10 +92,11 @@ private var currentSurface:JelandMapView?=null
     },modifier=modifier.testTag("comaps-map").onSizeChanged {size=it},update={mapView->
         if(currentSurface===mapView)coMapsViewport(size.width,size.height,topOverlay,bottomOverlay,guidance)?.let {
             mapView.setViewport(it.top,it.right,it.bottom,it.followOffset)
+            if(mainMapSurface===mapView)mainMapViewport=it
         }
     },onRelease={old->
         if(currentSurface===old){repository.surfacePaused();old.map().onPause();old.map().onStop();old.releaseRenderer();currentSurface=null}
-        if(mainMapSurface===old)mainMapSurface=null
+        if(mainMapSurface===old){mainMapSurface=null;mainMapViewport=null}
         old.releaseRenderer()
         view=null
     })else Box(modifier.background(Jeland.colors.map),contentAlignment=Alignment.Center) {
@@ -101,9 +105,26 @@ private var currentSurface:JelandMapView?=null
 }
 
 /** Main-display cluster preview reuses the single native map surface and existing route/GPS. */
-@Composable fun CoMapsClusterSurface(host:OfflineNavigationRepository,dark:Boolean,modifier:Modifier,guidance:Boolean,mapFirst:Boolean=false,projection:Boolean=false) {
+@Composable fun CoMapsClusterSurface(host:OfflineNavigationRepository,dark:Boolean,modifier:Modifier,guidance:Boolean,mapFirst:Boolean=false,projection:Boolean=false,compact:Boolean=false) {
+    if(compact||mapFirst) {
+        // Native labels, position arrow and map widgets use screen density. Render a larger
+        // texture and downsample the whole surface so these fit the instrument's small window.
+        BoxWithConstraints(modifier.clipToBounds()) {
+            val factor=if(compact)2.5f else 1.5f
+            var pixels by remember {mutableIntStateOf(0)}
+            CoMapsSurface(host.comaps,dark,
+                Modifier.wrapContentSize(Alignment.TopStart,unbounded=true)
+                    .requiredSize(maxWidth*factor,maxHeight*factor)
+                    .graphicsLayer {scaleX=1/factor;scaleY=1/factor;transformOrigin=TransformOrigin(0f,0f)}
+                    .onSizeChanged {pixels=it.height},
+                topOverlay=if(compact)0 else (pixels*.10f).toInt(),
+                bottomOverlay=if(compact)0 else (pixels*.25f).toInt(),
+                guidance=guidance,projection=projection,compact=true)
+        }
+        return
+    }
     var pixels by remember {mutableIntStateOf(0)}
-    CoMapsSurface(host.comaps,dark,modifier.onSizeChanged {pixels=it.height},topOverlay=(pixels*if(mapFirst).25f else .19f).toInt(),bottomOverlay=(pixels*if(mapFirst).15f else .12f).toInt(),guidance=guidance,projection=projection)
+    CoMapsSurface(host.comaps,dark,modifier.onSizeChanged {pixels=it.height},topOverlay=(pixels*if(mapFirst).10f else .19f).toInt(),bottomOverlay=(pixels*if(mapFirst).25f else .12f).toInt(),guidance=guidance,projection=projection)
 }
 
 @Composable fun CoMapsScreen(host:OfflineNavigationRepository,dark:Boolean) {

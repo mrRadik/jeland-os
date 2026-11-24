@@ -947,9 +947,9 @@ Android запретил действие. Проверьте разрешени
 Приборная панель	Instrument cluster
 Дизайн	Design
 Исходные два колодца	Original twin dials
-Два больших колодца и подсказки маршрута	Large twin dials and turn guidance
+Два больших колодца и миникарта между ними	Large twin dials with a mini-map between them
 Карта CoMaps и компактные приборы	CoMaps and compact dials
-Центральный тахометр и крупная скорость	Central tachometer and prominent speed
+Центральный тахометр, крупная скорость и миникарта	Central tachometer, prominent speed and a mini-map
 Открыть предпросмотр	Open preview
 Предпросмотр · 1920 × 720	Preview · 1920 × 720
 На весь экран	Full screen
@@ -1060,3 +1060,8 @@ Android разрешает доступ ко всем уведомлениям. 
 до объекта	from the destination
 Ищем ближайший подъезд…	Finding vehicle access…
 Не удалось найти автомобильный подъезд рядом с точкой. Выберите другое место на карте.	No reachable vehicle access was found nearby. Choose another point on the map.
+Режим отображения навигации	Navigation display mode
+Подсказки по маршруту	Route guidance
+Карта видна постоянно, подсказки появляются при активном маршруте.	The map is always visible. Turn cues appear while navigating.
+Подсказки появляются только при активном маршруте.	Turn cues appear only while navigating.
+Карта	Map

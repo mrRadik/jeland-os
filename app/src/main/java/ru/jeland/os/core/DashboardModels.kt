@@ -55,7 +55,8 @@ data class InterfacePreferences(val showFuel:Boolean=true,val showTires:Boolean=
     val clusterDesign:ClusterDesign=ClusterDesign.ORIGINAL,
     val clusterAccent:ClusterAccent=ClusterAccent.CYAN,
     val clusterColorMode:ClusterColorMode=ClusterColorMode.MANUAL,
-    val clusterTripPeriod:ClusterTripPeriod=ClusterTripPeriod.SINCE_START)
+    val clusterTripPeriod:ClusterTripPeriod=ClusterTripPeriod.SINCE_START,
+    val clusterNavigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP)
 data class ConnectivityState(
     val wifi:Boolean=false,val wifiLevel:Int?=null,val cellular:Boolean=false,val mobileLevel:Int?=null,
     val networkType:String?=null,val available:Boolean=false,val demo:Boolean=false,

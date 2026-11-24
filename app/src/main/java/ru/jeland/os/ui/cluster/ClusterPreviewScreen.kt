@@ -61,7 +61,7 @@ import java.util.Date
     }
 }
 
-@Composable internal fun ClusterDesignChoices(selectedDesign:ClusterDesign,dark:Boolean,accent:ClusterAccent,media:MediaState,onSelect:(ClusterDesign)->Unit) {
+@Composable internal fun ClusterDesignChoices(selectedDesign:ClusterDesign,dark:Boolean,accent:ClusterAccent,media:MediaState,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP,onSelect:(ClusterDesign)->Unit) {
     val c=Jeland.colors
     ClusterDesign.entries.chunked(2).forEach {row->
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -73,7 +73,7 @@ import java.util.Date
                     .clickable(role=Role.RadioButton){onSelect(design)}.semantics {this.selected=selected}
                     .testTag("cluster-design-${design.name.lowercase()}")) {
                     BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(1920f/720f)) {
-                        ClusterArtwork(ClusterPanelState(),design,dark,"—:—",Modifier.fillMaxSize(),miniature=true,accent=accent)
+                        ClusterArtwork(ClusterPanelState(),design,dark,"—:—",Modifier.fillMaxSize(),miniature=true,accent=accent,navigationMode=navigationMode)
                         ClusterMusicOverlay(media,design,dark,accent,miniature=true)
                     }
                     Row(Modifier.padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
@@ -120,7 +120,7 @@ import java.util.Date
                     }
                     Control("На весь экран",Modifier.testTag("expand-cluster-preview")){expanded=true}
                 }
-                if(!expanded)ClusterStage(panel,state.media,design,state.dark,clock,model,Modifier.fillMaxWidth().aspectRatio(1920f/720f),state.preferences.clusterAccent,colorMode=state.preferences.clusterColorMode)
+                if(!expanded)ClusterStage(panel,state.media,design,state.dark,clock,model,Modifier.fillMaxWidth().aspectRatio(1920f/720f),state.preferences.clusterAccent,colorMode=state.preferences.clusterColorMode,navigationMode=state.preferences.clusterNavigationMode)
                 if(!expanded)ClusterOutputControls(model,design)
             }
         }
@@ -128,9 +128,13 @@ import java.util.Date
             Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
                 Text("Оформление",color=c.text,fontSize=Jeland.type.title)
                 Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                    ClusterDesignChoices(design,state.dark,state.preferences.clusterAccentFor(ClusterDriveMode.read(state.car,SystemClock.elapsedRealtime())),state.media){model.dependencies.preferences.change(model.dependencies.preferences.state.value.copy(clusterDesign=it))}
+                    ClusterDesignChoices(design,state.dark,state.preferences.clusterAccentFor(ClusterDriveMode.read(state.car,SystemClock.elapsedRealtime())),state.media,state.preferences.clusterNavigationMode){model.dependencies.preferences.change(model.dependencies.preferences.state.value.copy(clusterDesign=it))}
                 }
                 if(design!=ClusterDesign.ORIGINAL) {
+                    Box(Modifier.fillMaxWidth().padding(vertical=4.dp).height(1.dp).background(c.outline.copy(alpha=.45f)))
+                    ClusterNavigationSettings(state.preferences.clusterNavigationMode){mode->
+                        model.dependencies.preferences.change(model.dependencies.preferences.state.value.copy(clusterNavigationMode=mode))
+                    }
                     Box(Modifier.fillMaxWidth().padding(vertical=4.dp).height(1.dp).background(c.outline.copy(alpha=.45f)))
                     ClusterColorSettings(state.preferences,ClusterDriveMode.read(state.car,SystemClock.elapsedRealtime())){model.dependencies.preferences.change(it)}
                     Box(Modifier.fillMaxWidth().padding(vertical=4.dp).height(1.dp).background(c.outline.copy(alpha=.45f)))
@@ -145,7 +149,7 @@ import java.util.Date
         BoxWithConstraints(Modifier.fillMaxSize().background(c.background).testTag("cluster-preview-expanded")) {
             val availableHeight=(maxHeight-180.dp).coerceAtLeast(1.dp)
             val width=minOf(maxWidth,availableHeight*(1920f/720f))
-            ClusterStage(panel,state.media,design,state.dark,clock,model,Modifier.width(width).aspectRatio(1920f/720f).align(Alignment.Center),state.preferences.clusterAccent,colorMode=state.preferences.clusterColorMode)
+            ClusterStage(panel,state.media,design,state.dark,clock,model,Modifier.width(width).aspectRatio(1920f/720f).align(Alignment.Center),state.preferences.clusterAccent,colorMode=state.preferences.clusterColorMode,navigationMode=state.preferences.clusterNavigationMode)
             Row(Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
                 Text(design.title,Modifier.weight(1f),color=c.text,fontSize=Jeland.type.title)
                 RoundControl(JIcons.Close,"Закрыть предпросмотр",Modifier.testTag("close-cluster-preview")){expanded=false}
@@ -171,24 +175,33 @@ import java.util.Date
     }
 }
 
-@Composable internal fun ClusterStage(panel:ClusterPanelState,media:MediaState,design:ClusterDesign,dark:Boolean,clock:String,model:MainViewModel,modifier:Modifier,accent:ClusterAccent,projection:Boolean=false,colorMode:ClusterColorMode=ClusterColorMode.MANUAL) {
+@Composable internal fun ClusterStage(panel:ClusterPanelState,media:MediaState,design:ClusterDesign,dark:Boolean,clock:String,model:MainViewModel,modifier:Modifier,accent:ClusterAccent,projection:Boolean=false,colorMode:ClusterColorMode=ClusterColorMode.MANUAL,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP) {
     val roadAlert=rememberStrelkaRoadAlert(model.dependencies.navigation.roadAlerts)
     val resolvedAccent=if(colorMode==ClusterColorMode.DRIVE_MODE)panel.driveMode?.accent?:accent else accent
     BoxWithConstraints(modifier.clip(RoundedCornerShape(8.dp)).background(Jeland.colors.background).testTag("cluster-stage")) {
-        if(design==ClusterDesign.NAVIGATION) {
+        if(design==ClusterDesign.NAVIGATION&&navigationMode==ClusterNavigationMode.MAP) {
             CoMapsClusterSurface(model.dependencies.navigation,dark,
                 Modifier.offset(x=maxWidth*(25f/2048f),y=maxHeight*(77f/768f))
                     .width(maxWidth*(1998f/2048f)).height(maxHeight*(673f/768f)),
-                panel.navigation!=null,mapFirst=true,projection=projection)
+                panel.activeNavigation!=null,mapFirst=true,projection=projection)
         }
         ClusterArtwork(panel,design,dark,clock,Modifier.matchParentSize(),accent=resolvedAccent,
-            startupAt=if(projection)model.dependencies.clusterProjection.openedAtMillis else null,roadAlert=roadAlert) {
-            ClusterMusicOverlay(media,design,dark,resolvedAccent)
+            startupAt=if(projection)model.dependencies.clusterProjection.openedAtMillis else null,roadAlert=roadAlert,navigationMode=navigationMode) {
+            clusterMapBounds(design,panel.activeNavigation!=null)?.takeIf {navigationMode==ClusterNavigationMode.MAP}?.let {bounds->
+                Box(Modifier.offset(x=maxWidth*((bounds.left+2f)/2048f),y=maxHeight*(bounds.top/768f))
+                        .width(maxWidth*((bounds.width-4f)/2048f)).height(maxHeight*((bounds.height-2f)/768f))
+                        .clip(RoundedCornerShape(bottomStart=maxWidth*(16f/2048f),bottomEnd=maxWidth*(16f/2048f)))
+                        .testTag("cluster-minimap")) {
+                    CoMapsClusterSurface(model.dependencies.navigation,dark,Modifier.matchParentSize(),
+                        panel.activeNavigation!=null,projection=projection,compact=true)
+                }
+            }
+            if(!clusterMusicCovered(panel,design))ClusterMusicOverlay(media,design,dark,resolvedAccent)
         }
     }
 }
 
-@Composable internal fun ClusterArtwork(panel:ClusterPanelState,design:ClusterDesign,dark:Boolean,clock:String,modifier:Modifier=Modifier,miniature:Boolean=false,accent:ClusterAccent=ClusterAccent.CYAN,startupAt:Long?=null,roadAlert:RoadAlert?=null,content:@Composable BoxWithConstraintsScope.()->Unit={}) {
+@Composable internal fun ClusterArtwork(panel:ClusterPanelState,design:ClusterDesign,dark:Boolean,clock:String,modifier:Modifier=Modifier,miniature:Boolean=false,accent:ClusterAccent=ClusterAccent.CYAN,startupAt:Long?=null,roadAlert:RoadAlert?=null,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP,content:@Composable BoxWithConstraintsScope.()->Unit={}) {
     val resources=LocalContext.current.resources
     val renderer=remember(resources) {ClusterRenderer(resources)}
     DisposableEffect(renderer){onDispose {renderer.close()}}
@@ -225,7 +238,7 @@ import java.util.Date
             val native=canvas.nativeCanvas
             native.save();native.scale(size.width/1920f,size.height/720f)
             renderer.draw(native,panel,design,dark,clock,labels,if(panel.speed==null)null else speed,if(panel.rpm==null)null else rpm,miniature,accent,beltVisible,
-                startupElapsed?.let {ClusterStartupSweep.sample(it,speed,rpm)},includeMessage=false,roadAlert=if(miniature)null else roadAlert)
+                startupElapsed?.let {ClusterStartupSweep.sample(it,speed,rpm)},includeMessage=false,roadAlert=if(miniature)null else roadAlert,navigationMode=navigationMode)
             native.restore()
         }
     }
@@ -237,7 +250,17 @@ import java.util.Date
                     .width(maxWidth*(sign.radius*2/2048f)).height(maxHeight*(sign.radius*2/768f))
                     .testTag("cluster-camera-speed-limit").semantics {contentDescription=cameraLimitDescription})
             }
+            panel.activeNavigation?.let {nav->
+                Box(Modifier.matchParentSize().testTag("cluster-route-guidance")
+                    .semantics {contentDescription="${nav.distanceToManeuver} ${labels.metres}; ${nav.street}"})
+            }
             content()
+            Canvas(Modifier.matchParentSize().testTag("cluster-warning-overlay")) {
+                drawIntoCanvas {canvas->
+                    val native=canvas.nativeCanvas;native.save();native.scale(size.width/1920f,size.height/720f)
+                    renderer.drawWarningOverlay(native,panel,design,dark,labels);native.restore()
+                }
+            }
             ClusterIslandOverlay(panel,dark,clock,labels,accent,renderer,if(miniature)null else roadAlert)
         }
     }

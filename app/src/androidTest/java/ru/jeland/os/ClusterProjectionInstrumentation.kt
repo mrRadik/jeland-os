@@ -85,7 +85,7 @@ class ClusterProjectionInstrumentation {
                 assertEquals(listOf(2),launches);assertEquals(listOf("open"),route.calls)
                 assertEquals(ClusterDesign.CLASSIC,projection.applied.value!!.design)
                 prefs.change(prefs.state.value.copy(clusterDesign=ClusterDesign.SPORT,
-                    clusterAccent=ClusterAccent.custom(0x663399),clusterColorMode=ClusterColorMode.DRIVE_MODE,clusterTripPeriod=ClusterTripPeriod.SINCE_RESET))
+                    clusterAccent=ClusterAccent.custom(0x663399),clusterColorMode=ClusterColorMode.DRIVE_MODE,clusterTripPeriod=ClusterTripPeriod.SINCE_RESET,clusterNavigationMode=ClusterNavigationMode.GUIDANCE))
             }
             instrumentation.waitForIdleSync()
             main {
@@ -108,6 +108,7 @@ class ClusterProjectionInstrumentation {
                 assertEquals(ClusterDesign.NAVIGATION,projection.applied.value!!.design)
                 assertEquals(ClusterColorMode.DRIVE_MODE,projection.applied.value!!.colorMode)
                 assertEquals(ClusterTripPeriod.SINCE_RESET,projection.applied.value!!.tripPeriod)
+                assertEquals(ClusterNavigationMode.GUIDANCE,projection.applied.value!!.navigationMode)
                 assertEquals(prefs.state.value.clusterAccent,projection.applied.value!!.accent)
                 prefs.choose(ClusterDesign.ORIGINAL)
             }

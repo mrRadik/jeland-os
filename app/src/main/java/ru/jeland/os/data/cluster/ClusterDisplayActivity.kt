@@ -71,7 +71,7 @@ class ClusterDisplayActivity:ComponentActivity(),ClusterOutputHost {
                     val width=minOf(maxWidth,maxHeight*(1920f/720f))
                     ClusterStage(panel,state.media,selected.design,state.dark,clock,vm,
                         Modifier.width(width).aspectRatio(1920f/720f).align(Alignment.Center),
-                        selected.accent,projection=true,colorMode=selected.colorMode)
+                        selected.accent,projection=true,colorMode=selected.colorMode,navigationMode=selected.navigationMode)
                 }
             }}
         }

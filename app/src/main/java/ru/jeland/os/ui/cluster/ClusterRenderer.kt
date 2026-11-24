@@ -69,7 +69,7 @@ internal class ClusterRenderer(private val resources:Resources) {
     private fun arc(c:Canvas,d:ClusterDial,r:Float,start:Float,sweep:Float,tint:Int,width:Float){c.drawArc(bounds(d,r),start,sweep,false,ink(tint,width))}
     fun draw(c:Canvas,s:ClusterPanelState,design:ClusterDesign,isDark:Boolean,clock:String,l:ClusterLabels,
              animatedSpeed:Float?,animatedRpm:Float?,miniature:Boolean=false,
-             accent:ClusterAccent=ClusterAccent.CYAN,beltVisible:Boolean=true,startup:ClusterStartupNeedles?=null,includeMessage:Boolean=true,roadAlert:RoadAlert?=null) {
+             accent:ClusterAccent=ClusterAccent.CYAN,beltVisible:Boolean=true,startup:ClusterStartupNeedles?=null,includeMessage:Boolean=true,roadAlert:RoadAlert?=null,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP) {
         val currentTitle=if(miniature)null else roadAlert?.title
         if(currentTitle!=cameraTitle){cameraTitle=currentTitle;cameraLimit=currentTitle?.let {RoadAlertSymbol.cameraSpeedLimit(it)}}
         startupNeedles=startup
@@ -84,10 +84,10 @@ internal class ClusterRenderer(private val resources:Resources) {
             text(c,l.stock,1024f,408f,34f,muted)
             c.restore();return
         }
-        val cacheKey="${design.name}:$dark:${accent.name}:$miniature"
+        val cacheKey="${design.name}:$dark:${accent.name}:$miniature:$navigationMode:${s.activeNavigation!=null}"
         if(key!=cacheKey){
             bitmap=Bitmap.createBitmap(2048,768,Bitmap.Config.ARGB_8888).also {
-                housing.draw(Canvas(it),design,dark,blue,miniature)
+                housing.draw(Canvas(it),design,dark,blue,miniature,navigationMode,s.activeNavigation!=null)
             }
             key=cacheKey
         }
@@ -102,23 +102,30 @@ internal class ClusterRenderer(private val resources:Resources) {
                 val (left,right)=ClusterGeometry.dials(design)
                 gauge(c,left,s.speed,animatedSpeed,false,l);gauge(c,right,s.rpm,animatedRpm,true,l)
                 secondary(c,left,s,false,l);secondary(c,right,s,true,l)
-                classicCenter(c,s,l)
+                classicCenter(c,s,l,miniature,navigationMode)
             }
             ClusterDesign.NAVIGATION->{
                 val (left,right)=ClusterGeometry.dials(design)
                 gauge(c,left,s.speed,animatedSpeed,false,l);gauge(c,right,s.rpm,animatedRpm,true,l)
                 secondary(c,left,s,false,l);secondary(c,right,s,true,l)
-                val nav=s.navigation
+                val nav=s.activeNavigation
 
-                if(nav!=null) {
-                    arrow(c,86f,107f,140f,nav)
-                    text(c,distance(nav,l),385f,170f,47f,white,maxWidth=220f)
-                    text(c,nav.street,424f,228f,30f,muted,maxWidth=440f)
+                if(nav?.demo==true)text(c,"DEMO",430f,130f,16f,muted,maxWidth=70f)
+                val mapGuidance=navigationMode==ClusterNavigationMode.MAP&&nav!=null
+                if(mapGuidance) {
+                    arrow(c,94f,124f,80f,nav)
+                    text(c,distance(nav,l),320f,174f,46f,white,maxWidth=230f)
+                    text(c,nav.street,278f,226f,28f,muted,maxWidth=350f)
                 }
-                // A single low strip replaces the tall statistics area below the map.
-                val values=listOf("${fmt(s.consumption,1)} ${l.consumption}",duration(s.tripMillis)+" "+l.hour,"${fmt(s.tripKm,1)} ${l.km}")
-                values.forEachIndexed {index,value->text(c,value,732f+index*292f,630f,30f,white,maxWidth=280f)}
-                if(!miniature)text(c,"\u00a9 OpenStreetMap \u00b7 CoMaps",1590f,651f,14f,muted,maxWidth=240f)
+                if(navigationMode==ClusterNavigationMode.GUIDANCE)navigationPanel(c,nav,l,1024f,220f,700f)
+                val values=listOf(fmt(s.consumption,1),duration(s.tripMillis),fmt(s.tripKm,1))
+                val units=listOf(l.consumption,l.hour,l.km)
+                values.forEachIndexed {index,value->
+                    val x=144f+index*132f
+                    text(c,value,x,if(mapGuidance)294f else 148f,27f,white,true,maxWidth=122f)
+                    text(c,units[index],x,if(mapGuidance)328f else 182f,20f,muted,maxWidth=122f)
+                }
+                if(!miniature&&navigationMode==ClusterNavigationMode.MAP)text(c,"\u00a9 OpenStreetMap \u00b7 CoMaps",1024f,686f,12f,muted,maxWidth=300f)
 
             }
             ClusterDesign.SPORT->{
@@ -135,23 +142,21 @@ internal class ClusterRenderer(private val resources:Resources) {
                 val units=listOf(l.consumption,l.km,l.hour)
                 val icons=listOf(0,2,1)
                 values.forEachIndexed {index,value->
-                    val y=278f+index*132f
+                    val y=254f+index*100f
                     metricIcon(c,icons[index],258f,y+4f)
                     text(c,captions[index],459f,y-20f,28f,muted,maxWidth=310f)
-                    text(c,"$value ${units[index]}",459f,y+33f,48f,white,true,maxWidth=326f)
-                    line(c,220f,y+61f,664f,y+61f,alpha(blue,75))
+                    text(c,"$value ${units[index]}",459f,y+30f,44f,white,true,maxWidth=326f)
+                    line(c,220f,y+54f,664f,y+54f,alpha(blue,75))
                 }
                 c.restore()
-                c.save();c.clipRect(1360f,112f,1878f,445f)
-                navigationPanel(c,s.navigation,l,1625f,146f,470f)
-                c.restore()
+                navigationWidget(c,s.activeNavigation,l,design,miniature,navigationMode)
 
                 sideScale(c,s.fuel,false);sideScale(c,s.coolantLevel,true)
                 fuelIcon(c,90f,169f,1f,reserve=ClusterLamp.RESERVE in s.lamps)
                 thermometer(c,1932f,167f,1f,s.coolantCondition)
                 text(c,"F",143f,257f,25f);text(c,"E",143f,568f,25f)
                 text(c,"H",1909f,257f,25f);text(c,"C",1909f,568f,25f)
-                text(c,"${fmt(s.rangeKm)} ${l.km}",229f,620f,26f,muted,maxWidth=230f)
+                text(c,"${fmt(s.rangeKm)} ${l.km}",111f,620f,26f,muted,maxWidth=174f)
                 val coolantText=coolantLabel(s)
                 if(coolantText.isNotEmpty())text(c,coolantText,1815f,620f,26f,muted,maxWidth=220f)
 
@@ -208,23 +213,41 @@ internal class ClusterRenderer(private val resources:Resources) {
             text(c,navigation.street,x,top+if(compact)216f else 251f,30f,muted,maxWidth=width)
         }
     }
-    private fun classicCenter(c:Canvas,s:ClusterPanelState,l:ClusterLabels) {
-        c.save();c.clipRect(744f,96f,1304f,506f)
+    private fun classicCenter(c:Canvas,s:ClusterPanelState,l:ClusterLabels,miniature:Boolean,navigationMode:ClusterNavigationMode) {
+        c.save();c.clipRect(744f,96f,1304f,614f)
         text(c,l.sinceStart,1024f,135f,32f,muted,maxWidth=525f)
         metricsRow(c,s,l,1024f,146f,168f)
-        val nav=s.navigation
-        if(nav!=null) {
-            val label=distance(nav,l)
-            val labelPaint=textPaints.getOrPut(Triple(64f,white,false)) {
-                Paint(Paint.ANTI_ALIAS_FLAG).apply {color=white;textSize=64f;typeface=regular;textAlign=Paint.Align.CENTER}
-            }
-            val labelWidth=labelPaint.measureText(label).coerceAtMost(300f)
-            val left=1024f-(196f+20f+labelWidth)/2
-            arrow(c,left,276f,196f,nav,relief=true)
-            text(c,label,left+196f+20f+labelWidth/2,0f,64f,white,maxWidth=300f,centerY=374f)
-            text(c,nav.street,1024f,496f,30f,muted,maxWidth=520f)
-        }
+        navigationWidget(c,s.activeNavigation,l,ClusterDesign.CLASSIC,miniature,navigationMode)
         c.restore()
+    }
+    private fun navigationWidget(c:Canvas,nav:NavigationState?,l:ClusterLabels,design:ClusterDesign,miniature:Boolean,mode:ClusterNavigationMode) {
+        if(mode==ClusterNavigationMode.MAP)miniMapPanel(c,nav,l,design,miniature)
+        else {
+            val b=clusterMapBounds(design,false)?:return
+            navigationPanel(c,nav,l,b.left+b.width/2,b.top+(b.height-281f).coerceAtLeast(0f)/2,b.width-24f,
+                compact=design==ClusterDesign.CLASSIC)
+        }
+    }
+    private fun miniMapPanel(c:Canvas,nav:NavigationState?,l:ClusterLabels,design:ClusterDesign,miniature:Boolean) {
+        val b=clusterMapBounds(design,nav!=null)?:return
+        val top=if(nav!=null)b.top-46f else b.top
+        val base=if(dark)Color.rgb(7,19,30)else Color.rgb(231,239,244)
+        c.drawRoundRect(b.left,top,b.left+b.width,b.top+b.height,16f,16f,ink(base))
+        c.drawRoundRect(b.left,top,b.left+b.width,b.top+b.height,16f,16f,ink(alpha(muted,110),1f))
+        if(miniature) {
+            c.save();c.clipRect(b.left+3,b.top,b.left+b.width-3,b.top+b.height-10)
+            for(i in -1..5)line(c,b.left+i*130,b.top,b.left+i*130+85,b.top+b.height,alpha(muted,40),6f)
+            for(i in 0..3)line(c,b.left,b.top+35+i*70,b.left+b.width,b.top+10+i*70,alpha(muted,40),6f)
+            c.restore()
+        }
+        if(nav!=null) {
+            if(nav.demo)text(c,"DEMO",b.left+28f,top-8f,13f,muted,maxWidth=52f)
+            arrow(c,b.left+14,top+8,30f,nav,relief=false)
+            text(c,distance(nav,l),b.left+120,top+32,27f,white,maxWidth=138f)
+            line(c,b.left+202,top+10,b.left+202,top+35,alpha(muted,80))
+            text(c,nav.street,b.left+210+(b.width-226)/2,top+31,23f,muted,maxWidth=b.width-230)
+        }
+        if(!miniature)text(c,"© OpenStreetMap · CoMaps",b.left+b.width/2,b.top+b.height+10f,10f,muted,maxWidth=b.width)
     }
     private fun gauge(c:Canvas,d:ClusterDial,value:Double?,animated:Float?,tach:Boolean,l:ClusterLabels,sport:Boolean=false) {
         val start=ClusterDialMetrics.START
@@ -369,6 +392,11 @@ internal class ClusterRenderer(private val resources:Resources) {
         if(ClusterLamp.RIGHT in s.lamps)oem.draw(c,ClusterOemIcon.RIGHT,1974f,ClusterHeaderLayout.ICON_TOP,ClusterHeaderLayout.ICON_SIZE,centerVisible=true)
     }
     fun islandTarget(notice:ClusterIslandNotice?)=island.target(notice)
+    fun drawWarningOverlay(c:Canvas,s:ClusterPanelState,design:ClusterDesign,dark:Boolean,l:ClusterLabels) {
+        c.save();c.scale(1920f/2048f,720f/768f)
+        warningStrip.drawIndicators(c,s,if(dark)Color.rgb(245,250,255)else Color.rgb(13,29,42),l,design,backdrop=true,dark=dark)
+        c.restore()
+    }
     fun drawIsland(c:Canvas,s:ClusterPanelState,dark:Boolean,clock:String,l:ClusterLabels,accent:ClusterAccent,
                    width:Float,height:Float,progress:Float,notice:ClusterIslandNotice?) {
         c.save();c.scale(1920f/2048f,720f/768f)

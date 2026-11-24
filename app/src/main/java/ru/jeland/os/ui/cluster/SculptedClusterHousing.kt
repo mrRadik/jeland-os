@@ -4,6 +4,7 @@ import android.graphics.*
 import android.content.res.Resources
 import ru.jeland.os.R
 import ru.jeland.os.core.ClusterDesign
+import ru.jeland.os.core.ClusterNavigationMode
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -126,18 +127,20 @@ internal class SculptedClusterHousing(private val resources:Resources) {
         c.drawBitmap(source,null,RectF(0f,0f,2048f,768f),brush)
     }
     /** The map stays visible behind the instruments; only local readability scrims are opaque. */
-    private fun navigation(c:Canvas,miniature:Boolean) {
+    private fun navigation(c:Canvas,miniature:Boolean,navigationMode:ClusterNavigationMode,hasGuidance:Boolean) {
         val base=if(dark)rgb("#07131e")else rgb("#d9e4ec")
-        if(miniature) {
+        if(miniature||navigationMode==ClusterNavigationMode.GUIDANCE) {
             c.drawColor(base)
-            for(i in 0..17)line(c,-100f+i*145,-30f,100f+i*145,768f,fade(accent,20),2f)
-            for(i in 0..7)line(c,0f,90f+i*85,2048f,70f+i*85,fade(accent,20),2f)
+            if(navigationMode==ClusterNavigationMode.MAP)for(i in 0..17)line(c,-100f+i*145,-30f,100f+i*145,768f,fade(accent,20),2f)
+            if(navigationMode==ClusterNavigationMode.MAP)for(i in 0..7)line(c,0f,90f+i*85,2048f,70f+i*85,fade(accent,20),2f)
         }
-        for(rect in listOf(RectF(58f,100f,670f,256f),RectF(1360f,100f,1990f,264f),RectF(510f,584f,1538f,656f))) {
-            c.drawRoundRect(rect,22f,22f,ink(Color.WHITE,shader=linear(0f,rect.top,0f,rect.bottom,
+        val mapGuidance=navigationMode==ClusterNavigationMode.MAP&&hasGuidance
+        val routeCard=RectF(76f,108f,480f,if(mapGuidance)350f else 204f)
+        c.drawRoundRect(routeCard,24f,24f,ink(Color.WHITE,shader=linear(0f,routeCard.top,0f,routeCard.bottom,
                 fade(if(dark)rgb("#07131e")else rgb("#edf5fa"),235),
                 fade(if(dark)rgb("#07131e")else rgb("#edf5fa"),195))))
-        }
+        c.drawRoundRect(routeCard,24f,24f,ink(fade(accent,65),1f))
+        if(mapGuidance)line(c,102f,252f,454f,252f,fade(accent,65))
         ClusterGeometry.dials(ClusterDesign.NAVIGATION).forEach {d->dial(c,d.x,d.y,d.rx,d.ry,true)}
         c.drawRect(0f,666f,2048f,768f,ink(Color.WHITE,shader=linear(0f,666f,0f,768f,
             Color.TRANSPARENT,fade(base,235))))
@@ -205,9 +208,9 @@ internal class SculptedClusterHousing(private val resources:Resources) {
             c.restore()
         }
     }
-    fun draw(c:Canvas,design:ClusterDesign,isDark:Boolean,accentColor:Int,miniature:Boolean){
+    fun draw(c:Canvas,design:ClusterDesign,isDark:Boolean,accentColor:Int,miniature:Boolean,navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP,hasGuidance:Boolean=false){
         dark=isDark;accent=accentColor
-        if(design==ClusterDesign.NAVIGATION){navigation(c,miniature);return}
+        if(design==ClusterDesign.NAVIGATION){navigation(c,miniature,navigationMode,hasGuidance);return}
         if(design==ClusterDesign.SPORT) sportBackdrop(c) else {
             c.drawColor(if(dark)rgb("#030911")else rgb("#d9e4ec"))
             drawBackground(c)

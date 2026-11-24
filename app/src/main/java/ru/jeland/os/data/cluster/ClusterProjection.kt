@@ -31,7 +31,8 @@ internal interface ClusterOutputHost {
     fun rebuildOutput()
     fun finishOutput()
 }
-data class ClusterOutput(val design:ClusterDesign,val accent:ClusterAccent,val colorMode:ClusterColorMode,val tripPeriod:ClusterTripPeriod=ClusterTripPeriod.SINCE_START)
+data class ClusterOutput(val design:ClusterDesign,val accent:ClusterAccent,val colorMode:ClusterColorMode,val tripPeriod:ClusterTripPeriod=ClusterTripPeriod.SINCE_START,
+                         val navigationMode:ClusterNavigationMode=ClusterNavigationMode.MAP)
 
 class ClusterProjection internal constructor(
     private val app:Context,
@@ -104,14 +105,15 @@ class ClusterProjection internal constructor(
         require(design!=ClusterDesign.ORIGINAL)
         ClusterOutput(design,ClusterAccent.valueOf(checkNotNull(persisted.getString("active-accent",null))),
             ClusterColorMode.valueOf(checkNotNull(persisted.getString("active-color-mode",null))),
-            ClusterTripPeriod.fromStored(persisted.getString("active-trip-period",ClusterTripPeriod.SINCE_START.name).orEmpty()))
+            ClusterTripPeriod.fromStored(persisted.getString("active-trip-period",ClusterTripPeriod.SINCE_START.name).orEmpty()),
+            ClusterNavigationMode.fromStored(persisted.getString("active-navigation-mode",ClusterNavigationMode.MAP.name).orEmpty()))
     }.getOrNull()
     private fun saveOutput(value:ClusterOutput) {
         check(persisted.edit().putBoolean("owns-cluster",true).putString("active-design",value.design.name)
             .putString("active-accent",value.accent.name).putString("active-color-mode",value.colorMode.name)
-            .putString("active-trip-period",value.tripPeriod.name).commit())
+            .putString("active-trip-period",value.tripPeriod.name).putString("active-navigation-mode",value.navigationMode.name).commit())
     }
-    private fun clearSavedOutput(){persisted.edit().remove("active-design").remove("active-accent").remove("active-color-mode").remove("active-trip-period").commit()}
+    private fun clearSavedOutput(){persisted.edit().remove("active-design").remove("active-accent").remove("active-color-mode").remove("active-trip-period").remove("active-navigation-mode").commit()}
     private fun target():Int?=displays().let {ids->targetDisplay?.takeIf {it in ids}?:ids.firstOrNull {it!=Display.DEFAULT_DISPLAY}}
     fun show() {
         val prefs=preferences.state.value
@@ -123,7 +125,7 @@ class ClusterProjection internal constructor(
             mutable.value="Показ на ПП доступен при подключении к головному устройству"
             return
         }
-        val selected=ClusterOutput(prefs.clusterDesign,prefs.clusterAccent,prefs.clusterColorMode,prefs.clusterTripPeriod)
+        val selected=ClusterOutput(prefs.clusterDesign,prefs.clusterAccent,prefs.clusterColorMode,prefs.clusterTripPeriod,prefs.clusterNavigationMode)
         recoveryEnabled=true
         if(running&&targetDisplay==target) {
             saveOutput(selected);output.value=selected

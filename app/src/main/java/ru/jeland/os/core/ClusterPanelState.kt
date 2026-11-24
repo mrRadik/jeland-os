@@ -3,9 +3,9 @@ package ru.jeland.os.core
 /** Presentation only. No transport, commands, display routing or independently owned subscriptions. */
 enum class ClusterDesign(val title:String,val description:String) {
     ORIGINAL("Original","Штатная приборная панель автомобиля"),
-    CLASSIC("Classic","Два больших колодца и подсказки маршрута"),
+    CLASSIC("Classic","Два больших колодца и миникарта между ними"),
     NAVIGATION("Navigation","Карта CoMaps и компактные приборы"),
-    SPORT("Sport","Центральный тахометр и крупная скорость");
+    SPORT("Sport","Центральный тахометр, крупная скорость и миникарта");
     companion object {
         // Preserve the selected design when upgrading from the retired theme names.
         fun fromStored(value:String):ClusterDesign=entries.firstOrNull {it.name==value.removeSuffix("_CARBON")}?:ORIGINAL
@@ -92,7 +92,9 @@ data class ClusterPanelState(
                     when {icons.any {it.bit==61}->ClusterDriveMode.ECO;icons.any {it.bit==62}->ClusterDriveMode.SPORT
                         icons.any {it.bit==82}->ClusterDriveMode.COMFORT
                         icons.any {it.bit==132}->ClusterDriveMode.SNOW;icons.any {it.bit==133}->ClusterDriveMode.MUD
-                        icons.any {it.bit==134}->ClusterDriveMode.SAND;icons.any {it.bit==150}->ClusterDriveMode.OFFROAD;else->null}},lamps=lamps,navigation=s.navigation.takeIf {it.active&&!it.preview&&!it.demo},demo=s.car.demo
+                        icons.any {it.bit==134}->ClusterDriveMode.SAND;icons.any {it.bit==150}->ClusterDriveMode.OFFROAD;else->null}},lamps=lamps,
+                // An engine-built demo route is valid in the simulator; synthetic defaults are not.
+                navigation=s.navigation.takeIf {it.active&&!it.preview&&(!it.demo||s.car.demo&&it.geometry.size>1)},demo=s.car.demo
             )
         }
     }

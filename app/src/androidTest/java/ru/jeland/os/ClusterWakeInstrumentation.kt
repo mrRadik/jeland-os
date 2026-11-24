@@ -113,7 +113,7 @@ class ClusterWakeInstrumentation {
         val old=Fixture(instrument.targetContext);val next=Fixture(instrument.targetContext)
         try {
             main {
-                old.prefs.change(old.prefs.state.value.copy(clusterAccent=ClusterAccent.custom(0x663399),clusterColorMode=ClusterColorMode.DRIVE_MODE));old.show()
+                old.prefs.change(old.prefs.state.value.copy(clusterAccent=ClusterAccent.custom(0x663399),clusterColorMode=ClusterColorMode.DRIVE_MODE,clusterNavigationMode=ClusterNavigationMode.GUIDANCE));old.show()
                 val applied=old.projection.applied.value!!
                 val saved=old.context.getSharedPreferences("ignored",0).all
                 val editor=next.context.getSharedPreferences("ignored",0).edit()
@@ -121,6 +121,7 @@ class ClusterWakeInstrumentation {
                 editor.commit()
                 next.prefs.change(next.prefs.state.value.copy(clusterDesign=ClusterDesign.ORIGINAL,clusterAccent=ClusterAccent.RED))
                 next.projection.start();assertEquals(applied,next.projection.applied.value)
+                assertEquals(ClusterNavigationMode.GUIDANCE,next.projection.applied.value!!.navigationMode)
             }
             Thread.sleep(800)
             main {

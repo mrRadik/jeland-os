@@ -5,6 +5,14 @@ import ru.jeland.os.core.ClusterDesign
 /** Shared by the cached housing and live scales; all coordinates use the same 2048×768 viewport. */
 internal data class ClusterDial(val x:Float,val y:Float,val rx:Float,val ry:Float)
 
+/** Map body only; the manoeuvre strip sits immediately above it in the native artwork. */
+internal data class ClusterMapBounds(val left:Float,val top:Float,val width:Float,val height:Float)
+internal fun clusterMapBounds(design:ClusterDesign,guidance:Boolean=true):ClusterMapBounds?=(when(design) {
+    ClusterDesign.CLASSIC->ClusterMapBounds(752f,322f,544f,276f)
+    ClusterDesign.SPORT->ClusterMapBounds(1368f,212f,498f,398f)
+    else->null
+})?.let {if(guidance)it else it.copy(top=it.top-46f,height=it.height+46f)}
+
 internal object ClusterGeometry {
     const val INSTRUMENT_TOP=77f
     const val INSTRUMENT_BOTTOM=750f

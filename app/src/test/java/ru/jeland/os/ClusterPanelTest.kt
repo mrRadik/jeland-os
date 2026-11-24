@@ -6,6 +6,18 @@ import ru.jeland.os.core.*
 import ru.jeland.os.data.PersistentInterfaceRepository
 
 class ClusterPanelTest {
+    @Test fun builtDemoRouteIsSharedWithSimulatorButNeverUsedAsLiveOrDefaultGuidance() {
+        val route=NavigationState(demo=true,active=true,preview=false,
+            geometry=listOf(1.5 to 42.5,1.6 to 42.6),distanceToManeuver=350,street="Test road")
+        fun panel(demoCar:Boolean,nav:NavigationState)=ClusterPanelState.from(
+            UiState(car=VehicleLinkState(demo=demoCar),navigation=nav),null,null,20_000)
+        assertEquals(route,panel(true,route).navigation)
+        assertNull(panel(false,route).navigation)
+        assertNull(panel(true,route.copy(geometry=emptyList())).navigation)
+        assertNull(panel(true,route.copy(preview=true)).navigation)
+        assertNull(panel(true,route.copy(active=false)).navigation)
+        assertEquals(route.copy(demo=false),panel(false,route.copy(demo=false)).navigation)
+    }
     @Test fun unavailableDoesNotBecomeReferenceValuesOrDemoDefaults() {
         val s=UiState(car=VehicleLinkState(demo=false,connected=false))
         val panel=ClusterPanelState.from(s,null,null,20_000)
@@ -65,6 +77,25 @@ class ClusterPanelTest {
         }
         store.put("ui.cluster-design","future-format")
         assertEquals(ClusterDesign.ORIGINAL,PersistentInterfaceRepository(store).state.value.clusterDesign)
+    }
+    @Test fun navigationModePersistsAndUnknownValuesKeepTheAlwaysVisibleMap() {
+        val store=MemorySettingsStore();val prefs=PersistentInterfaceRepository(store)
+        assertEquals(ClusterNavigationMode.MAP,prefs.state.value.clusterNavigationMode)
+        for(mode in ClusterNavigationMode.entries) {
+            prefs.change(prefs.state.value.copy(clusterNavigationMode=mode))
+            assertEquals(mode,PersistentInterfaceRepository(store).state.value.clusterNavigationMode)
+        }
+        store.put("ui.cluster-navigation-mode","future-mode")
+        assertEquals(ClusterNavigationMode.MAP,PersistentInterfaceRepository(store).state.value.clusterNavigationMode)
+    }
+    @Test fun turnCuesRequireActiveGuidanceAndDisappearDuringCalculationAndOnArrival() {
+        val nav=NavigationState(active=true,preview=false)
+        fun active(value:NavigationState)=ClusterPanelState(navigation=value).activeNavigation
+        assertEquals(nav,active(nav))
+        assertNull(active(nav.copy(active=false)))
+        assertNull(active(nav.copy(preview=true)))
+        assertNull(active(nav.copy(calculating=true)))
+        assertNull(active(nav.copy(arrived=true)))
     }
     @Test fun retiredThemeNamesMigrateWithoutResettingTheSelectedPanel() {
         for(design in listOf(ClusterDesign.CLASSIC,ClusterDesign.NAVIGATION,ClusterDesign.SPORT)) {

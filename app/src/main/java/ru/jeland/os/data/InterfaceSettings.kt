@@ -12,7 +12,8 @@ class PersistentInterfaceRepository(private val store:SettingsStore):InterfaceRe
         ClusterDesign.fromStored(store.string("ui.cluster-design",ClusterDesign.ORIGINAL.name)),
         runCatching {ClusterAccent.valueOf(store.string("ui.cluster-accent",ClusterAccent.CYAN.name))}.getOrDefault(ClusterAccent.CYAN),
         runCatching {ClusterColorMode.valueOf(store.string("ui.cluster-color-mode",ClusterColorMode.MANUAL.name))}.getOrDefault(ClusterColorMode.MANUAL),
-        ClusterTripPeriod.fromStored(store.string("ui.cluster-trip-period",ClusterTripPeriod.SINCE_START.name))))
+        ClusterTripPeriod.fromStored(store.string("ui.cluster-trip-period",ClusterTripPeriod.SINCE_START.name)),
+        ClusterNavigationMode.fromStored(store.string("ui.cluster-navigation-mode",ClusterNavigationMode.MAP.name))))
     override val state=flow.asStateFlow()
     override fun change(value:InterfacePreferences) {
         val validated=value.copy(freeLayout=FreeDashboardLayout.decode(value.freeLayout.encode()))
@@ -23,6 +24,7 @@ class PersistentInterfaceRepository(private val store:SettingsStore):InterfaceRe
         store.put("ui.cluster-accent",value.clusterAccent.name)
         store.put("ui.cluster-color-mode",value.clusterColorMode.name)
         store.put("ui.cluster-trip-period",value.clusterTripPeriod.name)
+        store.put("ui.cluster-navigation-mode",value.clusterNavigationMode.name)
         store.put("ui.free-layout",validated.freeLayout.encode())
     }
 }
