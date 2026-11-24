@@ -163,6 +163,7 @@ data class ClusterIndicatorSlot(val indicator:ClusterIndicatorSpec,val x:Float,v
  * A message never participates in placement. Additional simultaneous states use the central rack.
  */
 object ClusterIndicatorLayout {
+    internal const val FOOTER_TOP=694f
     private data class Family(val bits:Set<Int>,val x:Float,val y:Float,val size:Float,val header:Boolean)
     private val fixed=buildList {
         listOf(setOf(2),setOf(123),setOf(3),setOf(4,5,6),setOf(84),setOf(7),setOf(8)).forEachIndexed {i,bits->
@@ -172,10 +173,10 @@ object ClusterIndicatorLayout {
             add(Family(bits,1536f+i*62,ClusterHeaderLayout.ICON_TOP,ClusterHeaderLayout.ICON_SIZE,true))
         }
         listOf(setOf(40,41,42,204),setOf(43,44,45,143,203),setOf(38,39),setOf(50,51,52,53,54,73,146),setOf(58,59,60,147,148,149)).forEachIndexed {i,bits->
-            add(Family(bits,778f-i*62,694f,54f,false))
+            add(Family(bits,778f-i*62,FOOTER_TOP,54f,false))
         }
         listOf(setOf(22),setOf(32),setOf(21),setOf(17),setOf(23)).forEachIndexed {i,bits->
-            add(Family(bits,1216f+i*62,694f,54f,false))
+            add(Family(bits,1216f+i*62,FOOTER_TOP,54f,false))
         }
     }
     @Suppress("UNUSED_PARAMETER")

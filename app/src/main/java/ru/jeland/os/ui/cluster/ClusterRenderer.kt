@@ -165,8 +165,9 @@ internal class ClusterRenderer(private val resources:Resources) {
         }
         cameraLimit?.let {limit->clusterSpeedLimitCircle(design)?.let {sign->speedLimitSign(c,sign,limit)}}
         header(c,s,clock,beltVisible,design)
-        footer(c,s,l,design)
+        footer(c,s,l)
         if(includeMessage) {
+            warningStrip.drawIndicators(c,s,white,l,design)
             val notice=clusterIslandNotice(s,l,roadAlert);val target=island.target(notice)
             island.draw(c,s,clock,dark,blue,l,target.first,target.second,if(notice==null)0f else 1f,notice,readouts=true)
         }
@@ -403,7 +404,7 @@ internal class ClusterRenderer(private val resources:Resources) {
         island.draw(c,s,clock,dark,if(dark)accent.darkArgb else accent.lightArgb,l,width,height,progress,notice,readouts=false)
         c.restore()
     }
-    private fun footer(c:Canvas,s:ClusterPanelState,l:ClusterLabels,design:ClusterDesign){
+    private fun footer(c:Canvas,s:ClusterPanelState,l:ClusterLabels){
 
         // Centre visible glyphs between the separator and the bottom fascia edge.
         text(c,"ODO  ${fmt(s.odometer)} ${l.km}",246f,0f,26f,muted,maxWidth=400f,centerY=(700f+757f)/2)
@@ -418,7 +419,6 @@ internal class ClusterRenderer(private val resources:Resources) {
             oem.draw(c,ClusterOemIcon.LIMITER,1660f,702f,42f,neutralTint=white)
             text(c,"LIM  ${lim.targetKmh?.toString()?:"—"}",1830f,736f,32f,white,maxWidth=250f)
         }
-        warningStrip.drawIndicators(c,s,white,l,design)
     }
     private fun fuelIcon(c:Canvas,x:Float,y:Float,scale:Float,reserve:Boolean=false,neutralTint:Int=white) {
         oem.draw(c,if(reserve)ClusterOemIcon.FUEL_LOW else ClusterOemIcon.FUEL_NORMAL,

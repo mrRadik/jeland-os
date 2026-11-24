@@ -11,6 +11,38 @@ import java.security.MessageDigest
 import org.json.JSONObject
 
 class ClusterAllIndicatorsInstrumentation {
+    @Test fun fixedFooterIconsHaveNoBackdropWhileAdditionalIconsKeepContrast() {
+        val app=InstrumentationRegistry.getInstrumentation().targetContext
+        val assets=ClusterOemAssets(app.resources)
+        val strip=ClusterWarningStrip(assets)
+        val labels=ClusterLabels("км/ч","×1000 об/мин","км","м","л","л/100 км","С момента запуска","Нет маршрута")
+        val plain=Bitmap.createBitmap(2048,768,Bitmap.Config.ARGB_8888)
+        val overlay=Bitmap.createBitmap(2048,768,Bitmap.Config.ARGB_8888)
+        val fixed=ClusterIndicatorCatalog.definitions.filter {it.bit in setOf(38,42,45)}
+        val additional=ClusterIndicatorCatalog.definitions.single {it.bit==24}
+        try {
+            for(design in listOf(ClusterDesign.CLASSIC,ClusterDesign.SPORT,ClusterDesign.NAVIGATION))for(dark in listOf(true,false)) {
+                val tint=if(dark)Color.WHITE else Color.BLACK
+                plain.eraseColor(Color.TRANSPARENT)
+                overlay.eraseColor(Color.TRANSPARENT)
+                val panel=ClusterPanelState(indicators=fixed)
+                strip.drawIndicators(Canvas(overlay),panel,tint,labels,design,backdrop=true,dark=dark)
+                assertFalse("Footer icons must be drawn",plain.sameAs(overlay))
+                strip.drawIndicators(Canvas(plain),panel,tint,labels,design)
+                assertTrue("Footer artwork differs with the overlay in $design (dark=$dark)",plain.sameAs(overlay))
+
+                val overflow=ClusterPanelState(indicators=listOf(additional))
+                strip.drawIndicators(Canvas(overlay),overflow,tint,labels,design,backdrop=true,dark=dark)
+                strip.drawIndicators(Canvas(plain),overflow,tint,labels,design)
+                assertFalse("Additional indicators need a contrast backdrop",plain.sameAs(overlay))
+            }
+        } finally {
+            plain.recycle()
+            overlay.recycle()
+            assets.close()
+        }
+    }
+
     @Test fun everyNamedStateHasItsOemAssetAndRendersAcrossAllThreeDesigns() {
         val app=InstrumentationRegistry.getInstrumentation().targetContext
         val assets=ClusterOemAssets(app.resources)
